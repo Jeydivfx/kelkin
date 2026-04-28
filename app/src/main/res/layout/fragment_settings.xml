@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/bg_black">
+
+    <LinearLayout
+        android:id="@+id/panel_details"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:background="#0DFFFFFF"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:padding="40dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintWidth_percent="0.4">
+
+        <ImageView
+            android:id="@+id/img_setting_detail"
+            android:layout_width="150dp"
+            android:layout_height="150dp"
+            android:src="@drawable/ic_menu_settings"
+            app:tint="#FFD700" />
+
+        <TextView
+            android:id="@+id/txt_setting_description"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:gravity="center"
+            android:text="تنظیمات کلی برنامه کلکین"
+            android:textColor="@color/text_white"
+            android:textSize="18sp" />
+    </LinearLayout>
+
+    <ScrollView
+        android:id="@+id/settingsScrollView"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:clipToPadding="false"
+        android:focusable="false"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@id/panel_details">
+
+        <LinearLayout
+            android:id="@+id/settingsContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="30dp"
+            android:focusable="false"
+            android:descendantFocusability="afterDescendants">
+
+            <TextView
+                style="@style/SettingHeader"
+                android:text="عمومی" />
+
+            <androidx.cardview.widget.CardView
+                android:id="@+id/cardLanguage"
+                android:nextFocusUp="@id/cardLanguage"
+                style="@style/SettingCard"
+                android:focusable="true"
+                android:clickable="true"
+                android:nextFocusLeft="@id/sidebar">
+                <TextView
+                    android:id="@+id/txtLanguageDisplay"
+                    style="@style/SettingItemText"
+                    android:text="زبان برنامه: فارسی" />
+            </androidx.cardview.widget.CardView>
+
+            <androidx.cardview.widget.CardView
+                android:id="@+id/cardFontSize"
+                style="@style/SettingCard"
+                android:focusable="true"
+                android:clickable="true"
+                android:nextFocusLeft="@id/sidebar">
+                <TextView
+                    android:id="@+id/txtFontSizeDisplay"
+                    style="@style/SettingItemText"
+                    android:text="اندازه فونت: پیش‌فرض" />
+            </androidx.cardview.widget.CardView>
+
+            <androidx.cardview.widget.CardView
+                android:id="@+id/cardQuality"
+                style="@style/SettingCard"
+                android:focusable="true"
+                android:clickable="true"
+                android:nextFocusLeft="@id/sidebar">
+                <TextView
+                    android:id="@+id/txtQualityDisplay"
+                    style="@style/SettingItemText"
+                    android:text="کیفیت پخش: Auto" />
+            </androidx.cardview.widget.CardView>
+
+            <TextView style="@style/SettingHeader" android:layout_marginTop="20dp" android:text="پشتیبانی" />
+
+            <androidx.cardview.widget.CardView
+                android:id="@+id/cardAbout"
+                style="@style/SettingCard"
+                android:focusable="true"
+                android:clickable="true"
+                android:nextFocusLeft="@id/sidebar">
+                <TextView
+                    android:id="@+id/txtAboutDisplay"
+                    style="@style/SettingItemText"
+                    android:text="درباره ما و شبکه‌های اجتماعی" />
+            </androidx.cardview.widget.CardView>
+
+            <androidx.cardview.widget.CardView
+                android:id="@+id/cardClearCache"
+                style="@style/SettingCard"
+                android:focusable="true"
+                android:clickable="true"
+                android:nextFocusDown="@id/cardClearCache"
+                android:nextFocusLeft="@id/sidebar">
+                <TextView
+                    android:id="@+id/txtClearDisplay"
+                    style="@style/SettingItemText"
+                    android:text="پاکسازی حافظه موقت" />
+            </androidx.cardview.widget.CardView>
+
+        </LinearLayout>
+    </ScrollView>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

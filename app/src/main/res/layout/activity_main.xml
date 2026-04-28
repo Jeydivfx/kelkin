@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/bg_black">
+
+    <LinearLayout
+        android:id="@+id/sidebar"
+        android:layout_width="60dp"
+        android:layout_height="match_parent"
+        android:elevation="20dp"
+        android:gravity="right"
+        android:orientation="vertical"
+        android:paddingTop="30dp"
+        android:paddingHorizontal="10dp"
+        android:clipChildren="false"
+        android:clipToPadding="false"
+        android:nextFocusUp="@id/sidebar"
+        android:descendantFocusability="blocksDescendants"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <LinearLayout
+            android:id="@+id/container_home"
+            style="@style/SideBarItemStyle">
+            <TextView
+                android:id="@+id/txt_home"
+                android:text="خانه"
+                style="@style/SideBarTextStyle" />
+            <ImageView
+                android:id="@+id/nav_home"
+                android:src="@drawable/ic_menu_home"
+                style="@style/SideBarIconStyle" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/container_movies"
+            style="@style/SideBarItemStyle">
+            <TextView
+                android:id="@+id/txt_movies"
+                android:text="فیلم ها"
+                style="@style/SideBarTextStyle" />
+            <ImageView
+                android:id="@+id/nav_movies"
+                android:src="@drawable/ic_menu_movie"
+                style="@style/SideBarIconStyle" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/container_tv"
+            style="@style/SideBarItemStyle">
+            <TextView
+                android:id="@+id/txt_tv"
+                android:text="تلویزیون"
+                style="@style/SideBarTextStyle" />
+            <ImageView
+                android:id="@+id/nav_tv"
+                android:src="@drawable/ic_menu_tv"
+                style="@style/SideBarIconStyle" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/container_radio"
+            style="@style/SideBarItemStyle">
+            <TextView
+                android:id="@+id/txt_radio"
+                android:text="رادیو"
+                style="@style/SideBarTextStyle" />
+            <ImageView
+                android:id="@+id/nav_radio"
+                android:src="@drawable/ic_menu_radio"
+                style="@style/SideBarIconStyle" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/container_search"
+            android:nextFocusDown="@id/container_settings"
+            style="@style/SideBarItemStyle">
+            <TextView
+                android:id="@+id/txt_search"
+                android:text="جستجو"
+                style="@style/SideBarTextStyle" />
+            <ImageView
+                android:id="@+id/nav_search"
+                android:src="@drawable/ic_menu_search"
+                style="@style/SideBarIconStyle" />
+        </LinearLayout>
+
+        <Space
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1" />
+
+        <LinearLayout
+            android:id="@+id/container_settings"
+            style="@style/SideBarItemStyle"
+            android:nextFocusUp="@id/container_search"
+            android:nextFocusDown="@id/container_settings"
+            android:layout_marginBottom="30dp">
+            <TextView
+                android:id="@+id/txt_settings"
+                android:text="تنظیمات"
+                style="@style/SideBarTextStyle" />
+            <ImageView
+                android:id="@+id/nav_settings"
+                android:src="@drawable/ic_menu_settings"
+                style="@style/SideBarIconStyle" />
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <androidx.fragment.app.FragmentContainerView
+        android:id="@+id/nav_host_fragment"
+        android:name="androidx.navigation.fragment.NavHostFragment"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        app:defaultNavHost="true"
+        app:navGraph="@navigation/nav_graph"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/sidebar" />
+</androidx.constraintlayout.widget.ConstraintLayout>
+

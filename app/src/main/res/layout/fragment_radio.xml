@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/bg_black"
+    android:padding="24dp"
+    android:layoutDirection="rtl">
+
+    <LinearLayout
+        android:id="@+id/radioFilterBar"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="24dp"
+        android:gravity="right|center_vertical"
+        android:orientation="horizontal"
+        android:focusable="false"
+        android:descendantFocusability="afterDescendants"
+        android:background="@drawable/hero_bottom_fade"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnRadioCategory"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:focusable="true"
+            android:fontFamily="@font/yekanbakh_regular"
+            android:text="همه ایستگاه‌ها"
+            android:textColor="@color/text_white"
+            android:textSize="13sp"
+            app:strokeColor="#40FFFFFF"
+            app:cornerRadius="8dp"
+            app:icon="@drawable/ic_arrow_drop_down"
+            app:iconGravity="textStart"
+            app:iconPadding="8dp"
+            app:iconTint="@color/text_white" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnRadioSort"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="12dp"
+            android:focusable="true"
+            android:fontFamily="@font/yekanbakh_regular"
+            android:text="ترتیب الفبا"
+            android:textColor="@color/text_white"
+            android:textSize="13sp"
+            app:strokeColor="#40FFFFFF"
+            app:cornerRadius="8dp"
+            app:icon="@drawable/ic_arrow_drop_down"
+            app:iconGravity="textStart"
+            app:iconPadding="8dp"
+            app:iconTint="@color/text_white" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnRadioFavorites"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:focusable="true"
+            android:fontFamily="@font/yekanbakh_regular"
+            android:text="علاقه‌مندی‌ها"
+            android:textColor="@color/text_white"
+            android:textSize="13sp"
+            app:strokeColor="#40FFFFFF"
+            app:cornerRadius="8dp"
+            app:iconTint="@color/text_white" />
+
+    </LinearLayout>
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvRadioStations"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:paddingTop="30dp"
+        android:clipToPadding="false"
+        android:paddingBottom="40dp"
+        android:layoutDirection="rtl"
+        android:focusable="false"
+        android:descendantFocusability="afterDescendants"
+        android:nextFocusUp="@id/btnRadioCategory"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/radioFilterBar"
+        tools:listitem="@layout/item_channel"
+        tools:layoutManager="androidx.recyclerview.widget.GridLayoutManager"
+        tools:spanCount="5" />
+
+    <ProgressBar
+        android:id="@+id/progressBarRadio"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:elevation="15dp"
+        android:indeterminateTint="#FFC107"
+        android:visibility="visible"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

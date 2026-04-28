@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="bg_black">#0F0F0F</color>
+    <color name="netflix_red">#E50914</color>
+    <color name="netflix_red_dark">#B20710</color>
+    <color name="text_white">#FFFFFF</color>
+    <color name="text_gray">#B3B3B3</color>
+    <color name="text_description">#E5E5E5</color>
+    <color name="btn_info_bg">#6D6D6E</color>
+    <color name="focused_white">#FFFFFF</color>
+    <color name="sidebar_glass_bg">#CC000000</color>
+    <color name="yellow">#FFD700</color>
+</resources>
