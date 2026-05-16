@@ -8,6 +8,7 @@ import android.os.SystemClock
 import android.util.AttributeSet
 import android.view.KeyEvent
 import android.view.MotionEvent
+import android.view.View
 import android.webkit.WebView
 import android.widget.FrameLayout
 import android.widget.ImageView
@@ -67,7 +68,19 @@ class VirtualMouseView @JvmOverloads constructor(
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {
         if (event.action == KeyEvent.ACTION_DOWN) {
             val activity = context as? PlayerActivity
-            if (activity?.isVkVideo == false) return super.dispatchKeyEvent(event)
+
+            // --- اصلاح خط ارور: اگر پلتفرم فیلم مستقیم (ExoPlayer) بود، موس مجازی کار نکند ---
+            val currentPlatform = activity?.intent?.getStringExtra("video_url") // یک روش کمکی برای گرفتن وضعیت پلتفرم جاری اکتیویتی
+
+            // با چک کردن متد کمکی یا دسترسی مستقیم به پلتفرم
+            // اگر ویدیو مال وب‌پلیر نبود، بگذار ریموت کار عادی خودش را بکند
+            if (activity == null) return super.dispatchKeyEvent(event)
+
+            // منطق جدید بر اساس ساختار تلفیقی PlayerActivity
+            // اگر پلتفرم مستقیم بود، یعنی ماوس مجازی نباید کلیدها را بلاک کند
+            if (activity.binding.playerView.visibility == View.VISIBLE) {
+                return super.dispatchKeyEvent(event)
+            }
 
             // با فشردن هر کلیدی، اول موس را ظاهر کن و تایمر را تمدید کن
             resetHideTimer()
@@ -90,7 +103,7 @@ class VirtualMouseView @JvmOverloads constructor(
                     return true
                 }
                 KeyEvent.KEYCODE_DPAD_CENTER, KeyEvent.KEYCODE_ENTER, KeyEvent.KEYCODE_SPACE -> {
-                    activity?.let { click(it.binding.vkWebView) }
+                    activity.let { click(it.binding.vkWebView) }
                     return true
                 }
             }

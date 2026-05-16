@@ -1,11 +1,11 @@
 package com.example.kelkin
 
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.view.KeyEvent
 import android.view.View
-import android.webkit.WebChromeClient
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.annotation.OptIn
@@ -21,7 +21,9 @@ class PlayerActivity : AppCompatActivity() {
 
     val binding by lazy { ActivityPlayerBinding.inflate(layoutInflater) }
     private var player: ExoPlayer? = null
-    var isVkVideo = false
+
+    // وضعیت پلتفرم: می تواند "DIRECT" یا "VK" یا "OK" باشد
+    private var videoPlatform = "DIRECT"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -30,25 +32,34 @@ class PlayerActivity : AppCompatActivity() {
         val videoUrl = intent.getStringExtra("video_url") ?: ""
         val startPos = intent.getLongExtra("start_pos", 0L)
 
+        // ۱. تشخیص و جداسازی پلتفرم‌ها بر اساس لینک ورودی
         if (videoUrl.contains("vkvideo.ru") || videoUrl.contains("vk.com")) {
-            isVkVideo = true
+            videoPlatform = "VK"
             val embedUrl = convertToVkEmbedUrl(videoUrl, startPos)
             setupWebView(embedUrl)
+        } else if (videoUrl.contains("ok.ru")) {
+            videoPlatform = "OK"
+            val embedUrl = convertToOkEmbedUrl(videoUrl, startPos)
+            setupWebView(embedUrl)
         } else {
-            isVkVideo = false
+            videoPlatform = "DIRECT"
             setupPlayer(videoUrl, startPos)
         }
 
         onBackPressedDispatcher.addCallback(this, object : androidx.activity.OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
-                if (!isVkVideo) {
+                // اگر ویدیو تحت وب (VK یا OK) بود ابتدا دیتای آن را استخراج می‌کنیم، در غیر این صورت مستقیم از اکسوپلیر می‌گیریم
+                if (videoPlatform == "VK" || videoPlatform == "OK") {
+                    saveWebPositionAndFinish()
+                } else {
                     savePositionDirectly()
+                    finish()
                 }
-                finish()
             }
         })
     }
 
+    // متد تبدیل لینک معمولی VK به لینک Embed مستقل
     private fun convertToVkEmbedUrl(url: String, startPosMs: Long): String {
         try {
             val videoPart = url.substringAfter("video-").substringAfter("video_")
@@ -57,8 +68,6 @@ class PlayerActivity : AppCompatActivity() {
                 val oid = parts[0]
                 val id = parts[1].split("?")[0]
                 val finalOid = if (url.contains("video-")) "-$oid" else oid
-
-                // تبدیل میلی‌ثانیه به ثانیه برای پلیر تحت وب VK
                 val startSeconds = startPosMs / 1000
 
                 return if (startSeconds > 0) {
@@ -69,6 +78,18 @@ class PlayerActivity : AppCompatActivity() {
             }
         } catch (e: Exception) {
             Log.e("VK_Parser", "Error converting URL: ${e.message}")
+        }
+        return url
+    }
+
+    // متد تبدیل لینک ثابت OK.ru به لینک Embed مستقل به همراه اعمال زمان شروع فیلم
+    private fun convertToOkEmbedUrl(url: String, startPosMs: Long): String {
+        try {
+            val startSeconds = startPosMs / 1000
+            val videoId = url.substringAfterLast("/")
+            return "https://ok.ru/videoembed/$videoId?autoplay=1&st.start=$startSeconds"
+        } catch (e: Exception) {
+            Log.e("OK_Parser", "Error converting URL: ${e.message}")
         }
         return url
     }
@@ -90,34 +111,54 @@ class PlayerActivity : AppCompatActivity() {
     }
 
     private fun setupWebView(url: String) {
-        binding.playerView.visibility = android.view.View.GONE
-        binding.vkPlayerContainer.visibility = android.view.View.VISIBLE
+        binding.playerView.visibility = View.GONE
+        binding.vkPlayerContainer.visibility = View.VISIBLE
 
         binding.vkWebView.apply {
             keepScreenOn = true
 
-            // --- اضافه کردن این ۳ خط برای جلوگیری از دزدیدن فوکوس ---
-            isFocusable = false                  // وب‌ویو نباید قابل فوکوس باشد
-            isFocusableInTouchMode = false       // جلوگیری از فوکوس لمسی
-            descendantFocusability = android.view.ViewGroup.FOCUS_BLOCK_DESCENDANTS // بلاک کردن فوکوس فرزندان وب‌ویو
+            isFocusable = false
+            isFocusableInTouchMode = false
+            descendantFocusability = android.view.ViewGroup.FOCUS_BLOCK_DESCENDANTS
 
             settings.javaScriptEnabled = true
             settings.domStorageEnabled = true
             settings.mediaPlaybackRequiresUserGesture = false
             settings.userAgentString = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
 
-            webViewClient = object : android.webkit.WebViewClient() {
-                override fun onPageFinished(view: android.webkit.WebView?, url: String?) {
+            webViewClient = object : WebViewClient() {
+                override fun onPageFinished(view: WebView?, url: String?) {
                     super.onPageFinished(view, url)
 
-                    val cssFullscreen = """
-                    var style = document.createElement('style');
-                    style.innerHTML = 'video, .video_box, iframe { width: 100vw !important; height: 100vh !important; position: fixed !important; top: 0 !important; left: 0 !important; z-index: 999999 !important; object-fit: contain !important; }';
-                    document.head.appendChild(style);
-                """.trimIndent()
-                    evaluateJavascript("javascript:$cssFullscreen", null)
+                    // تزریق استایل‌های تمام‌صفحه و جاوااسکریپت بر اساس پلتفرم ویدیویی جاری
+                    if (videoPlatform == "VK") {
+                        val cssFullscreen = """
+                            var style = document.createElement('style');
+                            style.innerHTML = 'video, .video_box, iframe { width: 100vw !important; height: 100vh !important; position: fixed !important; top: 0 !important; left: 0 !important; z-index: 999999 !important; object-fit: contain !important; }';
+                            document.head.appendChild(style);
+                        """.trimIndent()
+                        evaluateJavascript("javascript:$cssFullscreen", null)
+                    } else if (videoPlatform == "OK") {
+                        val jsOkSetup = """
+                            var video = document.querySelector('video');
+                            if (video) {
+                                var overlay = document.querySelector('.vp_g_overlay');
+                                if (overlay) overlay.style.display = 'none';
+                                
+                                video.style.position = 'fixed';
+                                video.style.top = '0';
+                                video.style.left = '0';
+                                video.style.width = '100vw';
+                                video.style.height = '100vh';
+                                video.style.zIndex = '999999';
+                                video.style.backgroundColor = 'black';
+                                video.style.objectFit = 'contain';
+                            }
+                        """.trimIndent()
+                        evaluateJavascript("javascript:$jsOkSetup", null)
+                    }
 
-                    // بعد از پایان لود، فوکوس را با قدرت به لایه موس مجازی می‌دهیم
+                    // انتقال مستقیم فوکوس به لایه ماوس مجازی تلویزیون
                     binding.vkVirtualMouse.requestFocus()
                 }
             }
@@ -127,9 +168,8 @@ class PlayerActivity : AppCompatActivity() {
     }
 
     override fun onKeyDown(keyCode: Int, event: KeyEvent): Boolean {
-        if (isVkVideo) {
-            // کلیدهای جهت‌نما و کلیک به طور خودکار توسط کلاس VirtualMouseView مدیریت می‌شوند.
-            // اینجا فقط کلیدهای خاص ریموت مثل دکمه پخش/توقف سخت‌افزاری را هندل می‌کنیم.
+        // مدیریت دکمه‌های کنترلی سخت‌افزاری تلویزیون برای هر دو پلیر تحت وب
+        if (videoPlatform == "VK" || videoPlatform == "OK") {
             when (keyCode) {
                 KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE -> {
                     binding.vkVirtualMouse.click(binding.vkWebView)
@@ -140,9 +180,51 @@ class PlayerActivity : AppCompatActivity() {
         return super.onKeyDown(keyCode, event)
     }
 
-    private fun savePositionDirectly() {
-        val currentPos = player?.currentPosition ?: 0L
-        val totalDur = player?.duration ?: 0L
+    // متد استخراج هوشمند زمان پخش از داخل کدهای HTML هر دو وب‌پلیر به صورت مجزا
+    private fun saveWebPositionAndFinish() {
+        val jsGetTime = if (videoPlatform == "VK") {
+            """
+                (function() {
+                    var video = document.querySelector('video');
+                    return video ? [video.currentTime, video.duration] : [0, 0];
+                })()
+            """.trimIndent()
+        } else {
+            // کد اختصاصی گرفتن زمان برای پلیر OK.ru
+            """
+                (function() {
+                    var video = document.querySelector('video');
+                    return video ? [video.currentTime, video.duration] : [0, 0];
+                })()
+            """.trimIndent()
+        }
+
+        binding.vkWebView.evaluateJavascript(jsGetTime) { result ->
+            try {
+                if (!result.isNullOrEmpty() && result != "[0,0]" && result != "null") {
+                    val cleanResult = result.replace("[", "").replace("]", "")
+                    val parts = cleanResult.split(",")
+                    if (parts.size >= 2) {
+                        val currentSeconds = parts[0].toDoubleOrNull() ?: 0.0
+                        val durationSeconds = parts[1].toDoubleOrNull() ?: 0.0
+
+                        val currentPosMs = (currentSeconds * 1000).toLong()
+                        val durationMs = (durationSeconds * 1000).toLong()
+
+                        savePositionDirectly(currentPosMs, durationMs)
+                    }
+                }
+            } catch (e: Exception) {
+                Log.e("ContinueWatching", "Error parsing Web time: ${e.message}")
+            }
+            finish()
+        }
+    }
+
+    // متد جامع و منعطف ذخیره‌سازی زمان فیلم‌ها در سیستم ادامه پخش دیتابیس لوکل برنامه
+    private fun savePositionDirectly(customPos: Long? = null, customDuration: Long? = null) {
+        val currentPos = customPos ?: (player?.currentPosition ?: 0L)
+        val totalDur = customDuration ?: (player?.duration ?: 0L)
 
         val resultIntent = Intent().apply {
             putExtra("last_pos", currentPos)
@@ -159,7 +241,7 @@ class PlayerActivity : AppCompatActivity() {
         }
 
         if (currentPos > 2000) {
-            val prefs = getSharedPreferences("kelkin_prefs", MODE_PRIVATE)
+            val prefs = getSharedPreferences("kelkin_prefs", Context.MODE_PRIVATE)
             val gson = Gson()
 
             val json = prefs.getString("saved_continue_list", null)
