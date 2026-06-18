@@ -1,0 +1,175 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#0F0F0F"
+    android:layoutDirection="rtl"> <ImageView
+    android:id="@+id/imgBackdrop"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:alpha="0.4"
+    android:scaleType="centerCrop"
+    tools:src="@drawable/hero_test_header" />
+
+
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@drawable/hero_gradient_overlay" />
+
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:layoutDirection="rtl"
+        android:paddingStart="56dp"
+        android:paddingEnd="56dp"
+        android:layoutAnimation="@anim/layout_fall_down"> <Space
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1" />
+
+        <TextView
+            android:id="@+id/txtTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:includeFontPadding="false"
+            android:textColor="@color/text_white"
+            android:textSize="40sp"
+            android:textStyle="bold"
+            tools:text="نام فیلم" />
+
+        <TextView
+            android:id="@+id/txtTitleEnglish"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:fontFamily="@font/montserrat_regular"
+            android:textColor="#80FFFFFF"
+            android:textSize="18sp"
+            android:alpha="0.7"
+            tools:text="Movie Original Title" />
+
+        <TextView
+            android:id="@+id/txtInfo"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:fontFamily="@font/montserrat_regular"
+            android:includeFontPadding="false"
+            android:letterSpacing="0.02"
+            android:textColor="#818181"
+            android:textSize="15sp"
+            android:textDirection="rtl"
+            android:layout_gravity="right"
+            android:lineSpacingExtra="4dp"
+            tools:text="Action, Sci-Fi  |  8.5  |  2024" />
+
+
+        <TextView
+            android:id="@+id/txtDescription"
+            android:layout_width="700dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:ellipsize="end"
+            android:lineSpacingExtra="6dp"
+            android:fontFamily="@font/vazir_regular"
+            android:textColor="@color/text_white"
+            android:textSize="15sp"
+            android:maxLines="4"
+            tools:text="خلاصه داستان..." />
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:layout_gravity="right">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnContinue"
+                android:layout_width="wrap_content"
+                android:layout_height="44dp"
+                android:layout_marginEnd="4dp"
+                android:minHeight="0dp"
+                android:minWidth="0dp"
+                android:nextFocusUp="@id/btnPlay"
+                android:paddingHorizontal="16dp"
+                android:background="@drawable/sl_button_high_contrast"
+                app:backgroundTint="@null"
+                android:fontFamily="@font/yekanbakh_bold"
+                android:text="ادامه تماشا"
+                android:textColor="@drawable/sl_text_high_contrast"
+                android:textSize="16sp"
+                app:cornerRadius="6dp"
+                app:iconSize="20dp"
+                android:visibility="gone"
+                tools:visibility="visible" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnPlay"
+                android:layout_width="wrap_content"
+                android:layout_height="44dp"
+                android:minHeight="0dp"
+                android:nextFocusUp="@id/btnPlay"
+                android:layout_marginEnd="4dp"
+                android:minWidth="0dp"
+                android:paddingHorizontal="20dp"
+                android:background="@drawable/sl_button_high_contrast"
+                app:backgroundTint="@null"
+                android:fontFamily="@font/yekanbakh_bold"
+                android:text="پخش"
+                android:textColor="@drawable/sl_text_high_contrast"
+                android:textSize="16sp"
+                app:cornerRadius="6dp"
+                app:icon="@drawable/ic_media_play"
+                app:iconGravity="textEnd"
+                app:iconSize="20dp"
+                app:iconTint="@drawable/sl_text_high_contrast" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnBookmark"
+                style="@style/Widget.MaterialComponents.Button.Icon"
+                android:layout_width="48dp"
+                android:layout_height="44dp"
+                android:nextFocusUp="@id/btnBookmark"
+                android:layout_marginEnd="4dp"
+                android:minWidth="0dp"
+                android:minHeight="0dp"
+                android:padding="0dp"
+                android:background="@drawable/sl_button_high_contrast"
+                app:backgroundTint="@null"
+                app:cornerRadius="6dp"
+                app:icon="@drawable/ic_bookmark"
+                app:iconGravity="textStart"
+                app:iconPadding="0dp"
+                app:iconSize="20dp"
+                app:iconTint="@drawable/sl_text_high_contrast" />
+        </LinearLayout>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="32dp"
+            android:text="بازیگران"
+            android:textColor="@color/text_white"
+            android:textSize="22sp"
+            android:textStyle="bold" />
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvCast"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:clipToPadding="false"
+            android:paddingBottom="10dp"
+            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
+
+    </LinearLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

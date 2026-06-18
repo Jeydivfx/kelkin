@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="60dp"
+    android:gravity="center_horizontal"
+    android:background="#0F0F0F">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="پنل مدیریت کلکین"
+        android:textColor="#FFD700"
+        android:textSize="32sp"
+        android:textStyle="bold"
+        android:gravity="center"
+        android:layout_marginBottom="60dp" />
+
+    <GridLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:columnCount="2"
+        android:columnOrderPreserved="false"
+        android:alignmentMode="alignMargins"
+        android:useDefaultMargins="true">
+
+        <Button
+            android:id="@+id/btnManageMovies"
+            android:text="مدیریت فیلم‌ها"
+            android:layout_rowWeight="1"
+            android:layout_columnWeight="1"
+            android:layout_margin="16dp"
+            android:drawableTop="@drawable/ic_menu_movie"
+            style="@style/AdminButtonStyle" />
+
+        <Button
+            android:id="@+id/btnManageTV"
+            android:text="مدیریت شبکه‌ها"
+            android:layout_rowWeight="1"
+            android:layout_columnWeight="1"
+            android:layout_margin="16dp"
+            android:drawableTop="@drawable/ic_menu_tv"
+            style="@style/AdminButtonStyle" />
+
+    </GridLayout>
+</LinearLayout>

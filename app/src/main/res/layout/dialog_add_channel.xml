@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="24dp"
+    android:layoutDirection="rtl"
+    android:background="#1A1A1A">
+
+    <EditText
+        android:id="@+id/edtChannelName"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:layout_marginBottom="12dp"
+        android:background="#333333"
+        android:hint="نام کانال"
+        android:paddingHorizontal="16dp"
+        android:textColor="#FFFFFF"
+        android:textColorHint="#AAAAAA"
+        android:textSize="16sp" />
+
+    <EditText
+        android:id="@+id/edtStreamUrl"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:layout_marginBottom="12dp"
+        android:background="#333333"
+        android:hint="لینک استریم"
+        android:paddingHorizontal="16dp"
+        android:textColor="#FFFFFF"
+        android:textColorHint="#AAAAAA"
+        android:textSize="16sp" />
+
+    <EditText
+        android:id="@+id/edtLogoUrl"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:layout_marginBottom="12dp"
+        android:background="#333333"
+        android:hint="لینک لوگو"
+        android:paddingHorizontal="16dp"
+        android:textColor="#FFFFFF"
+        android:textColorHint="#AAAAAA"
+        android:textSize="16sp" />
+
+    <TextView
+        android:id="@+id/btnCategoryDropdown"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:background="#333333"
+        android:clickable="true"
+        android:focusable="true"
+        android:gravity="center_vertical|right"
+        android:hint="انتخاب دسته‌بندی..."
+        android:paddingHorizontal="16dp"
+        android:textColor="#FFFFFF"
+        android:textColorHint="#AAAAAA"
+        android:textSize="16sp"
+        android:textDirection="rtl" />
+
+</LinearLayout>
