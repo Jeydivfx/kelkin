@@ -42,8 +42,6 @@ class MovieAdapter(
     class MovieViewHolder(private val binding: ItemMovieCardBinding) : RecyclerView.ViewHolder(binding.root) {
 
         fun bind(movie: Movie, onMovieClick: (Movie) -> Unit) {
-            Log.d("KelkinDebug", "در حال نمایش فیلم: ${movie.name_fa}")
-
 
             val finalUrl = if (!movie.posterUrl.isNullOrEmpty()) {
                 "https://image.tmdb.org/t/p/w500${movie.posterUrl}"
@@ -51,7 +49,6 @@ class MovieAdapter(
                 null
             }
 
-            Log.d("KelkinDebug", "تلاش برای لود آدرس: $finalUrl")
 
             Glide.with(itemView.context)
                 .load(finalUrl)

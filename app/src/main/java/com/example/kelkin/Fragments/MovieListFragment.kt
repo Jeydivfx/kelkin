@@ -8,14 +8,18 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.kelkin.Adapter.AdminItemAdapter
 import com.example.kelkin.R
 import com.example.kelkin.databinding.FragmentMovieListBinding
+import com.example.kelkin.utils.DialogUtils
 import com.example.kelkin.utils.FirebaseManager
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.ValueEventListener
+import androidx.activity.OnBackPressedCallback
+
 
 class MovieListFragment : Fragment(R.layout.fragment_movie_list) {
 
@@ -29,6 +33,13 @@ class MovieListFragment : Fragment(R.layout.fragment_movie_list) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         _binding = FragmentMovieListBinding.bind(view)
+
+
+        requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner, object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                findNavController().navigate(R.id.action_movieListFragment_to_adminDashboardFragment)
+            }
+        })
 
         fetchCategoriesForDropdown()
 
@@ -69,18 +80,12 @@ class MovieListFragment : Fragment(R.layout.fragment_movie_list) {
     }
 
     private fun deleteMovie(id: String) {
-        AlertDialog.Builder(requireContext())
-            .setTitle("حذف فیلم")
-            .setMessage("آیا مطمئن هستید؟")
-            .setPositiveButton("بله") { _, _ ->
-                FirebaseManager.deleteItem("movie", id) { success ->
-                    if (success) Toast.makeText(context, "حذف شد", Toast.LENGTH_SHORT).show()
-                }
+        DialogUtils.showConfirmDialog(requireContext(), "حذف فیلم", "آیا مطمئن هستید که می‌خواهید این فیلم حذف شود؟") {
+            FirebaseManager.deleteItem("movie", id) { success ->
+                if (success) Toast.makeText(context, "فیلم حذف شد", Toast.LENGTH_SHORT).show()
             }
-            .setNegativeButton("خیر", null)
-            .show()
+        }
     }
-
     private fun showEditDialog(id: String, data: Map<String, Any>) {
         val builder = android.app.AlertDialog.Builder(requireContext(), R.style.CustomAlertDialog)
         val view = layoutInflater.inflate(R.layout.dialog_add_movie, null)

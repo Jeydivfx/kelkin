@@ -60,8 +60,23 @@ class SplashActivity : AppCompatActivity() {
         if (isNavigated) return
         isNavigated = true
 
-        val intent = Intent(this, MainActivity::class.java)
-        startActivity(intent)
-        finish() // پاک کردن اسپلش از حافظه
+        val currentUser = com.google.firebase.auth.FirebaseAuth.getInstance().currentUser
+
+        if (currentUser == null) {
+            startActivity(Intent(this, LoginActivity::class.java))
+            finish()
+        } else {
+            com.example.kelkin.utils.UserManager.checkUserActivationStatus { isActive ->
+                if (isActive) {
+                    // اینجا به جای اینکه به ویومدل تکیه کنیم، مستقیم می‌رویم
+                    startActivity(Intent(this, MainActivity::class.java))
+                    finish()
+                } else {
+                    // اگر اکتیو نیست
+                    startActivity(Intent(this, LoginActivity::class.java))
+                    finish()
+                }
+            }
+        }
     }
 }

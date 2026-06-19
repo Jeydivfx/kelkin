@@ -10,14 +10,17 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.view.ContextThemeWrapper
 import androidx.fragment.app.Fragment
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.kelkin.Adapter.AdminItemAdapter
 import com.example.kelkin.R
 import com.example.kelkin.databinding.FragmentChannelListBinding
+import com.example.kelkin.utils.DialogUtils
 import com.example.kelkin.utils.FirebaseManager
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.ValueEventListener
+import androidx.activity.OnBackPressedCallback
 
 class ChannelListFragment : Fragment(R.layout.fragment_channel_list) {
 
@@ -31,6 +34,12 @@ class ChannelListFragment : Fragment(R.layout.fragment_channel_list) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         _binding = FragmentChannelListBinding.bind(view)
+
+        requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner, object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                findNavController().navigate(R.id.action_channelListFragment_to_adminDashboardFragment)
+            }
+        })
 
         fetchTvCategories()
         setupRecyclerView()
@@ -49,22 +58,28 @@ class ChannelListFragment : Fragment(R.layout.fragment_channel_list) {
     }
 
     private fun fetchTvCategories() {
-        FirebaseManager.getDatabase().getReference("tv_categories").addListenerForSingleValueEvent(object : ValueEventListener {
-            override fun onDataChange(snapshot: DataSnapshot) {
-                categoryNames.clear(); categoryMap.clear()
-                for (cat in snapshot.children) {
-                    val name = cat.child("name").getValue(String::class.java) ?: ""
-                    val id = cat.child("id").getValue(Long::class.java) ?: 0L
-                    if(name.isNotEmpty()) {
-                        categoryNames.add(name)
-                        categoryMap[name] = id
+        FirebaseManager.getDatabase().getReference("tv_categories")
+            .addListenerForSingleValueEvent(object : ValueEventListener {
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    categoryNames.clear()
+                    categoryMap.clear()
+                    for (cat in snapshot.children) {
+                        val name = cat.child("name").getValue(String::class.java) ?: ""
+
+                        // استخراج ID از روی Key (مثلاً cat_01 -> 1)
+                        // اگر Key حتماً به صورت "cat_XX" است:
+                        val key = cat.key ?: "cat_0"
+                        val id = key.replace("cat_", "").toLongOrNull() ?: 0L
+
+                        if (name.isNotEmpty()) {
+                            categoryNames.add(name)
+                            categoryMap[name] = id
+                        }
                     }
                 }
-            }
-            override fun onCancelled(error: DatabaseError) {}
-        })
+                override fun onCancelled(error: DatabaseError) {}
+            })
     }
-
     private fun loadChannels() {
         FirebaseManager.getDatabase().getReference("channels").orderByChild("id").addValueEventListener(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
@@ -99,7 +114,9 @@ class ChannelListFragment : Fragment(R.layout.fragment_channel_list) {
         btnCat.setOnClickListener {
             showSelectionMenu(categoryNames, it) { name ->
                 btnCat.text = "دسته‌بندی: $name"
-                selectedCat = categoryMap[name] ?: 0L
+                selectedCat = categoryMap[name] ?: 0L // اینجا آپدیت می‌شود
+                // یک لاگ اضافه کن تا ببینی در لحظه انتخاب، چه عددی ثبت شده
+                android.util.Log.d("CategoryTest", "Selected ID: $selectedCat")
             }
         }
 
@@ -150,11 +167,12 @@ class ChannelListFragment : Fragment(R.layout.fragment_channel_list) {
     }
 
     private fun deleteChannel(id: String) {
-        FirebaseManager.deleteItem("channels", id) { success ->
-            if(success) Toast.makeText(context, "حذف شد", Toast.LENGTH_SHORT).show()
+        DialogUtils.showConfirmDialog(requireContext(), "حذف کانال", "آیا مطمئن هستید که می‌خواهید این کانال حذف شود؟") {
+            FirebaseManager.deleteItem("channels", id) { success ->
+                if (success) Toast.makeText(context, "کانال حذف شد", Toast.LENGTH_SHORT).show()
+            }
         }
     }
-
     private fun showSelectionMenu(options: List<String>, anchor: View, onSelected: (String) -> Unit) {
         val popup = ListPopupWindow(ContextThemeWrapper(requireContext(), androidx.appcompat.R.style.Widget_AppCompat_PopupMenu))
         popup.anchorView = anchor

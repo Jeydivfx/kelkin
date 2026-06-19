@@ -19,6 +19,10 @@ class AdminDashboardFragment : Fragment(R.layout.fragment_admin_dashboard) {
 
         setupButtonListeners()
         applyFocusAnimations()
+
+        binding.btnManageTV.post {
+            binding.btnManageTV.requestFocus()
+        }
     }
 
     private fun setupButtonListeners() {

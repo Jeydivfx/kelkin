@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">kelkin</string>
+
+    <string name="default_web_client_id">405609698910-s5ijau9vjlili14mmvmrt031cp0890m3.apps.googleusercontent.com</string>
 </resources>

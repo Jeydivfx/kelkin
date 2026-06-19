@@ -47,7 +47,14 @@
         android:id="@+id/channelListFragment"
         android:name="com.example.kelkin.Fragments.ChannelListFragment"
         android:label="Channel Management"
-        tools:layout="@layout/fragment_channel_list" />
+        tools:layout="@layout/fragment_channel_list">
+
+        <action
+            android:id="@+id/action_channelListFragment_to_adminDashboardFragment"
+            app:destination="@id/adminDashboardFragment"
+            app:popUpTo="@id/adminDashboardFragment"
+            app:popUpToInclusive="true" />
+    </fragment>
 
 
     <fragment
@@ -74,7 +81,14 @@
         android:id="@+id/movieListFragment"
         android:name="com.example.kelkin.Fragments.MovieListFragment"
         android:label="Movie List Admin"
-        tools:layout="@layout/fragment_movie_list" />
+        tools:layout="@layout/fragment_movie_list">
+
+        <action
+            android:id="@+id/action_movieListFragment_to_adminDashboardFragment"
+            app:destination="@id/adminDashboardFragment"
+            app:popUpTo="@id/adminDashboardFragment"
+            app:popUpToInclusive="true" />
+    </fragment>
 
 
     <fragment

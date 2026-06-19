@@ -70,6 +70,7 @@ dependencies {
     implementation("com.google.firebase:firebase-database") // نسخه نمی‌خواد
     implementation("com.google.firebase:firebase-analytics") // نسخه نمی‌خواد
     implementation("com.google.firebase:firebase-config:21.6.3")
+    implementation("com.google.firebase:firebase-auth-ktx:22.3.0")
 
     // دپندنسی برای لود کردن عکس‌ها (چون با TMDB کار داری حتماً لازمت می‌شه)
     implementation("com.github.bumptech.glide:glide:4.16.0")
@@ -98,6 +99,8 @@ dependencies {
     implementation("androidx.navigation:navigation-fragment-ktx:2.7.7")
     implementation("androidx.navigation:navigation-ui-ktx:2.7.7")
     implementation("com.google.code.gson:gson:2.10.1")
+
+    implementation("com.google.android.gms:play-services-auth:21.0.0")
 
 
 
