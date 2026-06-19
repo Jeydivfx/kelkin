@@ -14,6 +14,7 @@ android {
         }
     }
 
+
     defaultConfig {
         applicationId = "com.example.kelkin"
         minSdk = 23
@@ -24,9 +25,19 @@ android {
     }
 
 
+    signingConfigs {
+        create("release") {
+            storeFile = file("${project.rootDir}/app/kelkin.jks")
+            storePassword = "Kelkin1234"
+            keyAlias = "key0"
+            keyPassword = "Kelkin1234"
+        }
+    }
+
 
     buildTypes {
         release {
+            signingConfig = signingConfigs.getByName("release")
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
