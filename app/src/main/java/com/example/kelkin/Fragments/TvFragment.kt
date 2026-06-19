@@ -131,6 +131,7 @@ class TvFragment : Fragment() {
     }
 
     private fun setupRecyclerView() {
+
         binding.rvChannels.layoutManager = GridLayoutManager(requireContext(), 5)
         channelAdapter = ChannelAdapter { channel ->
             val intent = Intent(requireContext(), PlayerActivity::class.java).apply {

@@ -91,8 +91,8 @@ class HomeFragment : Fragment() {
         }
 
         trendingAdapter.submitList(processList(movies.sortedByDescending { it.id }.take(6)))
-        continueAdapter.submitList(processList(viewModel.continueWatchingList.value ?: emptyList()))
-        myListAdapter.submitList(processList(viewModel.myList.value ?: emptyList()))
+        continueAdapter.submitList(processList(viewModel.continueWatchingList.value?.take(6) ?: emptyList()))
+        myListAdapter.submitList(processList(viewModel.myList.value?.take(6) ?: emptyList()))
 
         val latest = movies.maxByOrNull { it.id }
         if (latest != null) {

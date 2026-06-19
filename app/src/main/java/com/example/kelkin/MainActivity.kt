@@ -116,16 +116,20 @@ class MainActivity : AppCompatActivity() {
                             View.FOCUS_RIGHT
                         )
 
-                        // اگر سیستم چیزی پیدا کرد، دست به چیزی نزن و اجازه بده خودش فوکوس کنه
-                        if (nextFocus != null && !isInsideSidebar(nextFocus)) {
-                            return super.dispatchKeyEvent(event)
-                        }
+                        // اگر سمت راست ویوی دیگری نیست یا ویوی بعدی داخل سایدبار است
+                        if (nextFocus == null || nextFocus == current || isInsideSidebar(nextFocus)) {
 
-                        // اگر سیستم چیزی پیدا نکرد (nextFocus null)، یعنی به آخر لیست رسیدیم
-                        // حالا با خیال راحت برو سایدبار
-                        val selectedMenuItem = navItems.find { it.isSelected }
-                        (selectedMenuItem ?: binding.containerHome).requestFocus()
-                        return true
+                            // جادوی اصلی اینجاست:
+                            // بگرد بین آیتم‌های منو و اونی که isSelected هست رو پیدا کن
+                            val selectedMenuItem = navItems.find { it.isSelected }
+
+                            if (selectedMenuItem != null) {
+                                selectedMenuItem.requestFocus() // فوکوس رو بفرست روی همون صفحه فعلی
+                            } else {
+                                binding.containerHome.requestFocus() // اگه چیزی نبود برو هوم
+                            }
+                            return true
+                        }
                     }
                 }
 
