@@ -51,16 +51,14 @@ class TvFragment : Fragment() {
     private fun setupFilterButtons() {
         binding.btnTvCategory.setOnClickListener { showCategoryMenu() }
         binding.btnTvSort.setOnClickListener { showSortMenu() }
-        binding.btnTvFavorites.setOnClickListener { /* منطق دلخواه */ }
+        binding.btnTvFavorites.setOnClickListener {  }
     }
 
     private fun observeData() {
-        // ۱. مشاهده لیست کتگوری‌ها از فایربیس (داینامیک)
         viewModel.tvCategoriesList.observe(viewLifecycleOwner) { categories ->
             this.tvCategoryList = categories ?: emptyList()
         }
 
-        // ۲. مشاهده کانال‌ها
         viewModel.channels.observe(viewLifecycleOwner) { channels ->
             if (channels != null) {
                 binding.progressBar.visibility = View.GONE
@@ -112,14 +110,12 @@ class TvFragment : Fragment() {
     private fun applyFilters() {
         val allChannels = viewModel.channels.value ?: return
 
-        // ۱. فیلتر کردن بر اساس category_id
         var filteredList = if (currentCategory == 0L) {
             allChannels
         } else {
             allChannels.filter { it.category == currentCategory }
         }
 
-        // ۲. مرتب‌سازی
         val persianCollator = Collator.getInstance(Locale("fa"))
         filteredList = if (currentSort == "alpha") {
             filteredList.sortedWith { c1, c2 -> persianCollator.compare(c1.name_fa, c2.name_fa) }

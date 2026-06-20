@@ -57,7 +57,7 @@ class MoviesFragment : Fragment() {
     }
 
     private fun showGenreMenu() {
-        if (categoryList.isEmpty()) return // اگر دیتا هنوز نیامده کاری نکن
+        if (categoryList.isEmpty()) return
 
         val genreNames = categoryList.map { it.name }
         val wrapper = ContextThemeWrapper(requireContext(), androidx.appcompat.R.style.Widget_AppCompat_PopupMenu)
@@ -111,18 +111,14 @@ class MoviesFragment : Fragment() {
         val allMovies = viewModel.moviesList.value ?: return
         val detailsMap = viewModel.movieDetailsMap.value ?: emptyMap()
 
-        // تبدیل currentCategory (که Int است) به Long تا با movie.category مچ شود
-        // گزینه 0 (همه ژانرها) همیشه باید تمام فیلم‌ها را برگرداند
         val categoryFilter = currentCategory
 
         var filteredList = if (categoryFilter == 0L) {
             allMovies
         } else {
-            // اطمینان از مقایسه عددی دقیق
             allMovies.filter { it.category == categoryFilter }
         }
 
-        // مرتب‌سازی...
         val persianCollator = Collator.getInstance(Locale("fa"))
         filteredList = if (currentSort == "date") {
             filteredList.sortedByDescending { it.id }
@@ -143,7 +139,6 @@ class MoviesFragment : Fragment() {
 
         viewModel.categoriesList.observe(viewLifecycleOwner) { categories ->
             this.categoryList = categories ?: emptyList()
-            // اگر لیست کتگوری آپدیت شد، منوی فیلتر هم باید رفرش شود
         }
 
         // مشاهده لیست فیلم‌ها
@@ -155,7 +150,6 @@ class MoviesFragment : Fragment() {
             }
         }
 
-        // مشاهده جزئیات برای بروزرسانی پوسترها
         viewModel.movieDetailsMap.observe(viewLifecycleOwner) {
             applyFilters()
         }
@@ -163,9 +157,6 @@ class MoviesFragment : Fragment() {
 
     private fun setupRecyclerView() {
         binding.rvMoviesAll.layoutManager = GridLayoutManager(requireContext(), 5)
-
-        // اضافه کردن فاصله بین آیتم‌ها
-        val spacingInPixels = resources.getDimensionPixelSize(R.dimen.grid_spacing) // یا یک عدد ثابت مثل 16
         binding.rvMoviesAll.addItemDecoration(GridSpacingItemDecoration(5, 20, true)) // ۵ ستون، ۲۰ پیکسل فاصله
 
         movieAdapter = MovieGridAdapter { movie ->

@@ -12,7 +12,6 @@ import android.view.View
 import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
-import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
@@ -57,7 +56,6 @@ class MovieDetailFragment : Fragment(R.layout.fragment_movie_detail) {
 
 
         selectedMovie?.let { movie ->
-            Log.d("SearchTest", "فیلم دریافت شد: ${movie.name_fa}")
             val btnContinue = view.findViewById<Button>(R.id.btnContinue)
             val btnPlay = view.findViewById<Button>(R.id.btnPlay)
             val btnBookmark = view.findViewById<com.google.android.material.button.MaterialButton>(R.id.btnBookmark)
@@ -65,9 +63,11 @@ class MovieDetailFragment : Fragment(R.layout.fragment_movie_detail) {
             val txtDescription = view.findViewById<TextView>(R.id.txtDescription)
 
 
-            btnPlay.post {
-                btnPlay.requestFocus()
-            }
+            btnPlay.postDelayed({
+                if (isAdded && view != null) {
+                    btnPlay.requestFocus()
+                }
+            }, 400)
 
             txtTitle.text = movie.name_fa
             txtDescription.text = movie.description_fa
@@ -95,8 +95,6 @@ class MovieDetailFragment : Fragment(R.layout.fragment_movie_detail) {
             }
 
             btnPlay.setOnClickListener { launchPlayer(movie, 0L) }
-
-            // Trigger Detail Fetch - Directly call the ViewModel to fetch data
             fetchFullDetails(movie.tmdb_id)
         }
     }
@@ -130,16 +128,13 @@ class MovieDetailFragment : Fragment(R.layout.fragment_movie_detail) {
     private fun updateUI(details: com.example.kelkin.DataClass.TmdbMovieDetails, credits: com.example.kelkin.DataClass.MovieCreditsResponse) {
         val view = view ?: return
 
-        // ۱. نمایش لیست بازیگران
         view.findViewById<RecyclerView>(R.id.rvCast)?.apply {
             layoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
             adapter = CastAdapter(credits.cast.take(7))
         }
 
-        // ۲. نمایش عنوان انگلیسی
         view.findViewById<TextView>(R.id.txtTitleEnglish)?.text = details.title
 
-        // ۳. نمایش تصویر بک‌دراپ
         view.findViewById<ImageView>(R.id.imgBackdrop)?.let {
             Glide.with(this)
                 .load("https://image.tmdb.org/t/p/original${details.backdrop_path}")
@@ -147,7 +142,6 @@ class MovieDetailFragment : Fragment(R.layout.fragment_movie_detail) {
                 .into(it)
         }
 
-        // ۴. ساخت متن اطلاعات (IMDB، ژانر، سال)
         val ratingStr = String.format(Locale.ENGLISH, "%.1f", details.vote_average).toPersianDigits()
         val genresStr = TranslationHelper.translateGenres(details.genres.joinToString("، ") { it.name })
         val yearStr = details.release_date.take(4).toPersianDigits()
@@ -155,21 +149,20 @@ class MovieDetailFragment : Fragment(R.layout.fragment_movie_detail) {
         val fullText = "IMDB $ratingStr  |  $genresStr  |  $yearStr"
         val spannable = SpannableString(fullText)
 
-        // ۵. استایل‌دهی به بخش IMDB
+
         val imdbPart = "IMDB $ratingStr"
         val startIndex = fullText.indexOf(imdbPart)
 
         if (startIndex != -1) {
             val endIndex = startIndex + imdbPart.length
 
-            // رنگ طلایی برای IMDB
             spannable.setSpan(
                 ForegroundColorSpan(Color.parseColor("#FFD700")),
                 startIndex,
                 endIndex,
                 Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
             )
-            // بولد کردن IMDB
+
             spannable.setSpan(
                 StyleSpan(Typeface.BOLD),
                 startIndex,

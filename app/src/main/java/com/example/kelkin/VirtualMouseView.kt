@@ -19,16 +19,13 @@ class VirtualMouseView @JvmOverloads constructor(
 ) : FrameLayout(context, attrs, defStyleAttr) {
 
     private val pointer: ImageView
-    private val speed = 30f // سرعت حرکت موس
+    private val speed = 30f
     private val currentPos = PointF(640f, 360f)
-
-    // تیک‌ها و تایمر برای مخفی‌سازی خودکار
     private val hideHandler = Handler(Looper.getMainLooper())
     private val hideRunnable = Runnable {
-        // غیب کردن موس با انیمیشن نرم Fade-out
         pointer.animate().alpha(0f).setDuration(300).start()
     }
-    private val hideDelay = 5000L // مدت زمان ماندگاری (۵ ثانیه)
+    private val hideDelay = 5000L
 
     init {
         pointer = ImageView(context)
@@ -48,20 +45,16 @@ class VirtualMouseView @JvmOverloads constructor(
         isFocusableInTouchMode = true
         descendantFocusability = FOCUS_BLOCK_DESCENDANTS
 
-        // شروع تایمر اولیه به محض ساخته شدن لایه
         resetHideTimer()
     }
 
-    // تابع برای ظاهر کردن موس و ریست کردن تایمر ۵ ثانیه‌ای
     private fun resetHideTimer() {
         hideHandler.removeCallbacks(hideRunnable)
 
-        // اگر موس غیب یا نیمه‌غیب شده، فوراً بدون تاخیر ظاهرش کن (Fade-in)
         if (pointer.alpha < 1f) {
             pointer.animate().alpha(1f).setDuration(100).start()
         }
 
-        // برنامه‌ریزی برای مخفی شدن پس از ۵ ثانیه عدم فعالیت
         hideHandler.postDelayed(hideRunnable, hideDelay)
     }
 
@@ -69,20 +62,12 @@ class VirtualMouseView @JvmOverloads constructor(
         if (event.action == KeyEvent.ACTION_DOWN) {
             val activity = context as? PlayerActivity
 
-            // --- اصلاح خط ارور: اگر پلتفرم فیلم مستقیم (ExoPlayer) بود، موس مجازی کار نکند ---
             val currentPlatform = activity?.intent?.getStringExtra("video_url") // یک روش کمکی برای گرفتن وضعیت پلتفرم جاری اکتیویتی
-
-            // با چک کردن متد کمکی یا دسترسی مستقیم به پلتفرم
-            // اگر ویدیو مال وب‌پلیر نبود، بگذار ریموت کار عادی خودش را بکند
             if (activity == null) return super.dispatchKeyEvent(event)
-
-            // منطق جدید بر اساس ساختار تلفیقی PlayerActivity
-            // اگر پلتفرم مستقیم بود، یعنی ماوس مجازی نباید کلیدها را بلاک کند
             if (activity.binding.playerView.visibility == View.VISIBLE) {
                 return super.dispatchKeyEvent(event)
             }
 
-            // با فشردن هر کلیدی، اول موس را ظاهر کن و تایمر را تمدید کن
             resetHideTimer()
 
             when (event.keyCode) {
@@ -146,8 +131,7 @@ class VirtualMouseView @JvmOverloads constructor(
         downEvent.recycle()
         upEvent.recycle()
     }
-
-    // لغو تایمر در صورت جدا شدن لایه از صفحه (برای جلوگیری از Memory Leak)
+    
     override fun onDetachedFromWindow() {
         hideHandler.removeCallbacks(hideRunnable)
         super.onDetachedFromWindow()

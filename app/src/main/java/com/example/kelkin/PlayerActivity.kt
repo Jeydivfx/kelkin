@@ -22,8 +22,6 @@ class PlayerActivity : AppCompatActivity() {
 
     val binding by lazy { ActivityPlayerBinding.inflate(layoutInflater) }
     private var player: ExoPlayer? = null
-
-    // وضعیت پلتفرم: می تواند "DIRECT" یا "VK" یا "OK" باشد
     private var videoPlatform = "DIRECT"
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -51,7 +49,6 @@ class PlayerActivity : AppCompatActivity() {
 
         onBackPressedDispatcher.addCallback(this, object : androidx.activity.OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
-                // اگر ویدیو تحت وب (VK یا OK) بود ابتدا دیتای آن را استخراج می‌کنیم، در غیر این صورت مستقیم از اکسوپلیر می‌گیریم
                 if (videoPlatform == "VK" || videoPlatform == "OK") {
                     saveWebPositionAndFinish()
                 } else {
@@ -62,7 +59,6 @@ class PlayerActivity : AppCompatActivity() {
         })
     }
 
-    // متد تبدیل لینک معمولی VK به لینک Embed مستقل
     private fun convertToVkEmbedUrl(url: String, startPosMs: Long): String {
         try {
             val videoPart = url.substringAfter("video-").substringAfter("video_")
@@ -85,7 +81,6 @@ class PlayerActivity : AppCompatActivity() {
         return url
     }
 
-    // متد تبدیل لینک ثابت OK.ru به لینک Embed مستقل به همراه اعمال زمان شروع فیلم
     private fun convertToOkEmbedUrl(url: String, startPosMs: Long): String {
         try {
             val startSeconds = startPosMs / 1000
@@ -134,7 +129,6 @@ class PlayerActivity : AppCompatActivity() {
                 override fun onPageFinished(view: WebView?, url: String?) {
                     super.onPageFinished(view, url)
 
-                    // تزریق استایل‌های تمام‌صفحه و جاوااسکریپت بر اساس پلتفرم ویدیویی جاری
                     if (videoPlatform == "VK") {
                         val cssFullscreen = """
                             var style = document.createElement('style');
@@ -162,7 +156,6 @@ class PlayerActivity : AppCompatActivity() {
                         evaluateJavascript("javascript:$jsOkSetup", null)
                     }
 
-                    // انتقال مستقیم فوکوس به لایه ماوس مجازی تلویزیون
                     binding.vkVirtualMouse.requestFocus()
                 }
             }
@@ -172,7 +165,6 @@ class PlayerActivity : AppCompatActivity() {
     }
 
     override fun onKeyDown(keyCode: Int, event: KeyEvent): Boolean {
-        // ۱. مدیریت پلیرهای تحت وب (VK و OK)
         if (videoPlatform == "VK" || videoPlatform == "OK") {
             if (keyCode == KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE) {
                 binding.vkVirtualMouse.click(binding.vkWebView)
@@ -183,7 +175,6 @@ class PlayerActivity : AppCompatActivity() {
         return super.onKeyDown(keyCode, event)
     }
 
-    // متد استخراج هوشمند زمان پخش از داخل کدهای HTML هر دو وب‌پلیر به صورت مجزا
     private fun saveWebPositionAndFinish() {
         val jsGetTime = if (videoPlatform == "VK") {
             """
@@ -193,7 +184,6 @@ class PlayerActivity : AppCompatActivity() {
                 })()
             """.trimIndent()
         } else {
-            // کد اختصاصی گرفتن زمان برای پلیر OK.ru
             """
                 (function() {
                     var video = document.querySelector('video');
@@ -224,7 +214,6 @@ class PlayerActivity : AppCompatActivity() {
         }
     }
 
-    // متد جامع و منعطف ذخیره‌سازی زمان فیلم‌ها در سیستم ادامه پخش دیتابیس لوکل برنامه
     private fun savePositionDirectly(customPos: Long? = null, customDuration: Long? = null) {
         val currentPos = customPos ?: (player?.currentPosition ?: 0L)
         val totalDur = customDuration ?: (player?.duration ?: 0L)

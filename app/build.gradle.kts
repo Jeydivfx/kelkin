@@ -19,8 +19,8 @@ android {
         applicationId = "com.example.kelkin"
         minSdk = 23
         targetSdk = 36
-        versionCode = 2
-        versionName = "1.1"
+        versionCode = 3
+        versionName = "1.2"
 
     }
 
@@ -76,24 +76,21 @@ dependencies {
     implementation("androidx.cardview:cardview:1.0.0")
     implementation("com.google.android.material:material:1.11.0")
 
-    // فایربیس (روش استاندارد BoM)
-    implementation(platform("com.google.firebase:firebase-bom:33.1.0")) // نسخه BoM رو به یک نسخه پایدار تغییر دادم
-    implementation("com.google.firebase:firebase-database") // نسخه نمی‌خواد
-    implementation("com.google.firebase:firebase-analytics") // نسخه نمی‌خواد
+
+    implementation(platform("com.google.firebase:firebase-bom:33.1.0"))
+    implementation("com.google.firebase:firebase-database")
+    implementation("com.google.firebase:firebase-analytics")
     implementation("com.google.firebase:firebase-config:21.6.3")
     implementation("com.google.firebase:firebase-auth-ktx:22.3.0")
 
-    // دپندنسی برای لود کردن عکس‌ها (چون با TMDB کار داری حتماً لازمت می‌شه)
+
     implementation("com.github.bumptech.glide:glide:4.16.0")
     annotationProcessor("com.github.bumptech.glide:compiler:4.16.0")
-
     implementation("com.squareup.retrofit2:retrofit:2.9.0")
     implementation("com.squareup.retrofit2:converter-gson:2.9.0")
-
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.7.0")
     implementation("androidx.lifecycle:lifecycle-livedata-ktx:2.7.0")
 
-    // --- Media & Scraping ---
     implementation("androidx.media3:media3-exoplayer:1.2.0")
     implementation("androidx.media3:media3-ui:1.2.0")
     implementation("org.jsoup:jsoup:1.15.4")
@@ -102,11 +99,9 @@ dependencies {
     implementation("androidx.media3:media3-exoplayer-hls:1.2.0")
     implementation("androidx.media3:media3-datasource-okhttp:1.2.0")
 
-    // و این هم برای خود OkHttp:
+
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
-
     implementation("androidx.leanback:leanback:1.0.0")
-
     implementation("androidx.navigation:navigation-fragment-ktx:2.7.7")
     implementation("androidx.navigation:navigation-ui-ktx:2.7.7")
     implementation("com.google.code.gson:gson:2.10.1")
@@ -114,25 +109,14 @@ dependencies {
     implementation("com.google.android.gms:play-services-auth:21.0.0")
 
 
-    // ورژن‌های پلتفرم کامپوز
     val composeBom = platform("androidx.compose:compose-bom:2024.05.00")
     implementation(composeBom)
-
-    // کتابخانه‌های اصلی کامپوز
     implementation("androidx.compose.ui:ui")
     implementation("androidx.compose.ui:ui-tooling-preview")
     implementation("androidx.compose.material:material")
 
-    // کتابخانه مخصوص Android TV (بسیار مهم برای نویگیشن و گریدها)
     implementation("androidx.tv:tv-foundation:1.0.0-alpha11")
     implementation("androidx.tv:tv-material:1.0.0-alpha11")
-
-    // برای اینکه بتونی توی Fragmentها از Compose استفاده کنی
     implementation("androidx.activity:activity-compose:1.9.0")
-
     implementation("androidx.navigation:navigation-compose:2.8.0")
-
-
-
-
 }

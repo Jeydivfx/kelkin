@@ -26,7 +26,6 @@ class MainActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         findViewById<ComposeView>(R.id.compose_sidebar).setContent {
-            // پاس دادن کنترلر به کامپوز
             Sidebar(navController = navController, onMenuSelected = { route ->
                 handleNavigation(route)
             })

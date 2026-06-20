@@ -89,14 +89,12 @@ class SearchFragment : Fragment(R.layout.fragment_search) {
 
     private fun setupKeyboard() {
         val grid = binding.gridKeyboard
-        // کل ۳۵ کاراکتر رو به ۳ بخش تقسیم می‌کنیم (هر ردیف حدود ۱۱-۱۲ دکمه)
         val keys = "ا ب پ ت ث ج چ ح خ د ذ ر ز ژ س ش ص ض ط ظ ع غ ف ق ک گ ل م ن و ه ی ⌫".split(" ")
 
         val row1 = keys.subList(0, 12)
         val row2 = keys.subList(12, 24)
         val row3 = keys.subList(24, keys.size)
 
-        // تابع کمکی برای اضافه کردن ردیف
         fun addRow(list: List<String>) {
             list.forEach { char ->
                 val action = if (char == "⌫") {
@@ -118,7 +116,6 @@ class SearchFragment : Fragment(R.layout.fragment_search) {
         return Button(requireContext()).apply {
             this.text = text
             val params = GridLayout.LayoutParams()
-            // ابعاد رو از ۱۱۰ به ۸۰ کاهش دادیم
             params.width = 80
             params.height = 80
             params.setMargins(6, 6, 6, 6)
@@ -126,12 +123,11 @@ class SearchFragment : Fragment(R.layout.fragment_search) {
 
             setBackgroundResource(R.drawable.selector_keyboard_key)
             setTextColor(Color.WHITE)
-            textSize = 14f // متن دکمه‌ها رو هم کمی کوچک‌تر کردیم
+            textSize = 14f
             isFocusable = true
 
             setOnFocusChangeListener { v, hasFocus ->
                 (v as Button).setTextColor(if (hasFocus) Color.BLACK else Color.WHITE)
-                // افکت اسکیل ملایم‌تر
                 v.animate().scaleX(if (hasFocus) 1.05f else 1.0f)
                     .scaleY(if (hasFocus) 1.05f else 1.0f)
                     .setDuration(150).start()

@@ -17,20 +17,17 @@ object DialogUtils {
         onYesClicked: () -> Unit
     ) {
         val dialog = Dialog(context)
-        dialog.setContentView(R.layout.dialog_exit) // استفاده از لایوت مشترک
+        dialog.setContentView(R.layout.dialog_exit)
         dialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
 
-        // پیدا کردن ویوها از همان لایوت dialog_exit
         val tvTitle = dialog.findViewById<TextView>(R.id.dialogTitle)
         val tvMessage = dialog.findViewById<TextView>(R.id.dialogMessage)
         val btnYes = dialog.findViewById<MaterialButton>(R.id.btnExitYes)
         val btnNo = dialog.findViewById<MaterialButton>(R.id.btnExitNo)
 
-        // ست کردن متن‌های داینامیک
         tvTitle.text = title
         tvMessage.text = message
 
-        // دکمه‌های مشترک
         btnNo.setOnClickListener { dialog.dismiss() }
         btnYes.setOnClickListener {
             onYesClicked()

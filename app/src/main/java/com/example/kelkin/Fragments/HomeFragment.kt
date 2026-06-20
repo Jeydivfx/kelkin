@@ -159,7 +159,7 @@ class HomeFragment : Fragment() {
                 imdbScore.text = "--"
                 heroYear.text = "--"
                 heroGenre.text = "نامشخص"
-                heroImage.setImageResource(R.drawable.hero_test_header) // Set a local placeholder
+                heroImage.setImageResource(R.drawable.hero_test_header)
             }
 
             btnPlay.setOnClickListener {
@@ -182,7 +182,6 @@ class HomeFragment : Fragment() {
         }
 
     }
-
 
     private fun setupHeroButtonsScroll() {
         val listener = View.OnFocusChangeListener { _, hasFocus -> if (hasFocus) binding.homeScrollView.smoothScrollTo(0, 0) }

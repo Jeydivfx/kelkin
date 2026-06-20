@@ -31,7 +31,6 @@ class MovieGridAdapter(private val onMovieClick: (Movie) -> Unit) :
             if (hasFocus) {
                 view.animate().scaleX(1.1f).scaleY(1.1f).setDuration(200).start()
                 view.elevation = 10f
-                // برای اطمینان از اینکه کارت بزرگ شده زیر بقیه قرار نمی‌گیره
                 view.z = 10f
             } else {
                 view.animate().scaleX(1.0f).scaleY(1.0f).setDuration(200).start()

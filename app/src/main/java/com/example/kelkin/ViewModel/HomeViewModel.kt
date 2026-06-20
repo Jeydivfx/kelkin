@@ -33,15 +33,11 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
     val credentials = MutableLiveData<Credentials>()
     val movieDetailsMap = MutableLiveData<Map<String, TmdbMovieDetails>>()
     private val detailsCache = mutableMapOf<String, TmdbMovieDetails>()
-
     private val _myList = MutableLiveData<MutableList<Movie>>(mutableListOf())
     val myList: LiveData<MutableList<Movie>> get() = _myList
-
     val categoriesList = MutableLiveData<List<Category>>()
-
     private val _continueWatchingList = MutableLiveData<MutableList<Movie>>(mutableListOf())
     val continueWatchingList: LiveData<MutableList<Movie>> get() = _continueWatchingList
-
     private val _channels = MutableLiveData<List<Channel>>(emptyList())
     val channels: LiveData<List<Channel>> get() = _channels
 
@@ -76,7 +72,7 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
             val idCol = cursor.getColumnIndexOrThrow("id")
             val nameCol = cursor.getColumnIndexOrThrow("name_fa")
             val descCol = cursor.getColumnIndexOrThrow("description_fa")
-            val categoryCol = cursor.getColumnIndexOrThrow("category") // ۱. اضافه کردن این خط
+            val categoryCol = cursor.getColumnIndexOrThrow("category")
             val tmdbCol = cursor.getColumnIndexOrThrow("tmdb_id")
             val videoCol = cursor.getColumnIndexOrThrow("videoUrl1")
             val posterCol = cursor.getColumnIndexOrThrow("posterUrl")
@@ -88,7 +84,7 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
                     val id = cursor.getLong(idCol)
                     val name = cursor.getString(nameCol) ?: ""
                     val desc = cursor.getString(descCol) ?: ""
-                    val cat = cursor.getLong(categoryCol) // ۲. خواندن مقدار کتگوری
+                    val cat = cursor.getLong(categoryCol)
                     val tmdbId = cursor.getString(tmdbCol) ?: ""
                     val videoUrl = cursor.getString(videoCol) ?: ""
                     val poster = cursor.getString(posterCol) ?: ""
@@ -99,7 +95,7 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
                         id = id,
                         name_fa = name,
                         description_fa = desc,
-                        category = cat, // ۳. مقداردهی به مدل
+                        category = cat,
                         tmdb_id = tmdbId,
                         videoUrl1 = videoUrl,
                         posterUrl = poster,
@@ -117,7 +113,7 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
             _movies.postValue(mList)
         }
     }
-    // ۱. سینک ریل‌تایم فیلم‌ها
+
     fun startSyncMovies() {
         database.child("movies").addValueEventListener(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
@@ -143,7 +139,7 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
                     } finally {
                         db.endTransaction()
                     }
-                    loadFromLocalDatabase() // آپدیت لیست فیلم‌ها در UI
+                    loadFromLocalDatabase()
                 }
             }
             override fun onCancelled(error: DatabaseError) {
@@ -152,9 +148,7 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
         })
     }
 
-    // ۲. سینک ریل‌تایم کتگوری‌ها
     fun startSyncCategories() {
-        // اصلاح مسیر به "category" (مطابق تصویر)
         database.child("category").addValueEventListener(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
 
@@ -165,9 +159,7 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
                         db.delete("categories", null, null)
 
                         for (child in snapshot.children) {
-                            // کلید در اینجا همان "cat_01" است
                             val key = child.key ?: ""
-                            // استخراج عدد از کلید (مثلاً cat_01 -> 1)
                             val id = key.replace("cat_", "").toIntOrNull() ?: 0
                             val name = child.child("name").value?.toString() ?: ""
 
@@ -199,7 +191,6 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
                     val list = mutableListOf<Channel>()
 
                     for (child in snapshot.children) {
-                        // خواندن دستی فیلدها برای جلوگیری از خطای نام‌گذاری
                         val channel = Channel(
                             id = child.child("id").value?.toString()?.toIntOrNull() ?: 0,
                             name_fa = child.child("name_fa").value?.toString() ?: "",
@@ -278,7 +269,6 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
         if (detailsCache.containsKey(tmdbId)) return
 
         viewModelScope.launch(Dispatchers.IO) {
-            // خواندن مستقیم از دیتابیس (بدون نیاز به LiveData)
             val db = dbHelper.readableDatabase
             val cursor = db.rawQuery("SELECT apiKey FROM credentials WHERE id = 1", null)
             val apiKey = if (cursor.moveToFirst()) cursor.getString(0) else ""
@@ -300,7 +290,6 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    // Keeping these for other parts of your app
     fun fetchChannels() {
         database.child("channels").addListenerForSingleValueEvent(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
@@ -312,8 +301,6 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
     }
 
 
-    // این متد را به HomeViewModel اضافه کنید
-    // استفاده از MovieCreditsResponse به جای CreditsResponse
     fun getMovieFullDetails(tmdbId: String, onResult: (TmdbMovieDetails?, MovieCreditsResponse?) -> Unit) {
         viewModelScope.launch(Dispatchers.IO) {
             val db = dbHelper.readableDatabase
@@ -335,7 +322,6 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun isInitialDataLoaded(): Boolean {
-        // آیا لیست فیلم‌ها پر است؟ و آیا حداقل ۵ مورد دیتای TMDB داریم؟
         return !moviesList.value.isNullOrEmpty() && detailsCache.size >= 5
     }
 
@@ -363,10 +349,7 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
         viewModelScope.launch(Dispatchers.IO) {
             val db = dbHelper.readableDatabase
             val list = mutableListOf<TvCategory>()
-            // گزینه پیش‌فرض برای تلویزیون
             list.add(TvCategory(0, "همه شبکه‌ها"))
-
-            // کوئری از جدول جدید tv_categories
             val cursor = db.query("tv_categories", null, null, null, null, null, null)
 
             if (cursor.moveToFirst()) {
@@ -378,25 +361,20 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
             }
             cursor.close()
 
-            // ارسال به لایو دیتا مخصوص تلویزیون
             tvCategoriesList.postValue(list)
         }
     }
 
     fun startSyncTvCategories() {
-        // مسیر فایربیس را دوباره چک کن، باید دقیقاً "tv_categories" باشد
         database.child("tv_categories").addValueEventListener(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
-                android.util.Log.d("TVDebug", "فایربیس متصل شد. دیتای دریافتی: ${snapshot.value}")
-
                 viewModelScope.launch(Dispatchers.IO) {
                     val db = dbHelper.writableDatabase
                     db.beginTransaction()
                     try {
-                        db.delete("tv_categories", null, null) // پاکسازی جدول
+                        db.delete("tv_categories", null, null)
                         for (child in snapshot.children) {
                             val key = child.key ?: ""
-                            // اینجا چک کن که کلیدها دقیقا فرمت cat_01 دارند یا نه
                             val id = key.replace("cat_", "").toIntOrNull() ?: 0
                             val name = child.child("name").value?.toString() ?: "نامشخص"
 
@@ -413,7 +391,7 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
                     } finally {
                         db.endTransaction()
                     }
-                    loadTvCategories() // آپدیت لیست بعد از ذخیره
+                    loadTvCategories()
                 }
             }
             override fun onCancelled(error: DatabaseError) {
@@ -432,10 +410,7 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
         remoteConfig.fetchAndActivate()
     }
 
-
-    // Add this method to HomeViewModel.kt
     suspend fun fetchMovieDetailsForPoster(tmdbId: String): TmdbMovieDetails {
-        // We fetch the API key from the local DB just like your other methods
         val apiKey = try {
             val db = dbHelper.readableDatabase
             val cursor = db.rawQuery("SELECT apiKey FROM credentials WHERE id = 1", null)
@@ -444,7 +419,6 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
             key
         } catch (e: Exception) { "" }
 
-        // Use your existing Retrofit service (tmdbApi)
         return tmdbApi.getMovieDetails(tmdbId, apiKey)
     }
 

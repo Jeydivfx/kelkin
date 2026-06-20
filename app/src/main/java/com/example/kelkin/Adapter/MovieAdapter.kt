@@ -56,7 +56,6 @@ class MovieAdapter(
                 progressBar.visibility = View.GONE
             }
 
-            // اینجا منطق قفل فوکوس را اضافه می‌کنیم
             itemView.isFocusable = true
             itemView.setOnKeyListener { _, keyCode, event ->
                 if (event.action == KeyEvent.ACTION_DOWN) {

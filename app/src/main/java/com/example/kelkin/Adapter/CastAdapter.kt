@@ -47,14 +47,12 @@ class CastAdapter(private val cast: List<CastMember>) : RecyclerView.Adapter<Cas
 
         holder.itemView.setOnFocusChangeListener { view, hasFocus ->
             if (hasFocus) {
-                // ۱.۱۰ یعنی ۱۰ درصد بزرگتر، کاملاً سافت و شیک
                 view.animate()
                     .scaleX(1.1f)
                     .scaleY(1.1f)
                     .setDuration(200)
                     .start()
             } else {
-                // برگشت به حالت عادی
                 view.animate()
                     .scaleX(1.0f)
                     .scaleY(1.0f)

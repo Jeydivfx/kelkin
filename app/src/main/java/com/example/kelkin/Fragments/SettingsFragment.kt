@@ -85,7 +85,7 @@ class SettingsFragment : Fragment(R.layout.fragment_settings) {
 
             if (aboutClickCount == 5) {
                 aboutClickCount = 0
-                showAdminAuthDialog() // متد جدید لاگین
+                showAdminAuthDialog()
             }
         }
     }
@@ -99,7 +99,7 @@ class SettingsFragment : Fragment(R.layout.fragment_settings) {
             layoutDirection = View.LAYOUT_DIRECTION_RTL
         }
 
-        // تایتل راست‌چین شده
+
         val txtTitle = android.widget.TextView(requireContext()).apply {
             text = "ورود به پنل مدیریت"
             setTextColor(requireContext().getColor(R.color.yellow))

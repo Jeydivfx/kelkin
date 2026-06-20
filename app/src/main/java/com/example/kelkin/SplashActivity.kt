@@ -20,17 +20,11 @@ class SplashActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_splash)
-
-        // ۱. نمایش نسخه دینامیک (با ID که در لایوت داری)
         findViewById<TextView>(R.id.txtVersion)?.text = "Version ${getAppVersionName()}"
-
-        // پروگرس‌بار شما به صورت خودکار به دلیل indeterminate="true" در XML فعال است
-
         viewModel = ViewModelProvider(this)[HomeViewModel::class.java]
 
         observeData()
 
-        // ۲. تایم‌اوت محافظتی (۵ ثانیه)
         lifecycleScope.launch {
             delay(5000)
             if (!isNavigated) {
@@ -47,10 +41,8 @@ class SplashActivity : AppCompatActivity() {
     }
 
     private fun observeData() {
-        // ۳. ناوبری هوشمند به محضِ آماده شدنِ لیستِ فیلم‌ها
         viewModel.moviesList.observe(this) { movies ->
             if (!movies.isNullOrEmpty()) {
-                Log.d("Splash", "Movies loaded, navigating...")
                 navigateToMain()
             }
         }
@@ -68,11 +60,9 @@ class SplashActivity : AppCompatActivity() {
         } else {
             com.example.kelkin.utils.UserManager.checkUserActivationStatus { isActive ->
                 if (isActive) {
-                    // اینجا به جای اینکه به ویومدل تکیه کنیم، مستقیم می‌رویم
                     startActivity(Intent(this, MainActivity::class.java))
                     finish()
                 } else {
-                    // اگر اکتیو نیست
                     startActivity(Intent(this, LoginActivity::class.java))
                     finish()
                 }

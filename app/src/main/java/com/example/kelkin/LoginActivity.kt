@@ -59,11 +59,7 @@ class LoginActivity : AppCompatActivity() {
         auth.signInWithCredential(credential).addOnCompleteListener { task ->
             if (task.isSuccessful) {
                 val user = auth.currentUser!!
-
-                // ۱. ساخت پروفایل در دیتابیس (اگر بار اول است)
                 UserManager.createUserProfileIfNotExist(user.uid, user.email)
-
-                // ۲. چک کردن وضعیت اکتیو بودن
                 UserManager.checkUserActivationStatus { isActive ->
                     if (isActive) {
                         startActivity(Intent(this, MainActivity::class.java))

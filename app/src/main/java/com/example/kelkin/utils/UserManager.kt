@@ -13,12 +13,11 @@ object UserManager {
 
     private val db = FirebaseDatabase.getInstance().reference
 
-    // متدی که وضعیت کاربر رو چک می‌کنه
     fun checkUserActivationStatus(onResult: (Boolean) -> Unit) {
         val uid = FirebaseAuth.getInstance().currentUser?.uid
 
         if (uid == null) {
-            onResult(false) // کاربر لاگین نیست
+            onResult(false)
             return
         }
 
@@ -30,7 +29,7 @@ object UserManager {
                 }
 
                 override fun onCancelled(error: DatabaseError) {
-                    onResult(false) // در صورت خطا، دسترسی نمی‌دهیم
+                    onResult(false)
                 }
             })
     }
@@ -49,7 +48,7 @@ object UserManager {
                     val userMap = mapOf(
                         "email" to email,
                         "isActive" to false,
-                        "createdAt" to getCurrentDate() // حالا تاریخ دقیقاً مثل تقویم ذخیره میشه
+                        "createdAt" to getCurrentDate()
                     )
                     userRef.setValue(userMap)
                 }

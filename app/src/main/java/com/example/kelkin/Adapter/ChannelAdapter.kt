@@ -25,7 +25,6 @@ class ChannelAdapter(private val onChannelClick: (Channel) -> Unit) :
         holder.bind(channel)
         holder.itemView.setOnClickListener { onChannelClick(channel) }
 
-        // فقط افکت اسکیل اینجا باقی می‌مونه
         holder.itemView.setOnFocusChangeListener { view, hasFocus ->
             val scale = if (hasFocus) 1.1f else 1.0f
             view.animate().scaleX(scale).scaleY(scale).setDuration(200).start()
@@ -38,7 +37,7 @@ class ChannelAdapter(private val onChannelClick: (Channel) -> Unit) :
 
         fun bind(channel: Channel) {
             txtName.text = channel.name_fa
-            itemView.isFocusable = true // بسیار مهم برای دریافت فوکوس
+            itemView.isFocusable = true
             Glide.with(itemView.context)
                 .load(channel.logoUrl)
                 .placeholder(R.drawable.ic_menu_tv)

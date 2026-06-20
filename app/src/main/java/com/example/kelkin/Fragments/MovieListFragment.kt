@@ -43,9 +43,7 @@ class MovieListFragment : Fragment(R.layout.fragment_movie_list) {
 
         fetchCategoriesForDropdown()
 
-        // در onViewCreated
         binding.btnAddMovie.setOnClickListener {
-            // ارسال یک آیدیِ جدید و دیتای خالی برای حالتِ افزودن
             showAddMovieDialog()
         }
 
@@ -65,7 +63,6 @@ class MovieListFragment : Fragment(R.layout.fragment_movie_list) {
     private fun loadMoviesFromFirebase() {
         FirebaseManager.getMoviesRef().addValueEventListener(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
-                // اصلاح اینجا انجام شد: مپ کردن دقیق به Pair
                 val list = snapshot.children.mapNotNull { child ->
                     val key = child.key
                     val value = child.value as? Map<String, Any>
@@ -104,7 +101,6 @@ class MovieListFragment : Fragment(R.layout.fragment_movie_list) {
         edtUrl1.setText(data["videoUrl1"] as? String ?: "")
 
         var selectedCategoryCode = (data["category"] as? Long) ?: 0L
-        // پیدا کردن نام کتگوری برای نمایش در دکمه
         val catName = categoryMap.entries.find { it.value == selectedCategoryCode }?.key
         btnCategoryDropdown.text = catName ?: "دسته‌بندی: $selectedCategoryCode"
 
@@ -118,7 +114,7 @@ class MovieListFragment : Fragment(R.layout.fragment_movie_list) {
         builder.setView(view)
         builder.setPositiveButton("ذخیره تغییرات") { _, _ ->
             val updatedMap = mapOf(
-                "id" to (data["id"] as? Long ?: 0L), // حفظ آیدی عددی قبلی
+                "id" to (data["id"] as? Long ?: 0L),
                 "name_fa" to edtNameFa.text.toString(),
                 "description_fa" to edtDescFa.text.toString(),
                 "tmdb_id" to edtTmdbId.text.toString(),
@@ -126,7 +122,6 @@ class MovieListFragment : Fragment(R.layout.fragment_movie_list) {
                 "category" to selectedCategoryCode
             )
 
-            // استفاده از setValue به جای updateChildren برای اطمینان از اعمال تغییرات
             FirebaseManager.getMoviesRef().child(id).setValue(updatedMap)
                 .addOnCompleteListener { task ->
                     if (task.isSuccessful) Toast.makeText(context, "بروزرسانی شد", Toast.LENGTH_SHORT).show()
@@ -138,7 +133,6 @@ class MovieListFragment : Fragment(R.layout.fragment_movie_list) {
         val dialog = builder.create()
         dialog.show()
 
-        // اعمال استایل زرد رنگ به دکمه‌ها
         dialog.getButton(android.app.AlertDialog.BUTTON_POSITIVE).apply {
             setTextColor(requireContext().getColor(R.color.yellow))
             setTypeface(null, android.graphics.Typeface.BOLD)
@@ -147,7 +141,7 @@ class MovieListFragment : Fragment(R.layout.fragment_movie_list) {
             setTextColor(requireContext().getColor(R.color.yellow))
         }
     }
-    // این تابع را هم اضافه کن تا دسته‌بندی‌ها پر شوند
+
     private fun fetchCategoriesForDropdown() {
         FirebaseManager.getCategoryRef().addListenerForSingleValueEvent(object : com.google.firebase.database.ValueEventListener {
             override fun onDataChange(snapshot: com.google.firebase.database.DataSnapshot) {
@@ -167,15 +161,12 @@ class MovieListFragment : Fragment(R.layout.fragment_movie_list) {
     }
 
 
-    // این تابع باید داخل کلاس MovieListFragment باشد
     private fun showSelectionMenu(options: List<String>, anchor: View, onSelected: (String) -> Unit) {
-        // استفاده از ContextThemeWrapper برای اعمال استایل پاپ‌آپ
         val wrapper = androidx.appcompat.view.ContextThemeWrapper(requireContext(), androidx.appcompat.R.style.Widget_AppCompat_PopupMenu)
         val popup = androidx.appcompat.widget.ListPopupWindow(wrapper, null, androidx.appcompat.R.attr.listPopupWindowStyle)
 
         popup.anchorView = anchor
 
-        // استفاده از آرایه گزینه‌ها برای نمایش در پاپ‌آپ
         val adapter = android.widget.ArrayAdapter(requireContext(), android.R.layout.simple_list_item_1, options)
         popup.setAdapter(adapter)
 
@@ -214,7 +205,6 @@ class MovieListFragment : Fragment(R.layout.fragment_movie_list) {
         builder.setTitle("افزودن فیلم جدید")
 
         builder.setPositiveButton("افزودن") { _, _ ->
-            // مرحله ۱: پیدا کردن بزرگترین آیدی عددی در کل دیتابیس (سراسری)
             FirebaseManager.getMoviesRef().orderByChild("id").limitToLast(1)
                 .addListenerForSingleValueEvent(object : ValueEventListener {
                     override fun onDataChange(snapshot: DataSnapshot) {
@@ -225,12 +215,10 @@ class MovieListFragment : Fragment(R.layout.fragment_movie_list) {
                             }
                         }
 
-                        // مرحله ۲: تولید کلید بر اساس تاریخ برای مرتب‌سازی زمانی
                         val dateFormat = java.text.SimpleDateFormat("yyMMdd", java.util.Locale.US)
                         val dateString = dateFormat.format(java.util.Date())
                         val datePrefix = "m_$dateString"
 
-                        // مرحله ۳: پیدا کردن سریال امروز برای ساخت کلید یکتا
                         FirebaseManager.getMoviesRef().orderByKey().startAt(datePrefix).endAt(datePrefix + "\uf8ff")
                             .addListenerForSingleValueEvent(object : ValueEventListener {
                                 override fun onDataChange(snapshot: DataSnapshot) {
@@ -253,7 +241,6 @@ class MovieListFragment : Fragment(R.layout.fragment_movie_list) {
                                         "category" to selectedCategoryCode
                                     )
 
-                                    // مرحله ۴: استفاده از setValue برای جایگزینی قطعی داده‌ها
                                     FirebaseManager.getMoviesRef().child(newKey).setValue(newMap)
                                         .addOnSuccessListener {
                                             Toast.makeText(context, "فیلم با آیدی $newNumericId اضافه شد", Toast.LENGTH_SHORT).show()
@@ -273,7 +260,6 @@ class MovieListFragment : Fragment(R.layout.fragment_movie_list) {
         val dialog = builder.create()
         dialog.show()
 
-        // استایل‌دهی دکمه‌های زرد
         dialog.getButton(AlertDialog.BUTTON_POSITIVE).apply {
             setTextColor(requireContext().getColor(R.color.yellow))
             setTypeface(null, android.graphics.Typeface.BOLD)

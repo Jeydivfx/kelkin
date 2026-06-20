@@ -66,8 +66,6 @@ class ChannelListFragment : Fragment(R.layout.fragment_channel_list) {
                     for (cat in snapshot.children) {
                         val name = cat.child("name").getValue(String::class.java) ?: ""
 
-                        // استخراج ID از روی Key (مثلاً cat_01 -> 1)
-                        // اگر Key حتماً به صورت "cat_XX" است:
                         val key = cat.key ?: "cat_0"
                         val id = key.replace("cat_", "").toLongOrNull() ?: 0L
 
@@ -104,8 +102,8 @@ class ChannelListFragment : Fragment(R.layout.fragment_channel_list) {
         var selectedCat = (data?.get("category") as? Long) ?: 0L
 
         if (data != null) {
-            edtName.setText(data["name_fa"] as? String) // نام فیلد در دیتابیس شما name_fa است
-            edtUrl.setText(data["videoUrl"] as? String) // نام فیلد در دیتابیس شما videoUrl است
+            edtName.setText(data["name_fa"] as? String)
+            edtUrl.setText(data["videoUrl"] as? String)
             edtLogo.setText(data["logoUrl"] as? String)
             val catName = categoryMap.entries.find { it.value == selectedCat }?.key
             btnCat.text = catName ?: "دسته‌بندی: $selectedCat"
@@ -114,9 +112,7 @@ class ChannelListFragment : Fragment(R.layout.fragment_channel_list) {
         btnCat.setOnClickListener {
             showSelectionMenu(categoryNames, it) { name ->
                 btnCat.text = "دسته‌بندی: $name"
-                selectedCat = categoryMap[name] ?: 0L // اینجا آپدیت می‌شود
-                // یک لاگ اضافه کن تا ببینی در لحظه انتخاب، چه عددی ثبت شده
-                android.util.Log.d("CategoryTest", "Selected ID: $selectedCat")
+                selectedCat = categoryMap[name] ?: 0L
             }
         }
 
@@ -124,7 +120,6 @@ class ChannelListFragment : Fragment(R.layout.fragment_channel_list) {
             .setView(view)
             .setTitle(if (id == null) "افزودن کانال" else "ویرایش کانال")
             .setPositiveButton(if (id == null) "افزودن" else "ذخیره") { _, _ ->
-                // تولید خودکار ID ترتیبی برای حالت افزودن
                 if (id == null) {
                     FirebaseManager.getDatabase().getReference("channels").orderByChild("id").limitToLast(1)
                         .addListenerForSingleValueEvent(object : ValueEventListener {
@@ -159,7 +154,6 @@ class ChannelListFragment : Fragment(R.layout.fragment_channel_list) {
             "logoUrl" to logo.text.toString(),
             "category" to cat
         )
-        // در متد saveChannelToFirebase در ChannelListFragment
         FirebaseManager.saveOrUpdate("channels", key, map) { success ->
             if (success) Toast.makeText(context, "با موفقیت انجام شد", Toast.LENGTH_SHORT).show()
             else Toast.makeText(context, "خطا در ذخیره در فایربیس", Toast.LENGTH_SHORT).show()

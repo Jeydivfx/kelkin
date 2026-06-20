@@ -2,6 +2,7 @@ package com.example.kelkin
 
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -18,9 +19,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
-import androidx.tv.material3.ClickableSurfaceDefaults
 import androidx.tv.material3.Icon
-import androidx.tv.material3.Surface
 import androidx.tv.material3.Text
 
 val VazirBold = FontFamily(Font(R.font.vazir_bold, FontWeight.Bold))
@@ -29,7 +28,6 @@ val VazirBold = FontFamily(Font(R.font.vazir_bold, FontWeight.Bold))
 fun Sidebar(navController: NavController, onMenuSelected: (String) -> Unit) {
     var isExpanded by remember { mutableStateOf(false) }
 
-    // ایجاد FocusRequester برای هر آیتم
     val homeFR = remember { FocusRequester() }
     val movieFR = remember { FocusRequester() }
     val seriesFR = remember { FocusRequester() }
@@ -40,7 +38,6 @@ fun Sidebar(navController: NavController, onMenuSelected: (String) -> Unit) {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentId = navBackStackEntry?.destination?.id
 
-    // هدایت خودکار فوکوس به آیتم فعلی به محض اکسپند شدن
     LaunchedEffect(isExpanded) {
         if (isExpanded) {
             when (currentId) {
@@ -59,7 +56,8 @@ fun Sidebar(navController: NavController, onMenuSelected: (String) -> Unit) {
             .width(if (isExpanded) 140.dp else 60.dp)
             .padding(top = 40.dp, start = 8.dp, end = 8.dp)
             .animateContentSize(animationSpec = tween(durationMillis = 200))
-            .onFocusChanged { if (!it.hasFocus) isExpanded = false }
+            .onFocusChanged { if (!it.hasFocus) isExpanded = false },
+        horizontalAlignment = Alignment.End
     ) {
         SidebarItem(R.drawable.ic_menu_home, "خانه", isExpanded, currentId == R.id.homeFragment, homeFR, { isExpanded = true }) { onMenuSelected("home") }
         SidebarItem(R.drawable.ic_menu_movie, "فیلم ها", isExpanded, currentId == R.id.moviesFragment, movieFR, { isExpanded = true }) { onMenuSelected("movies") }
@@ -80,50 +78,48 @@ fun SidebarItem(
     text: String,
     isExpanded: Boolean,
     isSelected: Boolean,
-    focusRequester: FocusRequester, // دریافت ریکوستر
+    focusRequester: FocusRequester,
     onFocus: () -> Unit,
     onClick: () -> Unit
 ) {
     var isFocused by remember { mutableStateOf(false) }
 
-    Surface(
-        onClick = onClick,
+    Box(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 4.dp)
-            .focusRequester(focusRequester) // اعمال ریکوستر
+            .focusRequester(focusRequester)
             .onFocusChanged {
                 isFocused = it.isFocused
                 if (it.isFocused) onFocus()
-            },
-        colors = ClickableSurfaceDefaults.colors(
-            containerColor = Color.Transparent,
-            focusedContainerColor = Color.Transparent,
-            pressedContainerColor = Color.Transparent
-        )
+            }
+            .clickable { onClick() }
+            .padding(horizontal = 12.dp, vertical = 8.dp),
+        contentAlignment = Alignment.CenterEnd
     ) {
         val activeColor = if (isFocused || isSelected) Color(0xFFFF9800) else Color.White
 
         Row(
-            modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.End
         ) {
-            Icon(
-                painter = painterResource(id = icon),
-                contentDescription = null,
-                tint = activeColor,
-                modifier = Modifier.size(20.dp)
-            )
 
             if (isExpanded) {
-                Spacer(modifier = Modifier.width(12.dp))
                 Text(
                     text = text,
                     color = activeColor,
                     fontSize = 13.sp,
                     fontFamily = VazirBold
                 )
+                Spacer(modifier = Modifier.width(12.dp))
             }
+
+            Icon(
+                painter = painterResource(id = icon),
+                contentDescription = null,
+                tint = activeColor,
+                modifier = Modifier.size(20.dp)
+            )
         }
     }
 }

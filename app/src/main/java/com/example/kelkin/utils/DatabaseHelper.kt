@@ -11,7 +11,6 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
     companion object {
         private const val DATABASE_NAME = "kelkin.db"
         private const val DATABASE_VERSION = 3
-
         const val TABLE_MOVIES = "movies"
         const val TABLE_CHANNELS = "channels"
         const val TABLE_CATEGORIES = "categories"
@@ -27,7 +26,6 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
     }
 
     override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
-        // حذف تمام جداول برای ساختار جدید (در ورژن‌های بالاتر بهتر است از ALTER استفاده کنید)
         db.execSQL("DROP TABLE IF EXISTS $TABLE_MOVIES")
         db.execSQL("DROP TABLE IF EXISTS $TABLE_CHANNELS")
         db.execSQL("DROP TABLE IF EXISTS $TABLE_TV_CATEGORIES")
@@ -76,18 +74,12 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         db.insertWithOnConflict(TABLE_CREDENTIALS, null, values, SQLiteDatabase.CONFLICT_REPLACE)
     }
 
-    /**
-     * متد جستجوی فیلم‌ها در دیتابیس لوکال
-     * @param query عبارت مورد جستجو
-     * @return لیست فیلم‌های پیدا شده (نام فارسی یا توضیحات فارسی)
-     */
+
     fun searchMovies(query: String): List<Movie> {
         val movieList = mutableListOf<Movie>()
         val db = readableDatabase
-        // استفاده از .trim() برای حذف فضاهای خالیِ اضافه در ابتدا و انتهای عبارت کاربر
         val searchQuery = "%${query.trim()}%"
 
-        // کوئری برای جستجو در دو ستون نام فارسی و توضیحات فارسی
         val sql = "SELECT * FROM $TABLE_MOVIES WHERE name_fa LIKE ? OR description_fa LIKE ?"
 
         val cursor = db.rawQuery(sql, arrayOf(searchQuery, searchQuery))
@@ -95,7 +87,6 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         try {
             if (cursor.moveToFirst()) {
                 do {
-                    // استفاده از getColumnIndexOrThrow برای امنیت بیشتر
                     val idIndex = cursor.getColumnIndexOrThrow("id")
                     val nameFaIndex = cursor.getColumnIndexOrThrow("name_fa")
                     val descFaIndex = cursor.getColumnIndexOrThrow("description_fa")
@@ -107,7 +98,7 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
                     val totalDurIndex = cursor.getColumnIndexOrThrow("totalDuration")
 
                     val movie = Movie(
-                        id = cursor.getLong(idIndex), // مستقیم از getLong استفاده می‌کنیم
+                        id = cursor.getLong(idIndex),
                         name_fa = cursor.getString(nameFaIndex) ?: "",
                         description_fa = cursor.getString(descFaIndex) ?: "",
                         category = cursor.getLong(categoryIndex),
