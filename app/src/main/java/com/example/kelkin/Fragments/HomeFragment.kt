@@ -2,7 +2,6 @@ package com.example.kelkin.Fragments
 
 import android.content.Intent
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -15,7 +14,6 @@ import com.bumptech.glide.Glide
 import com.example.kelkin.Adapter.MovieAdapter
 import com.example.kelkin.DataClass.Movie
 import com.example.kelkin.DataClass.TmdbMovieDetails
-import com.example.kelkin.PlayerActivity
 import com.example.kelkin.R
 import com.example.kelkin.ViewModels.HomeViewModel
 import com.example.kelkin.databinding.FragmentHomeBinding
@@ -27,12 +25,13 @@ import java.util.Locale
 class HomeFragment : Fragment() {
 
     private var _binding: FragmentHomeBinding? = null
-    private val binding get() = _binding!!
+    val binding get() = _binding!!
     private lateinit var viewModel: HomeViewModel
 
     private lateinit var trendingAdapter: MovieAdapter
     private lateinit var continueAdapter: MovieAdapter
     private lateinit var myListAdapter: MovieAdapter
+
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         _binding = FragmentHomeBinding.inflate(inflater, container, false)
@@ -43,10 +42,14 @@ class HomeFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         viewModel = ViewModelProvider(requireActivity())[HomeViewModel::class.java]
 
-        setupSidebarFocus()
         setupRecyclerViews()
         observeData()
         setupHeroButtonsScroll()
+
+        binding.btnPlay.post {
+            binding.btnPlay.requestFocus()
+        }
+
     }
 
     private fun setupRecyclerViews() {
@@ -60,9 +63,48 @@ class HomeFragment : Fragment() {
         continueAdapter = MovieAdapter(onMovieClick = onMovieClick)
         myListAdapter = MovieAdapter(onMovieClick = onMovieClick)
 
-        binding.rvTrending.apply { layoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false); adapter = trendingAdapter }
-        binding.rvContinue.apply { layoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false); adapter = continueAdapter }
-        binding.rvMylist.apply { layoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false); adapter = myListAdapter }
+        fun lockEdges(recyclerView: androidx.recyclerview.widget.RecyclerView) {
+            recyclerView.setOnKeyListener { _, keyCode, event ->
+                if (event.action == android.view.KeyEvent.ACTION_DOWN) {
+                    val layoutManager = recyclerView.layoutManager as LinearLayoutManager
+                    val itemCount = recyclerView.adapter?.itemCount ?: 0
+                    val firstVisible = layoutManager.findFirstVisibleItemPosition()
+                    val lastVisible = layoutManager.findLastVisibleItemPosition()
+
+                    if (keyCode == android.view.KeyEvent.KEYCODE_DPAD_LEFT && lastVisible >= itemCount - 1) {
+                        return@setOnKeyListener true
+                    }
+                    if (keyCode == android.view.KeyEvent.KEYCODE_DPAD_RIGHT && firstVisible <= 0) {
+                        return@setOnKeyListener true
+                    }
+                }
+                false
+            }
+
+            recyclerView.setOnFocusChangeListener { v, hasFocus ->
+                if (hasFocus) {
+                    v.requestFocus()
+                }
+            }
+        }
+
+        binding.rvTrending.apply {
+            layoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
+            adapter = trendingAdapter
+            lockEdges(this)
+        }
+
+        binding.rvContinue.apply {
+            layoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
+            adapter = continueAdapter
+            lockEdges(this)
+        }
+
+        binding.rvMylist.apply {
+            layoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
+            adapter = myListAdapter
+            lockEdges(this)
+        }
     }
 
     private fun observeData() {
@@ -90,9 +132,9 @@ class HomeFragment : Fragment() {
             }
         }
 
-        trendingAdapter.submitList(processList(movies.sortedByDescending { it.id }.take(6)))
-        continueAdapter.submitList(processList(viewModel.continueWatchingList.value?.take(6) ?: emptyList()))
-        myListAdapter.submitList(processList(viewModel.myList.value?.take(6) ?: emptyList()))
+        trendingAdapter.submitList(processList(movies.sortedByDescending { it.id }.take(12)))
+        continueAdapter.submitList(processList(viewModel.continueWatchingList.value?.take(12) ?: emptyList()))
+        myListAdapter.submitList(processList(viewModel.myList.value?.take(12) ?: emptyList()))
 
         val latest = movies.maxByOrNull { it.id }
         if (latest != null) {
@@ -141,17 +183,14 @@ class HomeFragment : Fragment() {
 
     }
 
-    private fun setupSidebarFocus() {
-        val sidebar = requireActivity().findViewById<ViewGroup>(R.id.sidebar)
-        binding.btnPlay.requestFocus()
-        binding.root.postDelayed({ sidebar.descendantFocusability = ViewGroup.FOCUS_AFTER_DESCENDANTS }, 100)
-    }
 
     private fun setupHeroButtonsScroll() {
         val listener = View.OnFocusChangeListener { _, hasFocus -> if (hasFocus) binding.homeScrollView.smoothScrollTo(0, 0) }
         binding.btnPlay.onFocusChangeListener = listener
         binding.btnInfo.onFocusChangeListener = listener
     }
+
+
 
     override fun onDestroyView() {
         super.onDestroyView()

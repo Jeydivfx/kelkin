@@ -23,46 +23,13 @@ class ChannelAdapter(private val onChannelClick: (Channel) -> Unit) :
     override fun onBindViewHolder(holder: ChannelViewHolder, position: Int) {
         val channel = getItem(position)
         holder.bind(channel)
-
         holder.itemView.setOnClickListener { onChannelClick(channel) }
 
+        // فقط افکت اسکیل اینجا باقی می‌مونه
         holder.itemView.setOnFocusChangeListener { view, hasFocus ->
-            if (hasFocus) {
-                view.animate().scaleX(1.1f).scaleY(1.1f).setDuration(200).start()
-            } else {
-                view.animate().scaleX(1.0f).scaleY(1.0f).setDuration(200).start()
-            }
+            val scale = if (hasFocus) 1.1f else 1.0f
+            view.animate().scaleX(scale).scaleY(scale).setDuration(200).start()
         }
-
-        val totalItems = itemCount
-        val spanCount = 6
-
-        holder.itemView.setOnKeyListener { view, keyCode, event ->
-            if (event.action == android.view.KeyEvent.ACTION_DOWN) {
-                when (keyCode) {
-                    android.view.KeyEvent.KEYCODE_DPAD_UP -> {
-                        if (position < spanCount) {
-                            // به جای اینکه فقط true برگردونی، راه رو باز کن:
-                            false // اجازه بده سیستم اندروید فوکوس رو به بیرون هدایت کنه
-                        } else {
-                            false
-                        }
-                    }
-                    android.view.KeyEvent.KEYCODE_DPAD_DOWN -> {
-                        if (position + spanCount >= totalItems) {
-                            true // این برای پایین خوبه، چون نمی‌خوایم از لیست خارج بشه
-                        } else {
-                            false
-                        }
-                    }
-                    else -> false
-                }
-            } else {
-                false
-            }
-
-        }
-
     }
 
     class ChannelViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
@@ -71,7 +38,7 @@ class ChannelAdapter(private val onChannelClick: (Channel) -> Unit) :
 
         fun bind(channel: Channel) {
             txtName.text = channel.name_fa
-
+            itemView.isFocusable = true // بسیار مهم برای دریافت فوکوس
             Glide.with(itemView.context)
                 .load(channel.logoUrl)
                 .placeholder(R.drawable.ic_menu_tv)

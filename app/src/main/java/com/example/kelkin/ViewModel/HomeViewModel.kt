@@ -45,7 +45,6 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
     private val _channels = MutableLiveData<List<Channel>>(emptyList())
     val channels: LiveData<List<Channel>> get() = _channels
 
-    val isAppReady = MutableLiveData<Boolean>(false)
 
     private val _movies = MutableLiveData<List<Movie>>(emptyList())
     val movies: LiveData<List<Movie>> get() = _movies
@@ -158,7 +157,6 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
         // اصلاح مسیر به "category" (مطابق تصویر)
         database.child("category").addValueEventListener(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
-                Log.d("CategoryDebug", "Snapshot received. Children count: ${snapshot.childrenCount}")
 
                 viewModelScope.launch(Dispatchers.IO) {
                     val db = dbHelper.writableDatabase
@@ -173,7 +171,6 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
                             val id = key.replace("cat_", "").toIntOrNull() ?: 0
                             val name = child.child("name").value?.toString() ?: ""
 
-                            Log.d("CategoryDebug", "Parsing Key: $key, ID: $id, Name: $name")
 
                             val values = ContentValues().apply {
                                 put("id", id)
@@ -183,7 +180,6 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
                         }
                         db.setTransactionSuccessful()
                     } catch (e: Exception) {
-                        Log.e("CategoryDebug", "Error: ${e.message}")
                     } finally {
                         db.endTransaction()
                     }
@@ -215,11 +211,9 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
                     }
 
                     _channels.postValue(list)
-                    Log.d("KelkinSync", "تعداد کانال‌های لود شده: ${list.size}")
                 }
             }
             override fun onCancelled(error: DatabaseError) {
-                Log.e("KelkinSync", "خطا در دریافت کانال‌ها: ${error.message}")
             }
         })
     }
@@ -352,13 +346,11 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
             list.add(Category(0, "همه ژانرها"))
 
             val cursor = db.query("categories", null, null, null, null, null, null)
-            android.util.Log.d("CategoryDebug", "Reading from DB. Found rows: ${cursor.count}")
 
             if (cursor.moveToFirst()) {
                 do {
                     val id = cursor.getInt(cursor.getColumnIndexOrThrow("id"))
                     val name = cursor.getString(cursor.getColumnIndexOrThrow("name"))
-                    android.util.Log.d("CategoryDebug", "Adding to list -> ID: $id, Name: $name")
                     list.add(Category(id, name))
                 } while (cursor.moveToNext())
             }
@@ -376,13 +368,11 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
 
             // کوئری از جدول جدید tv_categories
             val cursor = db.query("tv_categories", null, null, null, null, null, null)
-            android.util.Log.d("TVCategoryDebug", "Reading TV Categories from DB. Found rows: ${cursor.count}")
 
             if (cursor.moveToFirst()) {
                 do {
                     val id = cursor.getInt(cursor.getColumnIndexOrThrow("id"))
                     val name = cursor.getString(cursor.getColumnIndexOrThrow("name"))
-                    android.util.Log.d("TVCategoryDebug", "Adding TV Cat to list -> ID: $id, Name: $name")
                     list.add(TvCategory(id, name))
                 } while (cursor.moveToNext())
             }

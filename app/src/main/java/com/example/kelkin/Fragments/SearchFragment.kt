@@ -1,6 +1,5 @@
 package com.example.kelkin.Fragments
 
-import android.content.Intent
 import android.graphics.Color
 import android.os.Bundle
 import android.util.Log
@@ -11,13 +10,10 @@ import androidx.core.widget.addTextChangedListener
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
-import androidx.recyclerview.widget.GridLayoutManager
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.kelkin.Adapter.MovieAdapter
-import com.example.kelkin.DataClass.Movie
 import com.example.kelkin.R
-import androidx.navigation.fragment.findNavController
-import com.example.kelkin.Adapter.MovieGridAdapter
 import com.example.kelkin.ViewModels.HomeViewModel
 import com.example.kelkin.databinding.FragmentSearchBinding
 import com.example.kelkin.utils.DatabaseHelper
@@ -28,25 +24,20 @@ class SearchFragment : Fragment(R.layout.fragment_search) {
     private var _binding: FragmentSearchBinding? = null
     private val binding get() = _binding!!
     private lateinit var viewModel: HomeViewModel
-
-
-
-    // کیبورد فارسی مرتب شده
-    private val persianKeys = "ا ب پ ت ث ج چ ح خ د ذ ر ز ژ س ش ص ض ط ظ ع غ ف ق ک گ ل م ن و ه ی"
-    private lateinit var movieAdapter: MovieGridAdapter
+    private lateinit var movieAdapter: MovieAdapter
     private lateinit var dbHelper: DatabaseHelper
+
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         _binding = FragmentSearchBinding.bind(view)
 
         viewModel = ViewModelProvider(requireActivity())[HomeViewModel::class.java]
-
         dbHelper = DatabaseHelper(requireContext())
+
         setupRecyclerView()
         setupKeyboard()
 
-        // گوش دادن به تغییرات متن برای جستجوی آنی
         binding.edtSearch.addTextChangedListener { text ->
             performSearch(text.toString())
         }
@@ -54,24 +45,22 @@ class SearchFragment : Fragment(R.layout.fragment_search) {
         binding.edtSearch.requestFocus()
     }
 
-    // در متد setupRecyclerView در SearchFragment
-    // در SearchFragment.kt
     private fun setupRecyclerView() {
-        movieAdapter = MovieGridAdapter { movie ->
+        movieAdapter = MovieAdapter { movie ->
             val bundle = Bundle().apply {
-                // تغییر از movie_data به selected_movie
                 putSerializable("selected_movie", movie)
             }
             findNavController().navigate(R.id.action_searchFragment_to_movieDetailFragment, bundle)
         }
 
         binding.rvResults.apply {
-            layoutManager = GridLayoutManager(requireContext(), 3)
+            layoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
             adapter = movieAdapter
+            clipToPadding = false
+            setPadding(32, 0, 32, 0)
         }
     }
 
-    // In SearchFragment.kt
     private fun performSearch(query: String) {
         if (query.isEmpty()) {
             movieAdapter.submitList(emptyList())
@@ -80,62 +69,78 @@ class SearchFragment : Fragment(R.layout.fragment_search) {
 
         val results = dbHelper.searchMovies(query)
 
-        // We launch a coroutine to fetch details for these search results
         viewLifecycleOwner.lifecycleScope.launch {
-            val hydratedMovies = results.map { movie ->
-                // Check if we need to fetch details
-                if (movie.posterUrl.isNullOrEmpty()) {
-                    // Assuming your viewModel has a function to fetch minimal details
-                    // or you can call TMDB directly here
-                    val details = viewModel.fetchMovieDetailsForPoster(movie.tmdb_id)
-                    movie.apply { posterUrl = details.poster_path ?: "" }
-                } else {
-                    movie
+            try {
+                val hydratedMovies = results.map { movie ->
+                    if (movie.posterUrl.isNullOrEmpty()) {
+                        val details = viewModel.fetchMovieDetailsForPoster(movie.tmdb_id)
+                        movie.apply { posterUrl = details.poster_path ?: "" }
+                    } else {
+                        movie
+                    }
                 }
+                movieAdapter.submitList(hydratedMovies)
+            } catch (e: Exception) {
+                Log.e("SearchFragment", "خطای دریافت اطلاعات: ${e.message}")
+                movieAdapter.submitList(results)
             }
-
-            // Now submit the list with the filled poster URLs
-            movieAdapter.submitList(hydratedMovies)
         }
     }
+
     private fun setupKeyboard() {
         val grid = binding.gridKeyboard
-        val keysList = persianKeys.split(" ")
+        // کل ۳۵ کاراکتر رو به ۳ بخش تقسیم می‌کنیم (هر ردیف حدود ۱۱-۱۲ دکمه)
+        val keys = "ا ب پ ت ث ج چ ح خ د ذ ر ز ژ س ش ص ض ط ظ ع غ ف ق ک گ ل م ن و ه ی ⌫".split(" ")
 
-        keysList.forEach { char ->
-            val button = createButton(char) {
-                binding.edtSearch.append(char)
+        val row1 = keys.subList(0, 12)
+        val row2 = keys.subList(12, 24)
+        val row3 = keys.subList(24, keys.size)
+
+        // تابع کمکی برای اضافه کردن ردیف
+        fun addRow(list: List<String>) {
+            list.forEach { char ->
+                val action = if (char == "⌫") {
+                    { val text = binding.edtSearch.text.toString()
+                        if (text.isNotEmpty()) binding.edtSearch.setText(text.dropLast(1)) }
+                } else {
+                    { binding.edtSearch.append(char) }
+                }
+                grid.addView(createButton(char, action))
             }
-            grid.addView(button)
         }
 
-        addSpecialKey("پاک کردن") {
-            val text = binding.edtSearch.text.toString()
-            if (text.isNotEmpty()) binding.edtSearch.setText(text.dropLast(1))
-        }
+        addRow(row1)
+        addRow(row2)
+        addRow(row3)
     }
 
     private fun createButton(text: String, onClick: () -> Unit): Button {
         return Button(requireContext()).apply {
             this.text = text
             val params = GridLayout.LayoutParams()
-            params.width = 80 // یا استفاده از dimens
+            // ابعاد رو از ۱۱۰ به ۸۰ کاهش دادیم
+            params.width = 80
             params.height = 80
-            params.setMargins(8, 8, 8, 8)
+            params.setMargins(6, 6, 6, 6)
             layoutParams = params
+
             setBackgroundResource(R.drawable.selector_keyboard_key)
             setTextColor(Color.WHITE)
+            textSize = 14f // متن دکمه‌ها رو هم کمی کوچک‌تر کردیم
             isFocusable = true
+
             setOnFocusChangeListener { v, hasFocus ->
                 (v as Button).setTextColor(if (hasFocus) Color.BLACK else Color.WHITE)
+                // افکت اسکیل ملایم‌تر
+                v.animate().scaleX(if (hasFocus) 1.05f else 1.0f)
+                    .scaleY(if (hasFocus) 1.05f else 1.0f)
+                    .setDuration(150).start()
             }
             setOnClickListener { onClick() }
         }
     }
-
     private fun addSpecialKey(labelText: String, onClick: () -> Unit) {
-        val button = createButton(labelText, onClick)
-        binding.gridKeyboard.addView(button)
+        binding.gridKeyboard.addView(createButton(labelText, onClick))
     }
 
     override fun onDestroyView() {

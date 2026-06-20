@@ -82,9 +82,7 @@
                 app:cardBackgroundColor="#1AFFFFFF"
                 app:cardElevation="0dp"
                 android:nextFocusUp="@id/cardAbout"
-                android:nextFocusDown="@id/cardClearCache"
-                android:nextFocusLeft="@id/sidebar"
-                android:nextFocusRight="@id/sidebar">
+                android:nextFocusDown="@id/cardClearCache">
 
                 <TextView
                     android:id="@+id/txtAboutDisplay"
@@ -111,9 +109,7 @@
                 app:cardBackgroundColor="#1AFFFFFF"
                 app:cardElevation="0dp"
                 android:nextFocusUp="@id/cardAbout"
-                android:nextFocusDown="@id/cardClearCache"
-                android:nextFocusLeft="@id/sidebar"
-                android:nextFocusRight="@id/sidebar">
+                android:nextFocusDown="@id/cardClearCache">
 
                 <TextView
                     android:id="@+id/txtClearDisplay"
