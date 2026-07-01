@@ -10,45 +10,94 @@ import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.annotation.OptIn
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.ViewModelProvider
 import androidx.media3.common.MediaItem
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
+import androidx.recyclerview.widget.LinearLayoutManager
+import com.example.kelkin.Adapter.ChannelAdapter
 import com.example.kelkin.DataClass.Movie
+import com.example.kelkin.ViewModels.HomeViewModel
 import com.example.kelkin.databinding.ActivityPlayerBinding
-import com.google.firebase.remoteconfig.FirebaseRemoteConfig
+import com.example.kelkin.utils.KelkinLivePlayer
 import com.google.gson.Gson
 
 class PlayerActivity : AppCompatActivity() {
 
     val binding by lazy { ActivityPlayerBinding.inflate(layoutInflater) }
     private var player: ExoPlayer? = null
+    private lateinit var viewModel: HomeViewModel
+    private var vlcPlayer: KelkinLivePlayer? = null
     private var videoPlatform = "DIRECT"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
 
+        viewModel = ViewModelProvider(this).get(HomeViewModel::class.java)
+        val isLive = intent.getBooleanExtra("is_live", false)
         val videoUrl = intent.getStringExtra("video_url") ?: ""
         val startPos = intent.getLongExtra("start_pos", 0L)
 
         when {
+            // ۱. پخش VK
             videoUrl.contains("vkvideo.ru") || videoUrl.contains("vk.com") -> {
                 videoPlatform = "VK"
+                // مخفی کردن بقیه پلیرها
+                binding.playerView.visibility = View.GONE
+                binding.vlcLayout.visibility = View.GONE
                 setupWebView(convertToVkEmbedUrl(videoUrl, startPos))
             }
+            // ۲. پخش OK
             videoUrl.contains("ok.ru") -> {
                 videoPlatform = "OK"
+                binding.playerView.visibility = View.GONE
+                binding.vlcLayout.visibility = View.GONE
                 setupWebView(convertToOkEmbedUrl(videoUrl, startPos))
+            }
+
+            isLive -> {
+                videoPlatform = "LIVE_TV"
+                binding.playerView.visibility = View.GONE
+                binding.vkPlayerContainer.visibility = View.GONE
+                binding.vlcLayout.visibility = View.VISIBLE
+
+                vlcPlayer = KelkinLivePlayer(this, binding.vlcLayout) { errorMessage ->
+                    runOnUiThread {
+                        android.widget.Toast.makeText(this, errorMessage, android.widget.Toast.LENGTH_SHORT).show()
+                        finish()
+                    }
+                }
+
+
+                viewModel.streamHeaders.observe(this) { headers ->
+                    if (headers != null) {
+                        vlcPlayer?.play(videoUrl, headers)
+                    }
+                }
+
+                viewModel.syncStreamHeaders()
+
+                setupChannelList()
             }
 
             else -> {
                 videoPlatform = "DIRECT"
+                binding.vkPlayerContainer.visibility = View.GONE
+                binding.vlcLayout.visibility = View.GONE
+                binding.playerView.visibility = View.VISIBLE
                 setupPlayer(videoUrl, startPos)
             }
         }
 
+
         onBackPressedDispatcher.addCallback(this, object : androidx.activity.OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
+                if (videoPlatform == "LIVE_TV" && binding.channelOverlay.visibility == View.VISIBLE) {
+                    binding.channelOverlay.visibility = View.GONE
+                    return
+                }
+
                 if (videoPlatform == "VK" || videoPlatform == "OK") {
                     saveWebPositionAndFinish()
                 } else {
@@ -56,6 +105,7 @@ class PlayerActivity : AppCompatActivity() {
                     finish()
                 }
             }
+
         })
     }
 
@@ -172,6 +222,14 @@ class PlayerActivity : AppCompatActivity() {
             }
         }
 
+        if (videoPlatform == "LIVE_TV" && keyCode == KeyEvent.KEYCODE_DPAD_DOWN) {
+            if (binding.channelOverlay.visibility == View.GONE) {
+                binding.channelOverlay.visibility = View.VISIBLE
+                binding.rvLiveChannels.requestFocus()
+                return true // رویداد مصرف شد
+            }
+        }
+
         return super.onKeyDown(keyCode, event)
     }
 
@@ -257,6 +315,34 @@ class PlayerActivity : AppCompatActivity() {
         }
     }
 
+    private fun setupChannelList() {
+        // تنظیمات ریسایکلر ویو
+        binding.rvLiveChannels.layoutManager =
+            LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
+
+        val adapter = ChannelAdapter { selectedChannel ->
+            // ۱. دریافتِ هدرهایِ لحظه‌ای از ViewModel
+            val currentHeaders = viewModel.streamHeaders.value
+
+            // ۲. چک کردنِ اینکه آیا هدرها موجود هستند یا خیر
+            if (currentHeaders != null) {
+                vlcPlayer?.play(selectedChannel.videoUrl, currentHeaders)
+            } else {
+                // اگر هدرها هنوز نیامده، یک هشدار یا تلاش مجدد
+                android.widget.Toast.makeText(this, "در حال دریافت تنظیمات...", android.widget.Toast.LENGTH_SHORT).show()
+            }
+
+            binding.channelOverlay.visibility = View.GONE
+        }
+        binding.rvLiveChannels.adapter = adapter
+
+        viewModel.channels.observe(this) { channels ->
+            if (!channels.isNullOrEmpty()) {
+                adapter.submitList(channels)
+                Log.d("KELKIN_DEBUG", "Channels observed in Player: ${channels.size}")
+            }
+        }
+    }
 
     override fun onPause() {
         super.onPause()
@@ -266,6 +352,8 @@ class PlayerActivity : AppCompatActivity() {
     override fun onStop() {
         super.onStop()
         releasePlayer()
+        vlcPlayer?.release()
+        vlcPlayer = null
     }
 
     private fun releasePlayer() {

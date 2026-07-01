@@ -32,6 +32,8 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
     val moviesList = MutableLiveData<List<Movie>>()
     val credentials = MutableLiveData<Credentials>()
     val movieDetailsMap = MutableLiveData<Map<String, TmdbMovieDetails>>()
+
+    val streamHeaders = MutableLiveData<StreamHeaders>()
     private val detailsCache = mutableMapOf<String, TmdbMovieDetails>()
     private val _myList = MutableLiveData<MutableList<Movie>>(mutableListOf())
     val myList: LiveData<MutableList<Movie>> get() = _myList
@@ -60,6 +62,7 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
         startSyncCategories()
         startSyncChannels()
         startSyncTvCategories()
+        syncStreamHeaders()
     }
 
     private fun loadFromLocalDatabase() {
@@ -319,6 +322,21 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
                 onResult(null, null)
             }
         }
+    }
+
+
+    fun syncStreamHeaders() {
+        database.child("app_config").child("stream_headers").addValueEventListener(object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                // خواندن دستی فیلدها برای اطمینان از صحت داده‌ها
+                val ua = snapshot.child("user_agent").value?.toString() ?: ""
+                val ref = snapshot.child("referrer").value?.toString() ?: ""
+                val ori = snapshot.child("origin").value?.toString() ?: ""
+
+                streamHeaders.postValue(StreamHeaders(ua, ref, ori))
+            }
+            override fun onCancelled(error: DatabaseError) {}
+        })
     }
 
     fun isInitialDataLoaded(): Boolean {

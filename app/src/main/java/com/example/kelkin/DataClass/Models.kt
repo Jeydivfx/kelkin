@@ -18,6 +18,11 @@ data class Credentials(
     val userAgent: String = ""
 )
 
+data class StreamHeaders(
+    val user_agent: String = "",
+    val referrer: String = "",
+    val origin: String = ""
+)
 
 data class Channel(
     val id: Int = 0,

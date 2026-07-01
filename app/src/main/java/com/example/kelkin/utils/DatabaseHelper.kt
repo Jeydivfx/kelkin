@@ -17,6 +17,8 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         const val TABLE_TV_CATEGORIES = "tv_categories"
         const val TABLE_CREDENTIALS = "credentials"
 
+        const val TABLE_STREAM_CONFIG = "stream_config"
+
         private const val DEFAULT_API_KEY = "46f67bc4b98bf28dd951fc4522edf587"
     }
 
@@ -31,6 +33,7 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         db.execSQL("DROP TABLE IF EXISTS $TABLE_TV_CATEGORIES")
         db.execSQL("DROP TABLE IF EXISTS $TABLE_CATEGORIES")
         db.execSQL("DROP TABLE IF EXISTS $TABLE_CREDENTIALS")
+        db.execSQL("DROP TABLE IF EXISTS $TABLE_STREAM_CONFIG")
         onCreate(db)
     }
 
@@ -62,16 +65,35 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
             )
         """.trimIndent())
 
+        db.execSQL("""
+        CREATE TABLE $TABLE_STREAM_CONFIG (
+            id INTEGER PRIMARY KEY DEFAULT 1, 
+            userAgent TEXT, 
+            referrer TEXT, 
+            origin TEXT
+        )
+        """.trimIndent())
+
         db.execSQL("CREATE TABLE $TABLE_CREDENTIALS (id INTEGER PRIMARY KEY DEFAULT 1, apiKey TEXT, userAgent TEXT)")
     }
 
     private fun insertDefaultData(db: SQLiteDatabase) {
+        // ۱. درج در جدول CREDENTIALS
         val values = ContentValues().apply {
             put("id", 1)
             put("apiKey", DEFAULT_API_KEY)
             put("userAgent", "Mozilla/5.0")
         }
         db.insertWithOnConflict(TABLE_CREDENTIALS, null, values, SQLiteDatabase.CONFLICT_REPLACE)
+
+        // ۲. درج در جدول STREAM_CONFIG (جدول جدیدی که اضافه کردیم)
+        val configValues = ContentValues().apply {
+            put("id", 1)
+            put("userAgent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36")
+            put("referrer", "https://www.aparatchi.com/")
+            put("origin", "https://www.aparatchi.com")
+        }
+        db.insertWithOnConflict(TABLE_STREAM_CONFIG, null, configValues, SQLiteDatabase.CONFLICT_REPLACE)
     }
 
 

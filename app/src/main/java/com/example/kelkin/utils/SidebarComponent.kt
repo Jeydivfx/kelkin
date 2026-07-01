@@ -2,6 +2,7 @@ package com.example.kelkin
 
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.runtime.*
@@ -84,6 +85,17 @@ fun SidebarItem(
 ) {
     var isFocused by remember { mutableStateOf(false) }
 
+    // رنگ‌ها را تفکیک کردیم
+    val iconColor = if (isFocused || isSelected) Color(0xFFFF9800) else Color.White
+    val textColor = if (isSelected) Color(0xFFFF9800) else Color.White // متن فقط اگر انتخاب شده باشد نارنجی است
+
+    // تعریف استروک در زمان فوکوس
+    val borderModifier = if (isFocused) {
+        Modifier.border(width = 1.5.dp, color = Color(0xFFFF9800), shape = androidx.compose.foundation.shape.RoundedCornerShape(8.dp))
+    } else {
+        Modifier // بدون استروک در حالت عادی
+    }
+
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -94,20 +106,18 @@ fun SidebarItem(
                 if (it.isFocused) onFocus()
             }
             .clickable { onClick() }
+            .then(borderModifier) // اعمال استروک فقط در زمان فوکوس
             .padding(horizontal = 12.dp, vertical = 8.dp),
         contentAlignment = Alignment.CenterEnd
     ) {
-        val activeColor = if (isFocused || isSelected) Color(0xFFFF9800) else Color.White
-
         Row(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.End
         ) {
-
             if (isExpanded) {
                 Text(
                     text = text,
-                    color = activeColor,
+                    color = textColor,
                     fontSize = 13.sp,
                     fontFamily = VazirBold
                 )
@@ -117,7 +127,7 @@ fun SidebarItem(
             Icon(
                 painter = painterResource(id = icon),
                 contentDescription = null,
-                tint = activeColor,
+                tint = iconColor, // فقط آیکون نارنجی می‌شود
                 modifier = Modifier.size(20.dp)
             )
         }

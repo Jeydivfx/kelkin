@@ -19,9 +19,15 @@ android {
         applicationId = "com.example.kelkin"
         minSdk = 23
         targetSdk = 36
-        versionCode = 3
-        versionName = "1.2"
+        versionCode = 4
+        versionName = "1.3"
 
+    }
+
+    packagingOptions {
+        jniLibs {
+            useLegacyPackaging = false
+        }
     }
 
 
@@ -119,4 +125,7 @@ dependencies {
     implementation("androidx.tv:tv-material:1.0.0-alpha11")
     implementation("androidx.activity:activity-compose:1.9.0")
     implementation("androidx.navigation:navigation-compose:2.8.0")
+    implementation("org.videolan.android:libvlc-all:3.6.0")
+
+    implementation("org.videolan.android:libvlc-all:3.6.0")
 }
