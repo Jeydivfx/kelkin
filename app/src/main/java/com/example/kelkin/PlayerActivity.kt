@@ -21,6 +21,7 @@ import com.example.kelkin.ViewModels.HomeViewModel
 import com.example.kelkin.databinding.ActivityPlayerBinding
 import com.example.kelkin.utils.KelkinLivePlayer
 import com.google.gson.Gson
+import javax.xml.transform.stream.StreamSource
 
 class PlayerActivity : AppCompatActivity() {
 
@@ -222,6 +223,13 @@ class PlayerActivity : AppCompatActivity() {
             }
         }
 
+        if (keyCode == KeyEvent.KEYCODE_DPAD_UP) {
+            if (binding.sourceOverlay.visibility == View.GONE) {
+                showSourceOverlay()
+                return true
+            }
+        }
+
         if (videoPlatform == "LIVE_TV" && keyCode == KeyEvent.KEYCODE_DPAD_DOWN) {
             if (binding.channelOverlay.visibility == View.GONE) {
                 binding.channelOverlay.visibility = View.VISIBLE
@@ -342,6 +350,12 @@ class PlayerActivity : AppCompatActivity() {
                 Log.d("KELKIN_DEBUG", "Channels observed in Player: ${channels.size}")
             }
         }
+    }
+
+    private fun showSourceOverlay() {
+        binding.sourceOverlay.visibility = View.VISIBLE
+        binding.rvSources.requestFocus()
+
     }
 
     override fun onPause() {

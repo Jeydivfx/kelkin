@@ -26,8 +26,14 @@ class ChannelAdapter(private val onChannelClick: (Channel) -> Unit) :
         holder.itemView.setOnClickListener { onChannelClick(channel) }
 
         holder.itemView.setOnFocusChangeListener { view, hasFocus ->
-            val scale = if (hasFocus) 1.1f else 1.0f
-            view.animate().scaleX(scale).scaleY(scale).setDuration(200).start()
+            view.isSelected = hasFocus
+            view.isActivated = hasFocus
+
+            if (hasFocus) {
+                view.animate().scaleX(1.05f).scaleY(1.05f).setDuration(150).start()
+            } else {
+                view.animate().scaleX(1.0f).scaleY(1.0f).setDuration(150).start()
+            }
         }
     }
 
@@ -37,7 +43,10 @@ class ChannelAdapter(private val onChannelClick: (Channel) -> Unit) :
 
         fun bind(channel: Channel) {
             txtName.text = channel.name_fa
+
             itemView.isFocusable = true
+            itemView.isFocusableInTouchMode = true
+
             Glide.with(itemView.context)
                 .load(channel.logoUrl)
                 .placeholder(R.drawable.ic_menu_tv)
