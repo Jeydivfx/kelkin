@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layoutDirection="rtl"
+    android:textDirection="rtl">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingHorizontal="24dp"
+        android:paddingVertical="16dp">
+
+        <TextView
+            android:id="@+id/txtGeneratedId"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:text="شناسه خودکار فیلم: "
+            android:textColor="#FFD700"
+            android:textSize="16sp"
+            android:textStyle="bold" />
+
+        <EditText
+            android:id="@+id/edtNameFa"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:layout_marginBottom="12dp"
+            android:background="#333333"
+            android:hint="نام فیلم (فارسی)"
+            android:inputType="text"
+            android:paddingHorizontal="12dp"
+            android:textColor="#FFFFFF"
+            android:textColorHint="#AAAAAA"
+            android:textSize="15sp"
+            android:textDirection="rtl" />
+
+        <EditText
+            android:id="@+id/edtDescFa"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:layout_marginBottom="12dp"
+            android:background="#333333"
+            android:hint="توضیحات فیلم (فارسی)"
+            android:inputType="text"
+            android:paddingHorizontal="12dp"
+            android:textColor="#FFFFFF"
+            android:textColorHint="#AAAAAA"
+            android:textSize="15sp"
+            android:textDirection="rtl" />
+
+        <TextView
+            android:id="@+id/btnCategoryDropdown"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:layout_marginBottom="12dp"
+            android:background="#333333"
+            android:clickable="true"
+            android:focusable="true"
+            android:gravity="center_vertical|right"
+            android:hint="انتخاب دسته‌بندی فیلم..."
+            android:paddingHorizontal="16dp"
+            android:textColor="#FFFFFF"
+            android:textColorHint="#AAAAAA"
+            android:textSize="15sp"
+            android:textDirection="rtl" />
+
+        <EditText
+            android:id="@+id/edtTmdbId"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:layout_marginBottom="12dp"
+            android:background="#333333"
+            android:hint="شناسه TMDB ID"
+            android:inputType="text"
+            android:paddingHorizontal="12dp"
+            android:textColor="#FFFFFF"
+            android:textColorHint="#AAAAAA"
+            android:textSize="15sp"
+            android:textDirection="rtl" />
+
+        <EditText
+            android:id="@+id/edtUrl1"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:background="#333333"
+            android:hint="لینک مستقیم ویدیو یا لینک VK"
+            android:inputType="textUri"
+            android:paddingHorizontal="12dp"
+            android:textColor="#FFFFFF"
+            android:textColorHint="#AAAAAA"
+            android:textSize="15sp"
+            android:textDirection="rtl" />
+
+    </LinearLayout>
+</ScrollView>

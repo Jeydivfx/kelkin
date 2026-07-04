@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.core.widget.NestedScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#0F0F0F"
+    android:fillViewport="true">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layoutDirection="rtl"
+        android:padding="32dp">
+
+        <EditText
+            android:id="@+id/edtSearch"
+            android:layout_width="500dp"
+            android:layout_height="50dp"
+            android:background="@drawable/bg_search_modern"
+            android:gravity="center_vertical|right"
+            android:hint="جستجو در آرشیو..."
+            android:paddingHorizontal="20dp"
+            android:textColor="#FFFFFF"
+            android:textColorHint="#444444"
+            android:textSize="16sp"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
+
+        <GridLayout
+            android:id="@+id/gridKeyboard"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="30dp"
+            android:columnCount="10"
+            app:layout_constraintTop_toBottomOf="@id/edtSearch"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
+
+        <TextView
+            android:id="@+id/txtResultTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="فیلم‌های پیدا شده"
+            android:textColor="#FFFFFF"
+            android:fontFamily="@font/vazir_bold"
+            android:textSize="15sp"
+            android:layout_marginTop="40dp"
+            android:gravity="right"
+            app:layout_constraintTop_toBottomOf="@id/gridKeyboard" />
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvResults"
+            android:layout_width="match_parent"
+            android:layout_height="220dp"
+            android:layout_marginTop="12dp"
+            android:clipToPadding="false"
+            android:layoutDirection="rtl"
+            app:layout_constraintTop_toBottomOf="@id/txtResultTitle" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</androidx.core.widget.NestedScrollView>

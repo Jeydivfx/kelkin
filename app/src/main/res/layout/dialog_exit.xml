@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="400dp"
+    android:layout_height="wrap_content"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:background="@drawable/bg_dialog"
+    android:orientation="vertical"
+    android:padding="24dp"
+    android:gravity="center">
+
+    <TextView
+        android:id="@+id/dialogTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="خروج از برنامه"
+        android:textColor="@color/text_white"
+        android:fontFamily="@font/yekanbakh_bold"
+        android:textSize="22sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/dialogMessage"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:fontFamily="@font/yekanbakh_regular"
+        android:text="آیا مطمئن هستید که می‌خواهید خارج شوید؟"
+        android:textColor="@color/text_gray"
+        android:textSize="18sp"
+        android:gravity="center" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="32dp"
+        android:orientation="horizontal"
+        android:gravity="center">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnExitYes"
+            android:layout_width="0dp"
+            android:layout_height="44dp"
+            android:layout_weight="1"
+            android:layout_marginEnd="8dp"
+            android:minHeight="0dp"
+            android:minWidth="0dp"
+            android:background="@drawable/sl_button_high_contrast"
+            app:backgroundTint="@null"
+            android:fontFamily="@font/yekanbakh_bold"
+            android:text="بله"
+            android:textColor="@drawable/sl_text_high_contrast"
+            android:textSize="18sp"
+            app:cornerRadius="6dp"
+            android:focusable="true" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnExitNo"
+            android:layout_width="0dp"
+            android:layout_height="44dp"
+            android:layout_weight="1"
+            android:layout_marginStart="8dp"
+            android:minHeight="0dp"
+            android:minWidth="0dp"
+            android:background="@drawable/sl_button_high_contrast"
+            app:backgroundTint="@null"
+            android:fontFamily="@font/yekanbakh_bold"
+            android:text="خیر"
+            android:textColor="@drawable/sl_text_high_contrast"
+            android:textSize="18sp"
+            app:cornerRadius="6dp"
+            android:focusable="true" />
+    </LinearLayout>
+</LinearLayout>
