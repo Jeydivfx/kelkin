@@ -608,4 +608,9 @@ class PlayerActivity : AppCompatActivity() {
             // ignore
         }
     }
+
+    override fun onResume() {
+        super.onResume()
+        exoPlayer?.play()
+    }
 }
