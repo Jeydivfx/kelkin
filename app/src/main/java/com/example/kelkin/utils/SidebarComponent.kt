@@ -2,7 +2,7 @@ package com.example.kelkin
 
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.border
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.runtime.*
@@ -47,7 +47,6 @@ fun Sidebar(
 
     val isInMovieDetail = currentId == R.id.movieDetailFragment
 
-    // Determine which item should be selected
     val selectedItem = remember(currentId) {
         when (currentId) {
             R.id.homeFragment, R.id.movieDetailFragment -> homeFR
@@ -59,20 +58,15 @@ fun Sidebar(
         }
     }
 
-    // Request focus when expanded - BUT NOT in MovieDetailFragment
     LaunchedEffect(isExpanded, currentId) {
-        // CRITICAL: Only request focus if we're NOT in MovieDetailFragment
-        // OR if we're in MovieDetailFragment and user manually expanded it
         if (isExpanded && !isInMovieDetail) {
             focusManager.clearFocus(force = true)
             selectedItem.requestFocus()
         }
     }
 
-    // Collapse sidebar when navigating TO MovieDetailFragment
     LaunchedEffect(currentId) {
         if (isInMovieDetail) {
-            // Immediately collapse when entering MovieDetailFragment
             onExpandedChange(false)
         }
     }
@@ -90,7 +84,6 @@ fun Sidebar(
             },
         horizontalAlignment = Alignment.End
     ) {
-        // Home
         SidebarItem(
             icon = R.drawable.ic_menu_home,
             text = "خانه",
@@ -108,7 +101,6 @@ fun Sidebar(
             }
         )
 
-        // Movies
         SidebarItem(
             icon = R.drawable.ic_menu_movie,
             text = "فیلم ها",
@@ -126,7 +118,6 @@ fun Sidebar(
             }
         )
 
-        // Series
         SidebarItem(
             icon = R.drawable.ic_series,
             text = "سریال ها",
@@ -144,7 +135,6 @@ fun Sidebar(
             }
         )
 
-        // TV
         SidebarItem(
             icon = R.drawable.ic_menu_tv,
             text = "تلویزیون",
@@ -162,7 +152,6 @@ fun Sidebar(
             }
         )
 
-        // Search
         SidebarItem(
             icon = R.drawable.ic_menu_search,
             text = "جستجو",
@@ -182,7 +171,6 @@ fun Sidebar(
 
         Spacer(modifier = Modifier.weight(1f))
 
-        // Settings
         SidebarItem(
             icon = R.drawable.ic_menu_settings,
             text = "تنظیمات",
@@ -218,41 +206,26 @@ fun SidebarItem(
 ) {
     var isFocused by remember { mutableStateOf(false) }
 
-    // Only show yellow border when actually focused
-    val shouldShowBorder = isFocused
-
-    // Show orange color if selected OR if it's the default item when not focused
-    // BUT NOT in MovieDetailFragment (to prevent any visual flash)
     val shouldShowOrange = if (isInMovieDetail) {
-        false  // Don't show any orange in MovieDetailFragment to prevent flash
+        false
     } else {
         isSelected || (isDefaultItem && !isFocused)
     }
 
-    val iconColor = if (shouldShowBorder || shouldShowOrange) Color(0xFFFF9800) else Color.White
+    val iconColor = if (isFocused || shouldShowOrange) Color(0xFFFF9800) else Color.White
     val textColor = if (shouldShowOrange) Color(0xFFFF9800) else Color.White
-
-    val borderModifier = if (shouldShowBorder) {
-        Modifier.border(
-            width = 1.5.dp,
-            color = Color(0xFFFF9800),
-            shape = androidx.compose.foundation.shape.RoundedCornerShape(8.dp)
-        )
-    } else {
-        Modifier
-    }
 
     Box(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 4.dp)
+            .background(Color.Transparent)
             .focusRequester(focusRequester)
             .onFocusChanged {
                 isFocused = it.isFocused
                 if (it.isFocused) onFocus()
             }
             .clickable { onClick() }
-            .then(borderModifier)
             .padding(horizontal = 12.dp, vertical = 8.dp),
         contentAlignment = Alignment.CenterEnd
     ) {

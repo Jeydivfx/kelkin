@@ -3,77 +3,54 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/mainContentLayout"
-    android:layout_width="200dp"
+    android:layout_width="180dp"
     android:layout_height="wrap_content"
-    android:layout_margin="4dp"
+    android:layout_margin="6dp"
     android:clickable="true"
     android:focusable="true"
     android:focusableInTouchMode="true"
     android:orientation="vertical"
     android:background="@drawable/bg_glass_card"
-    android:padding="10dp">
+    android:padding="12dp"
+    android:elevation="4dp">
 
-    <!-- Status Badge -->
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center_vertical"
-        android:layout_marginBottom="4dp">
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="● منابع"
-            android:textSize="7sp"
-            android:textColor="#50FFFFFF"
-            android:fontFamily="@font/vazir_bold"
-            android:letterSpacing="0.1"
-            android:textAllCaps="true" />
-
-        <View
-            android:layout_width="20dp"
-            android:layout_height="1dp"
-            android:layout_marginStart="6dp"
-            android:background="@drawable/bg_gradient_line" />
-    </LinearLayout>
-
-    <!-- Content Row -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:gravity="center_vertical">
 
-        <!-- Icon Container -->
+
         <FrameLayout
-            android:layout_width="32dp"
-            android:layout_height="32dp"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
             android:background="@drawable/bg_icon_glow">
 
             <FrameLayout
-                android:layout_width="28dp"
-                android:layout_height="28dp"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
                 android:layout_gravity="center"
                 android:background="@drawable/bg_icon_rounded">
 
                 <ImageView
                     android:id="@+id/imgSourceIcon"
-                    android:layout_width="14dp"
-                    android:layout_height="14dp"
+                    android:layout_width="16dp"
+                    android:layout_height="16dp"
                     android:layout_gravity="center"
                     android:src="@drawable/ic_play_arrow_24dp"
-                    app:tint="#FFFFFF" />
+                    app:tint="#000000" />
             </FrameLayout>
         </FrameLayout>
 
-        <!-- Text Content -->
+
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:layout_marginStart="10dp"
-            android:orientation="vertical">
+            android:orientation="vertical"
+            android:gravity="center_vertical">
 
             <TextView
                 android:id="@+id/txtSourceName"
@@ -81,19 +58,21 @@
                 android:layout_height="wrap_content"
                 android:textColor="#FFFFFF"
                 android:fontFamily="@font/vazir_bold"
-                android:textSize="11sp"
+                android:textSize="12sp"
                 android:maxLines="1"
                 android:ellipsize="end" />
 
+
             <LinearLayout
-                android:layout_width="match_parent"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
-                android:gravity="center_vertical">
+                android:gravity="center_vertical"
+                android:layout_marginTop="2dp">
 
                 <ImageView
-                    android:layout_width="8dp"
-                    android:layout_height="8dp"
+                    android:layout_width="10dp"
+                    android:layout_height="10dp"
                     android:src="@drawable/ic_location_24dp"
                     app:tint="#FFB74D" />
 
@@ -103,26 +82,24 @@
                     android:layout_height="wrap_content"
                     android:textColor="#FFB74D"
                     android:fontFamily="@font/vazir_bold"
-                    android:textSize="9sp"
-                    android:layout_marginStart="3dp"
-                    android:alpha="0.8" />
+                    android:textSize="10sp"
+                    android:layout_marginStart="4dp" />
             </LinearLayout>
         </LinearLayout>
 
-        <!-- Arrow -->
         <ImageView
-            android:layout_width="14dp"
-            android:layout_height="14dp"
+            android:layout_width="16dp"
+            android:layout_height="16dp"
             android:src="@drawable/ic_chevron_right_24dp"
-            app:tint="#25FFFFFF"
+            app:tint="#30FFFFFF"
             android:layout_marginStart="4dp" />
     </LinearLayout>
 
-    <!-- Progress Bar -->
+
     <View
         android:layout_width="match_parent"
         android:layout_height="1dp"
-        android:layout_marginTop="8dp"
+        android:layout_marginTop="10dp"
         android:background="@drawable/bg_source_progress" />
 
 </LinearLayout>
