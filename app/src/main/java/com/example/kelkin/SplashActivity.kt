@@ -50,7 +50,7 @@ class SplashActivity : AppCompatActivity() {
         val versionText = findViewById<TextView>(R.id.txtVersion)
         val versionNumber = getAppVersionName()
         val persianVersion = convertToPersianNumbers(versionNumber)
-        versionText?.text = "نسخه $persianVersion"
+        versionText?.text = "نسخه کلکین $persianVersion"
 
         playerView = findViewById(R.id.playerView)
         playerView.visibility = View.GONE

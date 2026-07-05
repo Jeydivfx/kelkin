@@ -4,6 +4,7 @@ import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -204,6 +205,7 @@ fun SidebarItem(
     onFocus: () -> Unit,
     onClick: () -> Unit
 ) {
+    val interactionSource = remember { MutableInteractionSource() }
     var isFocused by remember { mutableStateOf(false) }
 
     val shouldShowOrange = if (isInMovieDetail) {
@@ -225,7 +227,11 @@ fun SidebarItem(
                 isFocused = it.isFocused
                 if (it.isFocused) onFocus()
             }
-            .clickable { onClick() }
+            .clickable(
+                interactionSource = interactionSource,
+                indication = null,
+                onClick = { onClick() }
+            )
             .padding(horizontal = 12.dp, vertical = 8.dp),
         contentAlignment = Alignment.CenterEnd
     ) {
