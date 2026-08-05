@@ -1,0 +1,375 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/bg_gradient_main"
+    android:id="@+id/homeScrollView"
+    android:overScrollMode="never"
+    android:fillViewport="true">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/main_container"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingBottom="50dp">
+
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/hero_section"
+            android:layout_width="match_parent"
+            android:layout_height="450dp"
+            android:background="@android:color/transparent"
+            app:layout_constraintTop_toTopOf="parent">
+
+            <ImageView
+                android:id="@+id/hero_image"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:scaleType="centerCrop" />
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@drawable/hero_gradient_overlay" />
+
+            <View
+                android:layout_width="300dp"
+                android:layout_height="match_parent"
+                android:background="@drawable/hero_right_fade"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent" />
+
+            <View
+                android:layout_width="200dp"
+                android:layout_height="match_parent"
+                android:background="@drawable/hero_left_fade"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent" />
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="300dp"
+                android:layout_gravity="bottom"
+                android:background="@drawable/hero_bottom_fade"
+                app:layout_constraintBottom_toBottomOf="parent" />
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginEnd="32dp"
+                android:layout_marginTop="130dp"
+                android:gravity="right"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintEnd_toEndOf="parent">
+
+                <TextView
+                    android:id="@+id/hero_title"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="@font/roboto_bold"
+                    android:gravity="right"
+                    android:includeFontPadding="false"
+                    android:letterSpacing="-0.03"
+                    android:maxLines="2"
+                    android:shadowColor="#80000000"
+                    android:shadowDx="1"
+                    android:shadowDy="2"
+                    android:shadowRadius="4"
+                    android:textAllCaps="true"
+                    android:textColor="@color/text_white"
+                    android:textSize="22sp"
+                    tools:text="@string/hero_title_placeholder" />
+
+                <LinearLayout
+                    android:id="@+id/movie_info_row"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_marginTop="10dp"
+                    android:gravity="center_vertical"
+                    android:layoutDirection="rtl">
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:paddingHorizontal="4dp"
+                        android:paddingVertical="0dp"
+                        android:gravity="center_vertical">
+
+                        <TextView
+                            android:id="@+id/imdb_score"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="6.6"
+                            android:layout_marginEnd="3dp"
+                            android:textColor="@color/yellow"
+                            android:fontFamily="@font/montserrat_bold"
+                            android:textSize="12sp"
+                            android:includeFontPadding="false" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/imdb_label"
+                            android:textColor="@color/yellow"
+                            android:fontFamily="@font/montserrat_bold"
+                            android:textSize="12sp"
+                            android:includeFontPadding="false" />
+
+                    </LinearLayout>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text=" • "
+                        android:textColor="#60FFFFFF"
+                        android:layout_marginHorizontal="4dp"
+                        android:textSize="12sp" />
+
+                    <TextView
+                        android:id="@+id/hero_year"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/hero_year_placeholder"
+                        android:textColor="@color/text_description"
+                        android:fontFamily="@font/montserrat_bold"
+                        android:textSize="12sp"
+                        android:includeFontPadding="false" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text=" • "
+                        android:textColor="#60FFFFFF"
+                        android:layout_marginHorizontal="4dp"
+                        android:textSize="12sp" />
+
+                    <TextView
+                        android:id="@+id/hero_genre"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/hero_genre_placeholder"
+                        android:textColor="@color/text_description"
+                        android:fontFamily="@font/montserrat_bold"
+                        android:textSize="12sp"
+                        android:includeFontPadding="false" />
+
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/hero_description"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:ellipsize="end"
+                    android:maxLines="2"
+                    android:lineSpacingExtra="3dp"
+                    android:fontFamily="@font/vazir_bold"
+                    android:text="@string/hero_desc_placeholder"
+                    android:textSize="13sp"
+                    android:textColor="@color/text_gray"
+                    android:gravity="right"
+                    android:maxWidth="500dp" />
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:layoutDirection="rtl"
+                    android:orientation="horizontal"
+                    android:layout_gravity="right">
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btn_play"
+                        android:layout_width="wrap_content"
+                        android:layout_height="44dp"
+                        android:minHeight="0dp"
+                        android:minWidth="0dp"
+                        android:layout_marginEnd="4dp"
+                        android:paddingHorizontal="16dp"
+                        android:background="@drawable/sl_button_high_contrast"
+                        app:backgroundTint="@null"
+                        android:fontFamily="@font/yekanbakh_bold"
+                        android:text="@string/btn_play"
+                        android:textColor="@drawable/sl_text_high_contrast"
+                        android:textSize="14sp"
+                        app:cornerRadius="8dp"
+                        android:elevation="4dp"
+                        android:nextFocusUp="@id/btn_play"
+                        android:layoutDirection="rtl"
+                        app:icon="@drawable/ic_media_play"
+                        app:iconGravity="textEnd"
+                        app:iconSize="16dp"
+                        app:iconTint="@drawable/sl_text_high_contrast" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btn_info"
+                        android:layout_width="wrap_content"
+                        android:layout_height="44dp"
+                        android:layout_marginEnd="8dp"
+                        android:nextFocusUp="@id/btn_info"
+                        android:minHeight="0dp"
+                        android:minWidth="0dp"
+                        android:paddingHorizontal="16dp"
+                        android:background="@drawable/sl_button_high_contrast"
+                        app:backgroundTint="@null"
+                        android:fontFamily="@font/yekanbakh_bold"
+                        android:text="@string/btn_info"
+                        android:textColor="@drawable/sl_text_high_contrast"
+                        android:textSize="14sp"
+                        app:cornerRadius="8dp"
+                        android:elevation="4dp"
+                        app:icon="@drawable/ic_info"
+                        app:iconGravity="textEnd"
+                        app:iconSize="16dp"
+                        app:iconTint="@drawable/sl_text_high_contrast" />
+
+                </LinearLayout>
+            </LinearLayout>
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layoutDirection="rtl"
+            android:paddingStart="32dp"
+            android:paddingEnd="60dp"
+            android:layout_marginTop="-110dp"
+            app:layout_constraintTop_toBottomOf="@id/hero_section">
+
+            <!-- Trending Section -->
+            <TextView
+                android:id="@+id/title_trending"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/title_trending"
+                android:fontFamily="@font/yekanbakh_bold"
+                android:textColor="@color/text_gray"
+                android:textSize="16sp" />
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rv_trending"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:clipToPadding="false"
+                android:paddingStart="0dp"
+                android:paddingEnd="0dp"
+                android:nextFocusLeft="@id/rv_trending"
+                android:orientation="horizontal"
+                android:focusable="true"
+                app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+                tools:listitem="@layout/item_movie_card"
+                tools:itemCount="5" />
+
+            <!-- Continue Watching Section -->
+            <LinearLayout
+                android:id="@+id/continue_container"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginTop="24dp">
+
+                <TextView
+                    android:id="@+id/title_continue"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/title_continue"
+                    android:fontFamily="@font/yekanbakh_bold"
+                    android:textColor="@color/text_gray"
+                    android:textSize="16sp" />
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/rv_continue"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:nextFocusLeft="@id/rv_continue"
+                    android:clipToPadding="false"
+                    android:focusable="true"
+                    android:descendantFocusability="afterDescendants"
+                    android:paddingStart="0dp"
+                    android:paddingEnd="0dp"
+                    android:orientation="horizontal"
+                    app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+                    tools:listitem="@layout/item_movie_card"
+                    tools:itemCount="10" />
+
+                <TextView
+                    android:id="@+id/empty_continue_text"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:text="@string/empty_continue_text"
+                    android:textColor="@color/text_gray"
+                    android:textSize="14sp"
+                    android:fontFamily="@font/vazir_bold"
+                    android:gravity="center"
+                    android:visibility="gone"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/title_continue" />
+
+            </LinearLayout>
+
+            <!-- My List Section -->
+            <LinearLayout
+                android:id="@+id/mylist_container"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginTop="24dp">
+
+                <TextView
+                    android:id="@+id/title_mylist"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/title_mylist"
+                    android:fontFamily="@font/yekanbakh_bold"
+                    android:textColor="@color/text_gray"
+                    android:textSize="16sp" />
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/rv_mylist"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:clipToPadding="false"
+                    android:paddingStart="0dp"
+                    android:paddingEnd="0dp"
+                    android:nextFocusLeft="@id/rv_mylist"
+                    android:focusable="true"
+                    android:orientation="horizontal"
+                    app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+                    tools:listitem="@layout/item_movie_card"
+                    tools:itemCount="10" />
+
+                <TextView
+                    android:id="@+id/empty_mylist_text"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:text="@string/empty_mylist_text"
+                    android:textColor="@color/text_gray"
+                    android:textSize="14sp"
+                    android:fontFamily="@font/vazir_bold"
+                    android:gravity="center"
+                    android:visibility="gone"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/title_mylist" />
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</androidx.core.widget.NestedScrollView>

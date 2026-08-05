@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="180dp"
+    android:layout_height="wrap_content"
+    android:layout_marginStart="8dp"
+    android:layout_marginEnd="8dp"
+    android:background="@drawable/sl_button_high_contrast"
+    android:focusable="true"
+    android:clickable="true"
+    android:orientation="vertical"
+    android:padding="8dp"
+    android:layoutDirection="rtl">
+
+
+    <ImageView
+        android:id="@+id/imgEpisodeBackdrop"
+        android:layout_width="match_parent"
+        android:layout_height="110dp"
+        android:scaleType="centerCrop"
+        android:background="@color/black" />
+
+    <TextView
+        android:id="@+id/txtEpisodeTitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:fontFamily="@font/yekanbakh_bold"
+        android:textColor="@drawable/sl_text_high_contrast"
+        android:textSize="14sp" />
+
+
+</LinearLayout>

@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/bg_gradient_main"
+    android:layoutDirection="rtl"
+    android:textDirection="rtl">
+
+    <LinearLayout
+        android:id="@+id/panel_details"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:background="#0AFFFFFF"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:padding="32dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintWidth_percent="0.35">
+
+        <ImageView
+            android:id="@+id/img_setting_detail"
+            android:layout_width="120dp"
+            android:layout_height="120dp"
+            android:src="@drawable/ic_menu_settings"
+            app:tint="#FFD700" />
+
+        <TextView
+            android:id="@+id/txt_setting_description"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:gravity="center"
+            android:lineSpacingMultiplier="1.3"
+            android:text="تنظیمات کلی برنامه کلکین"
+            android:textColor="@color/text_white"
+            android:textSize="16sp" />
+    </LinearLayout>
+
+    <ScrollView
+        android:id="@+id/settingsScrollView"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:clipToPadding="false"
+        android:focusable="false"
+        android:paddingVertical="40dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/panel_details"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <LinearLayout
+            android:id="@+id/settingsContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingHorizontal="48dp"
+            android:focusable="false"
+            android:descendantFocusability="afterDescendants"
+            android:gravity="right">
+
+            <TextView
+                style="@style/SettingHeader"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                android:layout_marginRight="8dp"
+                android:text="پشتیبانی و خدمات سیستم"
+                android:textColor="#88FFFFFF"
+                android:textSize="14sp"
+                android:gravity="right" />
+
+            <!-- دکمه اول: درباره ما -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/cardAbout"
+                android:layout_width="440dp"
+                android:layout_height="64dp"
+                android:layout_marginBottom="12dp"
+                android:minHeight="0dp"
+                android:minWidth="0dp"
+                android:insetTop="0dp"
+                android:insetBottom="0dp"
+                android:insetLeft="0dp"
+                android:insetRight="0dp"
+                android:paddingRight="20dp"
+                android:background="@drawable/sl_button_high_contrast"
+                app:backgroundTint="@null"
+                android:fontFamily="@font/yekanbakh_bold"
+                android:text="درباره ما و شبکه‌های اجتماعی"
+                android:textColor="@drawable/sl_text_high_contrast"
+                android:textSize="18sp"
+                app:cornerRadius="6dp"
+                android:gravity="center_vertical|right"
+                android:focusable="true"
+                android:clickable="true"
+                android:elevation="0dp"
+                app:elevation="0dp"
+                android:nextFocusUp="@id/cardAbout"
+                android:nextFocusDown="@id/cardClearCache" />
+
+            <!-- دکمه دوم: پاکسازی حافظه -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/cardClearCache"
+                android:layout_width="440dp"
+                android:layout_height="64dp"
+                android:layout_marginBottom="32dp"
+                android:minHeight="0dp"
+                android:minWidth="0dp"
+                android:insetTop="0dp"
+                android:insetBottom="0dp"
+                android:insetLeft="0dp"
+                android:insetRight="0dp"
+                android:paddingRight="20dp"
+                android:background="@drawable/sl_button_high_contrast"
+                app:backgroundTint="@null"
+                android:fontFamily="@font/yekanbakh_bold"
+                android:text="پاکسازی حافظه موقت برنامه"
+                android:textColor="@drawable/sl_text_high_contrast"
+                android:textSize="18sp"
+                app:cornerRadius="6dp"
+                android:gravity="center_vertical|right"
+                android:focusable="true"
+                android:clickable="true"
+                android:elevation="0dp"
+                app:elevation="0dp"
+                android:nextFocusUp="@id/cardAbout"
+                android:nextFocusDown="@id/cardClearCache" />
+
+            <View
+                android:layout_width="440dp"
+                android:layout_height="1dp"
+                android:background="#12FFFFFF"
+                android:layout_marginBottom="16dp" />
+
+            <TextView
+                android:id="@+id/txtAppVersion"
+                android:layout_width="440dp"
+                android:layout_height="wrap_content"
+                android:layout_marginRight="8dp"
+                android:text="نسخه اپلیکیشن: 1.0.0 (Kelkin TV)"
+                android:textColor="#55FFFFFF"
+                android:textSize="13sp"
+                android:gravity="right" />
+
+        </LinearLayout>
+    </ScrollView>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

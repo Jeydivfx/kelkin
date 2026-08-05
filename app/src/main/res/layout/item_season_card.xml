@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:layout_marginStart="8dp"
+    android:layout_marginEnd="8dp"
+    android:background="@drawable/sl_button_high_contrast"
+    android:focusable="true"
+    android:clickable="true"
+    android:paddingHorizontal="20dp"
+    android:paddingVertical="10dp"
+    android:gravity="center"
+    android:layoutDirection="rtl">
+
+    <TextView
+        android:id="@+id/txtSeasonName"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:fontFamily="@font/yekanbakh_bold"
+        android:textColor="@color/text_white"
+        android:textSize="14sp" />
+
+</LinearLayout>

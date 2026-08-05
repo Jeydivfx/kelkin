@@ -1,0 +1,31 @@
+<resources>
+    <string name="app_name">kelkin</string>
+    <string name="default_web_client_id">405609698910-s5ijau9vjlili14mmvmrt031cp0890m3.apps.googleusercontent.com</string>
+
+    <!-- Login fragment -->
+    <string name="welcome_title">خوش آمدید!</string>
+    <string name="welcome_subtitle">برای تجربه تماشای متفاوت، متصل شوید.</string>
+    <string name="login_with_google">ورود با گوگل</string>
+
+    <!-- Fragment Home -->
+    <string name="hero_title_placeholder">THE DARK KNIGHT</string>
+    <string name="imdb_label">IMDB</string>
+    <string name="hero_year_placeholder">2026</string>
+    <string name="hero_genre_placeholder">Action</string>
+    <string name="hero_desc_placeholder">فقط برای تست.</string>
+    <string name="btn_play">پخش</string>
+    <string name="btn_info">اطلاعات</string>
+    <string name="title_trending">جدیدترین فیلم ها</string>
+    <string name="title_continue">ادامه تماشا</string>
+    <string name="empty_continue_text">فیلمی برای ادامه تماشا وجود ندارد.</string>
+    <string name="title_mylist">لیست من</string>
+    <string name="empty_mylist_text">لیست شما خالی است.</string>
+
+
+    <string name="admin_panel_title">ورود به پنل مدیریت</string>
+    <string name="admin_hint_username">نام کاربری</string>
+    <string name="admin_hint_password">رمز عبور</string>
+    <string name="admin_btn_login">ورود</string>
+    <string name="admin_btn_cancel">لغو</string>
+
+</resources>

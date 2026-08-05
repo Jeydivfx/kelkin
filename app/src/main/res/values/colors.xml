@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="bg_black">#000000</color>
+    <color name="netflix_red">#E50914</color>
+    <color name="netflix_red_dark">#B20710</color>
+    <color name="text_white">#FFFFFF</color>
+    <color name="text_gray">#B3B3B3</color>
+    <color name="text_description">#E5E5E5</color>
+    <color name="btn_info_bg">#6D6D6E</color>
+    <color name="focused_white">#FFFFFF</color>
+    <color name="sidebar_glass_bg">#CC000000</color>
+    <color name="yellow">#FFEB3B</color>
+    <color name="btn_default_bg">#40FFFFFF</color>
+
+
+    <color name="tv_background_solid">#FF0F0F0F</color>
+    <color name="hero_overlay_start">#DD0F0F0F</color>
+    <color name="hero_overlay_center">#88141414</color>
+    <color name="hero_overlay_end">#00090909</color>
+    <color name="hero_fade_color">#121212</color>
+    <color name="dialog_background">#FF1A1A1A</color>
+
+
+    <color name="card_focused_bg">#33FFD700</color>
+    <color name="card_stroke_default">#22FFFFFF</color>
+
+
+
+
+</resources>

@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="20dp"
+    android:background="@drawable/bg_gradient_main"
+    android:layoutDirection="rtl">
+
+    <TextView
+        android:id="@+id/txtGeneratedId"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textColor="#FFD700"
+        android:textSize="14sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="16dp" />
+
+    <EditText
+        android:id="@+id/edtNameFa"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="نام سریال"
+        android:textColor="#FFFFFF"
+        android:textColorHint="#777777"
+        android:textSize="14sp"
+        android:backgroundTint="#FFD700"
+        android:layout_marginBottom="10dp" />
+
+    <EditText
+        android:id="@+id/edtDescFa"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="توضیحات (خلاصه داستان)"
+        android:textColor="#FFFFFF"
+        android:textColorHint="#777777"
+        android:textSize="14sp"
+        android:backgroundTint="#FFD700"
+        android:layout_marginBottom="10dp" />
+
+    <EditText
+        android:id="@+id/edtTmdbId"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="شناسه TMDB"
+        android:inputType="number"
+        android:textColor="#FFFFFF"
+        android:textColorHint="#777777"
+        android:textSize="14sp"
+        android:backgroundTint="#FFD700"
+        android:layout_marginBottom="10dp" />
+
+
+    <EditText
+        android:id="@+id/edtUrl1"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        android:hint="URL 1" />
+
+    <TextView
+        android:id="@+id/btnCategoryDropdown"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="انتخاب دسته‌بندی"
+        android:textColor="#FFFFFF"
+        android:textSize="16sp"
+        android:padding="12dp"
+        android:background="#CC0F1A2A"
+        android:gravity="center"
+        android:layout_marginTop="10dp"
+        android:clickable="true"
+        android:focusable="true" />
+</LinearLayout>

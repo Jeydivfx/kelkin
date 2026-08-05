@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#000000">
+
+
+    <androidx.media3.ui.PlayerView
+        android:id="@+id/livePlayerView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:use_controller="false"
+        app:show_buffering="never"
+        app:resize_mode="fit"
+        app:surface_type="surface_view" />
+
+
+    <LinearLayout
+        android:id="@+id/liveBufferingContainer"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:visibility="gone">
+
+
+        <ProgressBar
+            android:id="@+id/liveBufferingProgress"
+            style="?android:attr/progressBarStyleLarge"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:indeterminate="true"
+            android:indeterminateTint="@android:color/white" />
+
+
+        <TextView
+            android:id="@+id/liveStatusText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:fontFamily="@font/vazir_bold"
+            android:textColor="#FFEB3B"
+            android:textSize="16sp"
+            android:text="در حال آماده سازی ..." />
+
+    </LinearLayout>
+
+</FrameLayout>
