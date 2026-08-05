@@ -35,7 +35,7 @@ class SeriesListFragment : Fragment(R.layout.fragment_movie_list) {
         super.onViewCreated(view, savedInstanceState)
         _binding = FragmentMovieListBinding.bind(view)
 
-        binding.btnAddMovie.text = "افزودن سریال جدید"
+        binding.btnAddMovie.text = getString(R.string.btn_add_new_series)
 
         requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
@@ -73,16 +73,20 @@ class SeriesListFragment : Fragment(R.layout.fragment_movie_list) {
                 adapter.updateData(list)
             }
             override fun onCancelled(error: DatabaseError) {
-                Toast.makeText(context, "خطا در دریافت لیست سریال‌ها", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, getString(R.string.error_fetching_series_list), Toast.LENGTH_SHORT).show()
             }
         })
     }
 
     private fun deleteSeries(id: String) {
-        DialogUtils.showConfirmDialog(requireContext(), "حذف سریال", "آیا مطمئن هستید که می‌خواهید این سریال حذف شود؟") {
+        DialogUtils.showConfirmDialog(
+            requireContext(),
+            getString(R.string.dialog_title_delete_series),
+            getString(R.string.dialog_message_delete_series)
+        ) {
             FirebaseManager.deleteItem("series", id) { success ->
-                if (success) Toast.makeText(context, "سریال حذف شد", Toast.LENGTH_SHORT).show()
-                else Toast.makeText(context, "خطا در حذف سریال", Toast.LENGTH_SHORT).show()
+                if (success) Toast.makeText(context, getString(R.string.msg_series_deleted), Toast.LENGTH_SHORT).show()
+                else Toast.makeText(context, getString(R.string.msg_series_delete_error), Toast.LENGTH_SHORT).show()
             }
         }
     }
@@ -98,7 +102,7 @@ class SeriesListFragment : Fragment(R.layout.fragment_movie_list) {
         val edtUrl1 = view.findViewById<EditText>(R.id.edtUrl1)
         val btnCategoryDropdown = view.findViewById<TextView>(R.id.btnCategoryDropdown)
 
-        txtGeneratedId?.text = "شناسه سریال: $id"
+        txtGeneratedId?.text = getString(R.string.format_series_id, id)
         edtNameFa.setText(data["name_fa"] as? String ?: "")
         edtDescFa.setText(data["description_fa"] as? String ?: "")
         edtTmdbId.setText(data["tmdb_id"] as? String ?: "")
@@ -106,19 +110,19 @@ class SeriesListFragment : Fragment(R.layout.fragment_movie_list) {
 
         var selectedCategoryCode = (data["category"] as? Long) ?: 0L
         val catName = categoryMap.entries.find { it.value == selectedCategoryCode }?.key
-        btnCategoryDropdown.text = catName ?: "دسته‌بندی: $selectedCategoryCode"
+        btnCategoryDropdown.text = catName ?: getString(R.string.format_category_code, selectedCategoryCode)
 
         btnCategoryDropdown.setOnClickListener {
             showSelectionMenu(categoryNames, it) { selectedName ->
-                btnCategoryDropdown.text = "دسته‌بندی: $selectedName"
+                btnCategoryDropdown.text = getString(R.string.format_category_name, selectedName)
                 selectedCategoryCode = categoryMap[selectedName] ?: 0L
             }
         }
 
         builder.setView(view)
-        builder.setTitle("ویرایش اطلاعات سریال")
+        builder.setTitle(getString(R.string.dialog_title_edit_series))
 
-        builder.setPositiveButton("ذخیره تغییرات") { _, _ ->
+        builder.setPositiveButton(getString(R.string.btn_save_changes)) { _, _ ->
             val updatedMap = mutableMapOf<String, Any>(
                 "id" to (data["id"] as? Long ?: 0L),
                 "name_fa" to edtNameFa.text.toString(),
@@ -136,24 +140,24 @@ class SeriesListFragment : Fragment(R.layout.fragment_movie_list) {
             FirebaseManager.getSeriesRef().child(id).setValue(updatedMap)
                 .addOnCompleteListener { task ->
                     if (task.isSuccessful) {
-                        Toast.makeText(context, "بروزرسانی شد", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context, getString(R.string.msg_updated_success), Toast.LENGTH_SHORT).show()
                         showManageSeasonsDialog(id)
                     } else {
-                        Toast.makeText(context, "خطا در بروزرسانی", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context, getString(R.string.msg_update_error), Toast.LENGTH_SHORT).show()
                     }
                 }
         }
 
-        builder.setNeutralButton("مدیریت فصل‌ها و اپیزودها") { _, _ ->
+        builder.setNeutralButton(getString(R.string.btn_manage_seasons)) { _, _ ->
             showManageSeasonsDialog(id)
         }
 
-        builder.setNegativeButton("انصراف", null)
+        builder.setNegativeButton(getString(R.string.btn_cancel), null)
 
         val dialog = builder.create()
+        dialog.window?.setBackgroundDrawableResource(R.drawable.dialog_background_shape)
         dialog.show()
 
-        // استایل‌دهی به دکمه‌های دیالوگ ویرایش مطابق با تم پرکنتراست
         dialog.getButton(AlertDialog.BUTTON_POSITIVE).apply {
             setBackgroundResource(R.drawable.sl_button_high_contrast)
             setTextColor(requireContext().getColor(R.color.yellow))
@@ -172,15 +176,11 @@ class SeriesListFragment : Fragment(R.layout.fragment_movie_list) {
     private fun showManageSeasonsDialog(seriesFirebaseKey: String) {
         val context = requireContext()
 
-        // اعمال بکگراند گرادیان سفارشی هم‌رنج با تم صفحه روی لایه‌ی اصلی دیالوگ
         val mainLayout = LinearLayout(context).apply {
             orientation = LinearLayout.VERTICAL
             setPadding(30, 20, 30, 20)
             layoutDirection = View.LAYOUT_DIRECTION_RTL
-            background = android.graphics.drawable.GradientDrawable(
-                android.graphics.drawable.GradientDrawable.Orientation.TL_BR,
-                intArrayOf(0xFF0A0A0F.toInt(), 0xCC0F1A2A.toInt(), 0xFF050510.toInt())
-            )
+            background = context.getDrawable(R.drawable.dialog_background_shape)
         }
 
         val scrollView = ScrollView(context).apply {
@@ -192,39 +192,48 @@ class SeriesListFragment : Fragment(R.layout.fragment_movie_list) {
 
         val containerLayout = LinearLayout(context).apply {
             orientation = LinearLayout.VERTICAL
+            layoutDirection = View.LAYOUT_DIRECTION_RTL
         }
         scrollView.addView(containerLayout)
         mainLayout.addView(scrollView)
 
         val txtStatus = TextView(context).apply {
-            text = "در حال بارگذاری فصل‌ها..."
-            setTextColor(0xFFD700.toInt())
+            text = getString(R.string.status_loading_seasons)
+            setTextColor(context.getColor(R.color.yellow))
             textSize = 13f
+            textDirection = View.TEXT_DIRECTION_RTL
+            gravity = View.TEXT_ALIGNMENT_VIEW_START
             setPadding(0, 10, 0, 10)
         }
         mainLayout.addView(txtStatus)
 
         val edtSeason = EditText(context).apply {
-            hint = "شماره فصل (مثلا 1)"
+            hint = getString(R.string.hint_season_number)
             inputType = android.text.InputType.TYPE_CLASS_NUMBER
-            setTextColor(0xFFFFFFFF.toInt())
-            setHintTextColor(0xFF777777.toInt())
+            setTextColor(context.getColor(R.color.text_white))
+            setHintTextColor(context.getColor(R.color.text_gray))
+            textDirection = View.TEXT_DIRECTION_RTL
+            gravity = View.TEXT_ALIGNMENT_VIEW_START
         }
         mainLayout.addView(edtSeason)
 
         val edtEpisode = EditText(context).apply {
-            hint = "شماره قسمت (مثلا 1)"
+            hint = getString(R.string.hint_episode_number)
             inputType = android.text.InputType.TYPE_CLASS_NUMBER
-            setTextColor(0xFFFFFFFF.toInt())
-            setHintTextColor(0xFF777777.toInt())
+            setTextColor(context.getColor(R.color.text_white))
+            setHintTextColor(context.getColor(R.color.text_gray))
+            textDirection = View.TEXT_DIRECTION_RTL
+            gravity = View.TEXT_ALIGNMENT_VIEW_START
         }
         mainLayout.addView(edtEpisode)
 
         val edtUrl = EditText(context).apply {
-            hint = "لینک مستقیم ویدیوی اپیزود"
+            hint = getString(R.string.hint_episode_url)
             inputType = android.text.InputType.TYPE_TEXT_VARIATION_URI
-            setTextColor(0xFFFFFFFF.toInt())
-            setHintTextColor(0xFF777777.toInt())
+            setTextColor(context.getColor(R.color.text_white))
+            setHintTextColor(context.getColor(R.color.text_gray))
+            textDirection = View.TEXT_DIRECTION_RTL
+            gravity = View.TEXT_ALIGNMENT_VIEW_START
         }
         mainLayout.addView(edtUrl)
 
@@ -237,18 +246,20 @@ class SeriesListFragment : Fragment(R.layout.fragment_movie_list) {
                         val seasonsMap = snapshot.value as? Map<String, Map<String, String>> ?: emptyMap()
 
                         if (seasonsMap.isEmpty()) {
-                            txtStatus.text = "هنوز فصلی ثبت نشده است."
+                            txtStatus.text = getString(R.string.msg_no_seasons)
                             return
                         }
 
-                        txtStatus.text = "فصل‌های ثبت‌شده: ${seasonsMap.size} فصل"
+                        txtStatus.text = getString(R.string.format_registered_seasons, seasonsMap.size)
 
                         for ((seasonKey, episodesMap) in seasonsMap) {
                             val seasonCleanNum = seasonKey.toIntOrNull() ?: seasonKey
                             val seasonTitle = TextView(context).apply {
-                                text = "📂 فصل $seasonCleanNum (${episodesMap.size} قسمت)"
-                                setTextColor(0xFFFFD700.toInt())
+                                text = getString(R.string.format_season_title, seasonCleanNum, episodesMap.size)
+                                setTextColor(context.getColor(R.color.yellow))
                                 textSize = 15f
+                                textDirection = View.TEXT_DIRECTION_RTL
+                                gravity = View.TEXT_ALIGNMENT_VIEW_START
                                 setPadding(0, 12, 0, 4)
                                 setTypeface(null, android.graphics.Typeface.BOLD)
                             }
@@ -257,19 +268,22 @@ class SeriesListFragment : Fragment(R.layout.fragment_movie_list) {
                             for ((epKey, epUrl) in episodesMap) {
                                 val epLayout = LinearLayout(context).apply {
                                     orientation = LinearLayout.HORIZONTAL
+                                    layoutDirection = View.LAYOUT_DIRECTION_RTL
                                     setPadding(20, 4, 0, 4)
                                 }
 
                                 val epText = TextView(context).apply {
-                                    text = "   • $epKey: $epUrl"
-                                    setTextColor(0xFFDDDDDD.toInt())
+                                    text = getString(R.string.format_episode_item, epKey, epUrl)
+                                    setTextColor(context.getColor(R.color.text_white))
                                     textSize = 13f
+                                    textDirection = View.TEXT_DIRECTION_RTL
+                                    gravity = View.TEXT_ALIGNMENT_VIEW_START
                                     layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
                                 }
 
                                 val btnDeleteEp = TextView(context).apply {
-                                    text = "🗑️ حذف"
-                                    setTextColor(0xFFFF5252.toInt())
+                                    text = getString(R.string.btn_delete_emoji)
+                                    setTextColor(context.getColor(R.color.delete_red_color))
                                     textSize = 12f
                                     setPadding(10, 0, 10, 0)
                                     setOnClickListener {
@@ -280,7 +294,7 @@ class SeriesListFragment : Fragment(R.layout.fragment_movie_list) {
                                             .child(epKey)
                                             .removeValue()
                                             .addOnSuccessListener {
-                                                Toast.makeText(context, "اپیزود حذف شد", Toast.LENGTH_SHORT).show()
+                                                Toast.makeText(context, getString(R.string.msg_episode_deleted), Toast.LENGTH_SHORT).show()
                                                 loadAndRenderSeasons()
                                             }
                                     }
@@ -299,9 +313,9 @@ class SeriesListFragment : Fragment(R.layout.fragment_movie_list) {
         loadAndRenderSeasons()
 
         val dialog = AlertDialog.Builder(context, R.style.CustomAlertDialog)
-            .setTitle("مدیریت فصل‌ها و اپیزودها")
+            .setTitle(getString(R.string.dialog_title_manage_seasons))
             .setView(mainLayout)
-            .setPositiveButton("ذخیره") { _, _ ->
+            .setPositiveButton(getString(R.string.btn_save)) { _, _ ->
                 val sNum = edtSeason.text.toString().trim()
                 val eNum = edtEpisode.text.toString().trim()
                 val url = edtUrl.text.toString().trim()
@@ -319,24 +333,24 @@ class SeriesListFragment : Fragment(R.layout.fragment_movie_list) {
                         .child(episodeKey)
                         .setValue(url)
                         .addOnSuccessListener {
-                            Toast.makeText(context, "قسمت $eNum از فصل $sNum ثبت شد", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(context, getString(R.string.msg_episode_added_success, eNum, sNum), Toast.LENGTH_SHORT).show()
                             edtEpisode.text.clear()
                             edtUrl.text.clear()
                             loadAndRenderSeasons()
                         }
                         .addOnFailureListener {
-                            Toast.makeText(context, "خطا در ثبت", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(context, getString(R.string.msg_add_error), Toast.LENGTH_SHORT).show()
                         }
                 } else {
-                    Toast.makeText(context, "لطفاً تمام فیلدها را پر کنید", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, getString(R.string.msg_fill_all_fields), Toast.LENGTH_SHORT).show()
                 }
             }
-            .setNegativeButton("بستن", null)
+            .setNegativeButton(getString(R.string.btn_close), null)
             .create()
 
+        dialog.window?.setBackgroundDrawableResource(R.drawable.dialog_background_shape)
         dialog.show()
 
-        // اعمال استایل دکمه‌های high contrast برای دیالوگ مدیریت فصل‌ها
         dialog.getButton(AlertDialog.BUTTON_POSITIVE).apply {
             setBackgroundResource(R.drawable.sl_button_high_contrast)
             setTextColor(context.getColor(R.color.yellow))
@@ -395,19 +409,19 @@ class SeriesListFragment : Fragment(R.layout.fragment_movie_list) {
 
         edtUrl1?.visibility = View.GONE
         var selectedCategoryCode = 0L
-        txtGeneratedId?.text = "در حال آماده‌سازی..."
+        txtGeneratedId?.text = getString(R.string.status_preparing)
 
         btnCategoryDropdown.setOnClickListener {
             showSelectionMenu(categoryNames, it) { selectedName ->
-                btnCategoryDropdown.text = "دسته‌بندی: $selectedName"
+                btnCategoryDropdown.text = getString(R.string.format_category_name, selectedName)
                 selectedCategoryCode = categoryMap[selectedName] ?: 0L
             }
         }
 
         builder.setView(view)
-        builder.setTitle("افزودن سریال جدید")
+        builder.setTitle(getString(R.string.dialog_title_add_series))
 
-        builder.setPositiveButton("افزودن") { _, _ ->
+        builder.setPositiveButton(getString(R.string.btn_add)) { _, _ ->
             FirebaseManager.getSeriesRef().orderByChild("id").limitToLast(1)
                 .addListenerForSingleValueEvent(object : ValueEventListener {
                     override fun onDataChange(snapshot: DataSnapshot) {
@@ -452,29 +466,29 @@ class SeriesListFragment : Fragment(R.layout.fragment_movie_list) {
 
                                     FirebaseManager.getSeriesRef().child(newKey).setValue(newMap)
                                         .addOnSuccessListener {
-                                            Toast.makeText(context, "سریال با آیدی $newNumericId اضافه شد", Toast.LENGTH_SHORT).show()
+                                            Toast.makeText(context, getString(R.string.msg_series_added_id, newNumericId), Toast.LENGTH_SHORT).show()
                                             showManageSeasonsDialog(newKey)
                                         }
                                         .addOnFailureListener { e ->
-                                            Toast.makeText(context, "خطا در افزودن: ${e.localizedMessage}", Toast.LENGTH_LONG).show()
+                                            Toast.makeText(context, getString(R.string.msg_add_error_detailed, e.localizedMessage ?: ""), Toast.LENGTH_LONG).show()
                                         }
                                 }
                                 override fun onCancelled(error: DatabaseError) {
-                                    Toast.makeText(context, "خطا در اتصال به فایربیس", Toast.LENGTH_SHORT).show()
+                                    Toast.makeText(context, getString(R.string.error_firebase_connection), Toast.LENGTH_SHORT).show()
                                 }
                             })
                     }
                     override fun onCancelled(error: DatabaseError) {
-                        Toast.makeText(context, "خطا در دریافت اطلاعات", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context, getString(R.string.error_fetching_info), Toast.LENGTH_SHORT).show()
                     }
                 })
         }
-        builder.setNegativeButton("انصراف", null)
+        builder.setNegativeButton(getString(R.string.btn_cancel), null)
 
         val dialog = builder.create()
+        dialog.window?.setBackgroundDrawableResource(R.drawable.dialog_background_shape)
         dialog.show()
 
-        // استایل‌دهی به دکمه‌های دیالوگ افزودن سریال
         dialog.getButton(AlertDialog.BUTTON_POSITIVE).apply {
             setBackgroundResource(R.drawable.sl_button_high_contrast)
             setTextColor(requireContext().getColor(R.color.yellow))

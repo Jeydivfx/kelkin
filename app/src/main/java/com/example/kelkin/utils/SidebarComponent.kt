@@ -53,9 +53,8 @@ fun Sidebar(
 
     val selectedItem = remember(currentId) {
         when (currentId) {
-            R.id.homeFragment, R.id.movieDetailFragment, R.id.seriesDetailsFragment -> homeFR
-            R.id.moviesFragment -> movieFR
-            R.id.seriesFragment -> seriesFR
+            R.id.moviesFragment, R.id.movieDetailFragment -> movieFR
+            R.id.seriesFragment, R.id.seriesDetailsFragment -> seriesFR
             R.id.tvFragment -> tvFR
             R.id.searchFragment -> searchFR
             R.id.settingsFragment -> settingsFR
@@ -63,13 +62,20 @@ fun Sidebar(
         }
     }
 
+    var isStabilized by remember { mutableStateOf(false) }
 
     LaunchedEffect(isExpanded) {
-        if (isExpanded && !isInDetail) {
+        if (isExpanded) {
+            isStabilized = false
             selectedItem.requestFocus()
+            delay(250)
+            isStabilized = true
+        } else if (!isExpanded) {
+            isStabilized = false
         }
     }
 
+    // اگر کاربر وارد صفحه جزئیات شد، به طور پیش‌فرض منو بسته باشد تا تداخلی ایجاد نکند
     LaunchedEffect(currentId) {
         if (isInDetail) {
             onExpandedChange(false)
@@ -93,10 +99,10 @@ fun Sidebar(
             icon = R.drawable.ic_menu_home,
             text = "خانه",
             isExpanded = isExpanded,
-            isSelected = currentId == R.id.homeFragment || currentId == R.id.movieDetailFragment,
+            isSelected = currentId == R.id.homeFragment,
             focusRequester = homeFR,
-            isDefaultItem = currentId == R.id.homeFragment || currentId == R.id.movieDetailFragment,
-            isInDetail = isInDetail,
+            isDefaultItem = currentId == R.id.homeFragment,
+            isStabilized = isStabilized,
             onFocus = {
                 onExpandedChange(true)
             },
@@ -110,10 +116,10 @@ fun Sidebar(
             icon = R.drawable.ic_menu_movie,
             text = "فیلم ها",
             isExpanded = isExpanded,
-            isSelected = currentId == R.id.moviesFragment,
+            isSelected = currentId == R.id.moviesFragment || currentId == R.id.movieDetailFragment,
             focusRequester = movieFR,
-            isDefaultItem = currentId == R.id.moviesFragment,
-            isInDetail = isInDetail,
+            isDefaultItem = currentId == R.id.moviesFragment || currentId == R.id.movieDetailFragment,
+            isStabilized = isStabilized,
             onFocus = {
                 onExpandedChange(true)
             },
@@ -130,7 +136,7 @@ fun Sidebar(
             isSelected = currentId == R.id.seriesFragment || currentId == R.id.seriesDetailsFragment,
             focusRequester = seriesFR,
             isDefaultItem = currentId == R.id.seriesFragment || currentId == R.id.seriesDetailsFragment,
-            isInDetail = isInDetail,
+            isStabilized = isStabilized,
             onFocus = {
                 onExpandedChange(true)
             },
@@ -147,7 +153,7 @@ fun Sidebar(
             isSelected = currentId == R.id.tvFragment,
             focusRequester = tvFR,
             isDefaultItem = currentId == R.id.tvFragment,
-            isInDetail = isInDetail,
+            isStabilized = isStabilized,
             onFocus = {
                 onExpandedChange(true)
             },
@@ -164,7 +170,7 @@ fun Sidebar(
             isSelected = currentId == R.id.searchFragment,
             focusRequester = searchFR,
             isDefaultItem = currentId == R.id.searchFragment,
-            isInDetail = isInDetail,
+            isStabilized = isStabilized,
             onFocus = {
                 onExpandedChange(true)
             },
@@ -183,7 +189,7 @@ fun Sidebar(
             isSelected = currentId == R.id.settingsFragment,
             focusRequester = settingsFR,
             isDefaultItem = currentId == R.id.settingsFragment,
-            isInDetail = isInDetail,
+            isStabilized = isStabilized,
             onFocus = {
                 onExpandedChange(true)
             },
@@ -205,23 +211,21 @@ fun SidebarItem(
     isSelected: Boolean,
     focusRequester: FocusRequester,
     isDefaultItem: Boolean,
-    isInDetail: Boolean,
+    isStabilized: Boolean,
     onFocus: () -> Unit,
     onClick: () -> Unit
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     var isFocused by remember { mutableStateOf(false) }
 
-    val shouldShowSelected = if (isInDetail) {
-        false
-    } else {
-        isSelected || (isDefaultItem && !isFocused)
-    }
+    val effectiveFocused = isFocused && (isStabilized || isDefaultItem)
 
-    val backgroundColor = if (isFocused) Color.White else Color.Transparent
+    val shouldShowSelected = isSelected || (isDefaultItem && !effectiveFocused)
+
+    val backgroundColor = if (effectiveFocused) Color.White else Color.Transparent
 
     val contentColor = when {
-        isFocused -> Color.Black
+        effectiveFocused -> Color.Black
         shouldShowSelected -> Color.White
         else -> Color.Gray
     }

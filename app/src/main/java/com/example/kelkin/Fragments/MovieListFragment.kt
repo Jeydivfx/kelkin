@@ -21,7 +21,6 @@ import com.google.firebase.database.ValueEventListener
 import androidx.activity.OnBackPressedCallback
 import com.example.kelkin.MainActivity
 
-
 class MovieListFragment : Fragment(R.layout.fragment_movie_list) {
 
     private var _binding: FragmentMovieListBinding? = null
@@ -34,7 +33,6 @@ class MovieListFragment : Fragment(R.layout.fragment_movie_list) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         _binding = FragmentMovieListBinding.bind(view)
-
 
         requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
@@ -63,6 +61,7 @@ class MovieListFragment : Fragment(R.layout.fragment_movie_list) {
 
     private fun loadMoviesFromFirebase() {
         FirebaseManager.getMoviesRef().addValueEventListener(object : ValueEventListener {
+            @SuppressLint("NotifyDataSetChanged")
             override fun onDataChange(snapshot: DataSnapshot) {
                 val list = snapshot.children.mapNotNull { child ->
                     val key = child.key
@@ -72,20 +71,25 @@ class MovieListFragment : Fragment(R.layout.fragment_movie_list) {
                 adapter.updateData(list)
             }
             override fun onCancelled(error: DatabaseError) {
-                Toast.makeText(context, "خطا در دریافت لیست", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, getString(R.string.error_fetching_list), Toast.LENGTH_SHORT).show()
             }
         })
     }
 
     private fun deleteMovie(id: String) {
-        DialogUtils.showConfirmDialog(requireContext(), "حذف فیلم", "آیا مطمئن هستید که می‌خواهید این فیلم حذف شود؟") {
+        DialogUtils.showConfirmDialog(
+            requireContext(),
+            getString(R.string.dialog_title_delete_movie),
+            getString(R.string.dialog_message_delete_movie)
+        ) {
             FirebaseManager.deleteItem("movie", id) { success ->
-                if (success) Toast.makeText(context, "فیلم حذف شد", Toast.LENGTH_SHORT).show()
+                if (success) Toast.makeText(context, getString(R.string.msg_movie_deleted), Toast.LENGTH_SHORT).show()
             }
         }
     }
+
     private fun showEditDialog(id: String, data: Map<String, Any>) {
-        val builder = android.app.AlertDialog.Builder(requireContext(), R.style.CustomAlertDialog)
+        val builder = AlertDialog.Builder(requireContext(), R.style.CustomAlertDialog)
         val view = layoutInflater.inflate(R.layout.dialog_add_movie, null)
 
         val txtGeneratedId = view.findViewById<TextView>(R.id.txtGeneratedId)
@@ -95,7 +99,7 @@ class MovieListFragment : Fragment(R.layout.fragment_movie_list) {
         val edtUrl1 = view.findViewById<EditText>(R.id.edtUrl1)
         val btnCategoryDropdown = view.findViewById<TextView>(R.id.btnCategoryDropdown)
 
-        txtGeneratedId.text = "شناسه فیلم: $id"
+        txtGeneratedId.text = getString(R.string.format_movie_id, id)
         edtNameFa.setText(data["name_fa"] as? String ?: "")
         edtDescFa.setText(data["description_fa"] as? String ?: "")
         edtTmdbId.setText(data["tmdb_id"] as? String ?: "")
@@ -103,17 +107,17 @@ class MovieListFragment : Fragment(R.layout.fragment_movie_list) {
 
         var selectedCategoryCode = (data["category"] as? Long) ?: 0L
         val catName = categoryMap.entries.find { it.value == selectedCategoryCode }?.key
-        btnCategoryDropdown.text = catName ?: "دسته‌بندی: $selectedCategoryCode"
+        btnCategoryDropdown.text = catName ?: getString(R.string.format_category_code, selectedCategoryCode)
 
         btnCategoryDropdown.setOnClickListener {
             showSelectionMenu(categoryNames, it) { selectedName ->
-                btnCategoryDropdown.text = "دسته‌بندی: $selectedName"
+                btnCategoryDropdown.text = getString(R.string.format_category_name, selectedName)
                 selectedCategoryCode = categoryMap[selectedName] ?: 0L
             }
         }
 
         builder.setView(view)
-        builder.setPositiveButton("ذخیره تغییرات") { _, _ ->
+        builder.setPositiveButton(getString(R.string.btn_save_changes)) { _, _ ->
             val updatedMap = mapOf(
                 "id" to (data["id"] as? Long ?: 0L),
                 "name_fa" to edtNameFa.text.toString(),
@@ -125,27 +129,30 @@ class MovieListFragment : Fragment(R.layout.fragment_movie_list) {
 
             FirebaseManager.getMoviesRef().child(id).setValue(updatedMap)
                 .addOnCompleteListener { task ->
-                    if (task.isSuccessful) Toast.makeText(context, "بروزرسانی شد", Toast.LENGTH_SHORT).show()
-                    else Toast.makeText(context, "خطا در بروزرسانی", Toast.LENGTH_SHORT).show()
+                    if (task.isSuccessful) Toast.makeText(context, getString(R.string.msg_updated_success), Toast.LENGTH_SHORT).show()
+                    else Toast.makeText(context, getString(R.string.msg_update_error), Toast.LENGTH_SHORT).show()
                 }
         }
-        builder.setNegativeButton("انصراف", null)
+        builder.setNegativeButton(getString(R.string.btn_cancel), null)
 
         val dialog = builder.create()
+        // رفع مشکل پس‌زمینه سیاه دیالوگ
+        dialog.window?.setBackgroundDrawableResource(R.drawable.dialog_background_shape)
         dialog.show()
 
-        dialog.getButton(android.app.AlertDialog.BUTTON_POSITIVE).apply {
+        // استایل‌دهی دکمه‌ها مشابه دکمه‌های خروج
+        dialog.getButton(AlertDialog.BUTTON_POSITIVE).apply {
             setTextColor(requireContext().getColor(R.color.yellow))
             setTypeface(null, android.graphics.Typeface.BOLD)
         }
-        dialog.getButton(android.app.AlertDialog.BUTTON_NEGATIVE).apply {
+        dialog.getButton(AlertDialog.BUTTON_NEGATIVE).apply {
             setTextColor(requireContext().getColor(R.color.yellow))
         }
     }
 
     private fun fetchCategoriesForDropdown() {
-        FirebaseManager.getCategoryRef().addListenerForSingleValueEvent(object : com.google.firebase.database.ValueEventListener {
-            override fun onDataChange(snapshot: com.google.firebase.database.DataSnapshot) {
+        FirebaseManager.getCategoryRef().addListenerForSingleValueEvent(object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
                 categoryNames.clear()
                 categoryMap.clear()
                 for (cat in snapshot.children) {
@@ -157,10 +164,9 @@ class MovieListFragment : Fragment(R.layout.fragment_movie_list) {
                     }
                 }
             }
-            override fun onCancelled(error: com.google.firebase.database.DatabaseError) {}
+            override fun onCancelled(error: DatabaseError) {}
         })
     }
-
 
     private fun showSelectionMenu(options: List<String>, anchor: View, onSelected: (String) -> Unit) {
         val wrapper = androidx.appcompat.view.ContextThemeWrapper(requireContext(), androidx.appcompat.R.style.Widget_AppCompat_PopupMenu)
@@ -193,19 +199,19 @@ class MovieListFragment : Fragment(R.layout.fragment_movie_list) {
         val txtGeneratedId = view.findViewById<TextView>(R.id.txtGeneratedId)
 
         var selectedCategoryCode = 0L
-        txtGeneratedId.text = "در حال آماده‌سازی..."
+        txtGeneratedId.text = getString(R.string.status_preparing)
 
         btnCategoryDropdown.setOnClickListener {
             showSelectionMenu(categoryNames, it) { selectedName ->
-                btnCategoryDropdown.text = "دسته‌بندی: $selectedName"
+                btnCategoryDropdown.text = getString(R.string.format_category_name, selectedName)
                 selectedCategoryCode = categoryMap[selectedName] ?: 0L
             }
         }
 
         builder.setView(view)
-        builder.setTitle("افزودن فیلم جدید")
+        builder.setTitle(getString(R.string.dialog_title_add_movie))
 
-        builder.setPositiveButton("افزودن") { _, _ ->
+        builder.setPositiveButton(getString(R.string.btn_add)) { _, _ ->
             FirebaseManager.getMoviesRef().orderByChild("id").limitToLast(1)
                 .addListenerForSingleValueEvent(object : ValueEventListener {
                     override fun onDataChange(snapshot: DataSnapshot) {
@@ -244,10 +250,10 @@ class MovieListFragment : Fragment(R.layout.fragment_movie_list) {
 
                                     FirebaseManager.getMoviesRef().child(newKey).setValue(newMap)
                                         .addOnSuccessListener {
-                                            Toast.makeText(context, "فیلم با آیدی $newNumericId اضافه شد", Toast.LENGTH_SHORT).show()
+                                            Toast.makeText(context, getString(R.string.msg_movie_added_id, newNumericId), Toast.LENGTH_SHORT).show()
                                         }
                                         .addOnFailureListener {
-                                            Toast.makeText(context, "خطا در افزودن", Toast.LENGTH_SHORT).show()
+                                            Toast.makeText(context, getString(R.string.msg_add_error), Toast.LENGTH_SHORT).show()
                                         }
                                 }
                                 override fun onCancelled(error: DatabaseError) {}
@@ -256,11 +262,14 @@ class MovieListFragment : Fragment(R.layout.fragment_movie_list) {
                     override fun onCancelled(error: DatabaseError) {}
                 })
         }
-        builder.setNegativeButton("انصراف", null)
+        builder.setNegativeButton(getString(R.string.btn_cancel), null)
 
         val dialog = builder.create()
+        // رفع مشکل پس‌زمینه سیاه دیالوگ
+        dialog.window?.setBackgroundDrawableResource(R.drawable.dialog_background_shape)
         dialog.show()
 
+        // استایل‌دهی دکمه‌ها مشابه دکمه‌های خروج
         dialog.getButton(AlertDialog.BUTTON_POSITIVE).apply {
             setTextColor(requireContext().getColor(R.color.yellow))
             setTypeface(null, android.graphics.Typeface.BOLD)
@@ -270,12 +279,10 @@ class MovieListFragment : Fragment(R.layout.fragment_movie_list) {
         }
     }
 
-
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
     }
-
 
     override fun onResume() {
         super.onResume()

@@ -5,7 +5,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@android:color/black">
+    android:background="@color/bg_black">
 
 
     <androidx.media3.ui.PlayerView
@@ -48,8 +48,8 @@
             android:id="@+id/tvNoSource"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="انتخاب سورس پخش"
-            android:textColor="#FF9800"
+            android:text="@string/title_select_playback_source"
+            android:textColor="@color/json_text_color"
             android:textSize="14sp"
             android:fontFamily="@font/vazir_bold"
             android:layout_marginBottom="8dp" />
@@ -76,7 +76,7 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent">
 
-        <!-- هدر -->
+
         <LinearLayout
             android:id="@+id/headerLayout"
             android:layout_width="match_parent"
@@ -93,7 +93,7 @@
                 android:layout_width="24dp"
                 android:layout_height="24dp"
                 android:src="@drawable/ic_channels"
-                app:tint="#FFFFFF" />
+                app:tint="@color/text_white" />
 
             <TextView
                 android:id="@+id/tvOverlayTitle"
@@ -102,14 +102,14 @@
                 android:layout_weight="1"
                 android:layout_marginStart="12dp"
                 android:fontFamily="@font/vazir_bold"
-                android:text="کانال‌های بیشتر"
-                android:textColor="#FFFFFF"
+                android:text="@string/title_more_channels"
+                android:textColor="@color/text_white"
                 android:textSize="18sp"
                 android:textStyle="bold" />
 
         </LinearLayout>
 
-        <!-- خط جداکننده -->
+
         <View
             android:id="@+id/dividerLine"
             android:layout_width="match_parent"
@@ -119,7 +119,7 @@
             android:background="@drawable/gradient_divider"
             app:layout_constraintTop_toBottomOf="@id/headerLayout" />
 
-        <!-- RecyclerView با ارتفاع مشخص -->
+
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/rvLiveChannels"
             android:layout_width="match_parent"

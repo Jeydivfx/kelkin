@@ -34,7 +34,7 @@
             android:layout_alignBottom="@id/imgSeriesPoster"
             android:fontFamily="@font/yekanbakh_bold"
             android:padding="10dp"
-            android:textColor="#FFFFFF"
+            android:textColor="@color/text_white"
             android:textSize="14sp"
             android:gravity="center"
             android:maxLines="1"
@@ -56,7 +56,7 @@
                 android:layout_height="12dp"
                 android:layout_marginStart="3dp"
                 android:src="@drawable/ic_star"
-                app:tint="#FFD700" />
+                app:tint="@color/yellow" />
 
             <TextView
                 android:id="@+id/txtImdbRating"

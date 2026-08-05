@@ -1,6 +1,5 @@
 package com.example.kelkin.Fragments
 
-import android.app.AlertDialog
 import android.os.Bundle
 import android.view.View
 import android.widget.ArrayAdapter
@@ -8,7 +7,7 @@ import android.widget.EditText
 import android.widget.ListPopupWindow
 import android.widget.TextView
 import android.widget.Toast
-import androidx.appcompat.view.ContextThemeWrapper
+import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -21,6 +20,7 @@ import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.ValueEventListener
 import androidx.activity.OnBackPressedCallback
+import com.example.kelkin.MainActivity
 
 class ChannelListFragment : Fragment(R.layout.fragment_channel_list) {
 
@@ -29,7 +29,6 @@ class ChannelListFragment : Fragment(R.layout.fragment_channel_list) {
 
     private val categoryNames = mutableListOf<String>()
     private val categoryMap = mutableMapOf<String, Long>()
-    val edtSource = view?.findViewById<EditText>(R.id.edtSourceJson)
     private lateinit var adapter: AdminItemAdapter
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -79,6 +78,7 @@ class ChannelListFragment : Fragment(R.layout.fragment_channel_list) {
                 override fun onCancelled(error: DatabaseError) {}
             })
     }
+
     private fun loadChannels() {
         FirebaseManager.getDatabase().getReference("channels").orderByChild("id").addValueEventListener(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
@@ -94,7 +94,6 @@ class ChannelListFragment : Fragment(R.layout.fragment_channel_list) {
     }
 
     private fun showChannelDialog(id: String?, data: Map<String, Any>?) {
-
         val view = layoutInflater.inflate(R.layout.dialog_add_channel, null)
 
         val edtName = view.findViewById<EditText>(R.id.edtChannelName)
@@ -109,27 +108,25 @@ class ChannelListFragment : Fragment(R.layout.fragment_channel_list) {
             edtName.setText(data["name_fa"] as? String ?: "")
             edtUrl.setText(data["videoUrl"] as? String ?: "")
             edtLogo.setText(data["logoUrl"] as? String ?: "")
-            edtSource.setText(data["source"] as? String ?: "")
 
             val rawSource = data["source"] ?: data["sources"] ?: ""
-
-
             edtSource.setText(rawSource.toString())
+
             val catName = categoryMap.entries.find { it.value == selectedCat }?.key
-            btnCat.text = catName ?: "دسته‌بندی: $selectedCat"
+            btnCat.text = catName ?: getString(R.string.format_category_code, selectedCat)
         }
 
         btnCat.setOnClickListener {
             showSelectionMenu(categoryNames, it) { name ->
-                btnCat.text = "دسته‌بندی: $name"
+                btnCat.text = getString(R.string.format_category_name, name)
                 selectedCat = categoryMap[name] ?: 0L
             }
         }
 
-        AlertDialog.Builder(requireContext(), R.style.CustomAlertDialog)
+        val dialog = AlertDialog.Builder(requireContext(), R.style.CustomAlertDialog)
             .setView(view)
-            .setTitle(if (id == null) "افزودن کانال" else "ویرایش کانال")
-            .setPositiveButton(if (id == null) "افزودن" else "ذخیره") { _, _ ->
+            .setTitle(if (id == null) getString(R.string.dialog_title_add_channel) else getString(R.string.dialog_title_edit_channel))
+            .setPositiveButton(if (id == null) getString(R.string.btn_add) else getString(R.string.btn_save)) { _, _ ->
                 if (id == null) {
                     FirebaseManager.getDatabase().getReference("channels")
                         .orderByChild("id").limitToLast(1)
@@ -150,19 +147,24 @@ class ChannelListFragment : Fragment(R.layout.fragment_channel_list) {
                     saveChannelToFirebase(id, existingId, edtName, edtUrl, edtSource, edtLogo, selectedCat)
                 }
             }
-            .setNegativeButton("لغو", null)
-            .create().apply {
-                show()
-                getButton(AlertDialog.BUTTON_POSITIVE).apply {
-                    setTextColor(requireContext().getColor(R.color.yellow))
-                    setTypeface(null, android.graphics.Typeface.BOLD)
-                }
-                getButton(AlertDialog.BUTTON_NEGATIVE).apply {
-                    setTextColor(requireContext().getColor(R.color.yellow))
-                }
-            }
+            .setNegativeButton(getString(R.string.btn_cancel), null)
+            .create()
+
+        dialog.window?.setBackgroundDrawableResource(R.drawable.dialog_background_shape)
+        dialog.show()
+
+        dialog.getButton(AlertDialog.BUTTON_POSITIVE).apply {
+            setBackgroundResource(R.drawable.sl_button_high_contrast)
+            setTextColor(requireContext().getColor(R.color.yellow))
+            setTypeface(null, android.graphics.Typeface.BOLD)
+        }
+        dialog.getButton(AlertDialog.BUTTON_NEGATIVE).apply {
+            setBackgroundResource(R.drawable.sl_button_high_contrast)
+            setTextColor(requireContext().getColor(R.color.yellow))
+        }
     }
-    private fun saveChannelToFirebase(key: String, numericId: Long, name: EditText, url: EditText,source: EditText, logo: EditText, cat: Long) {
+
+    private fun saveChannelToFirebase(key: String, numericId: Long, name: EditText, url: EditText, source: EditText, logo: EditText, cat: Long) {
         val map = mapOf(
             "id" to numericId,
             "name_fa" to name.text.toString(),
@@ -172,24 +174,27 @@ class ChannelListFragment : Fragment(R.layout.fragment_channel_list) {
             "category" to cat
         )
         FirebaseManager.saveOrUpdate("channels", key, map) { success ->
-            if (success) Toast.makeText(context, "با موفقیت انجام شد", Toast.LENGTH_SHORT).show()
-            else Toast.makeText(context, "خطا در ذخیره در فایربیس", Toast.LENGTH_SHORT).show()
+            if (success) Toast.makeText(context, getString(R.string.msg_success), Toast.LENGTH_SHORT).show()
+            else Toast.makeText(context, getString(R.string.msg_save_error_firebase), Toast.LENGTH_SHORT).show()
         }
     }
 
     private fun deleteChannel(id: String) {
-        DialogUtils.showConfirmDialog(requireContext(), "حذف کانال", "آیا مطمئن هستید که می‌خواهید این کانال حذف شود؟") {
+        DialogUtils.showConfirmDialog(
+            requireContext(),
+            getString(R.string.dialog_title_delete_channel),
+            getString(R.string.dialog_message_delete_channel)
+        ) {
             FirebaseManager.deleteItem("channels", id) { success ->
-                if (success) Toast.makeText(context, "کانال حذف شد", Toast.LENGTH_SHORT).show()
+                if (success) Toast.makeText(context, getString(R.string.msg_channel_deleted), Toast.LENGTH_SHORT).show()
             }
         }
     }
+
     private fun showSelectionMenu(options: List<String>, anchor: View, onSelected: (String) -> Unit) {
-        // Use your project's ContextThemeWrapper or directly instantiate the Popup
         val popup = ListPopupWindow(requireContext())
         popup.anchorView = anchor
 
-        // Use standard Android list item layout
         val adapter = ArrayAdapter(requireContext(), android.R.layout.simple_list_item_1, options)
         popup.setAdapter(adapter)
 
@@ -200,7 +205,13 @@ class ChannelListFragment : Fragment(R.layout.fragment_channel_list) {
         popup.show()
     }
 
-    override fun onDestroyView() { super.onDestroyView(); _binding = null }
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
+    }
 
-
+    override fun onResume() {
+        super.onResume()
+        (requireActivity() as? MainActivity)?.collapseSidebar()
+    }
 }

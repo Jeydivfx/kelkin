@@ -4,16 +4,16 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#0F0F0F"
+    android:background="@color/bg_black"
     android:layoutDirection="rtl">
 
     <ImageView
-    android:id="@+id/imgBackdrop"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:alpha="0.4"
-    android:scaleType="centerCrop"
-    tools:src="@drawable/hero_test_header" />
+        android:id="@+id/imgBackdrop"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:alpha="0.4"
+        android:scaleType="centerCrop"
+        tools:src="@drawable/hero_test_header" />
 
 
     <View
@@ -37,10 +37,12 @@
         android:layoutDirection="rtl"
         android:paddingStart="56dp"
         android:paddingEnd="56dp"
-        android:layoutAnimation="@anim/layout_fall_down"> <Space
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1" />
+        android:layoutAnimation="@anim/layout_fall_down">
+
+        <Space
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1" />
 
         <TextView
             android:id="@+id/txtTitle"
@@ -58,7 +60,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
             android:fontFamily="@font/montserrat_regular"
-            android:textColor="#80FFFFFF"
+            android:textColor="@color/english_title_color"
             android:textSize="18sp"
             android:alpha="0.7"
             tools:text="Movie Original Title" />
@@ -71,7 +73,7 @@
             android:fontFamily="@font/montserrat_regular"
             android:includeFontPadding="false"
             android:letterSpacing="0.02"
-            android:textColor="#818181"
+            android:textColor="@color/info_text_color"
             android:textSize="15sp"
             android:textDirection="rtl"
             android:layout_gravity="right"
@@ -112,7 +114,7 @@
                 android:background="@drawable/sl_button_high_contrast"
                 app:backgroundTint="@null"
                 android:fontFamily="@font/yekanbakh_bold"
-                android:text="ادامه تماشا"
+                android:text="@string/btn_continue_watch"
                 android:textColor="@drawable/sl_text_high_contrast"
                 android:textSize="16sp"
                 app:cornerRadius="6dp"
@@ -132,7 +134,7 @@
                 android:background="@drawable/sl_button_high_contrast"
                 app:backgroundTint="@null"
                 android:fontFamily="@font/yekanbakh_bold"
-                android:text="پخش"
+                android:text="@string/btn_play"
                 android:textColor="@drawable/sl_text_high_contrast"
                 android:textSize="16sp"
                 app:cornerRadius="6dp"
@@ -165,7 +167,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="32dp"
-            android:text="بازیگران"
+            android:text="@string/title_cast"
             android:textColor="@color/text_white"
             android:textSize="22sp"
             android:textStyle="bold" />

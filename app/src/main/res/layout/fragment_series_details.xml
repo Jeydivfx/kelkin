@@ -59,7 +59,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
             android:fontFamily="@font/montserrat_regular"
-            android:textColor="#80FFFFFF"
+            android:textColor="@color/english_title_color"
             android:textSize="18sp"
             android:alpha="0.7"
             tools:text="Series Original Title" />
@@ -72,7 +72,7 @@
             android:fontFamily="@font/montserrat_regular"
             android:includeFontPadding="false"
             android:letterSpacing="0.02"
-            android:textColor="#818181"
+            android:textColor="@color/info_text_color"
             android:textSize="15sp"
             android:textDirection="rtl"
             android:layout_gravity="right"
@@ -146,7 +146,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
-            android:text="قسمت‌ها"
+            android:text="@string/title_episodes"
             android:textColor="@color/text_white"
             android:textSize="18sp"
             android:textStyle="bold" />

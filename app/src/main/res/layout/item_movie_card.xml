@@ -50,7 +50,7 @@
                 android:layout_height="12dp"
                 android:layout_marginStart="3dp"
                 android:src="@drawable/ic_star"
-                app:tint="#FFD700" />
+                app:tint="@color/yellow" />
 
             <TextView
                 android:id="@+id/txtImdbRating"
@@ -61,7 +61,7 @@
                 android:textColor="@color/text_white"
                 android:textSize="11sp"
                 android:textStyle="bold"
-                android:text="7.8" />
+                android:text="@string/default_imdb_rating" />
         </LinearLayout>
 
 

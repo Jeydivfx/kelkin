@@ -11,6 +11,8 @@
     <color name="sidebar_glass_bg">#CC000000</color>
     <color name="yellow">#FFEB3B</color>
     <color name="btn_default_bg">#40FFFFFF</color>
+    <color name="json_text_color">#FF9800</color>
+    <color name="json_hint_color">#777777</color>
 
 
     <color name="tv_background_solid">#FF0F0F0F</color>
@@ -23,6 +25,26 @@
 
     <color name="card_focused_bg">#33FFD700</color>
     <color name="card_stroke_default">#22FFFFFF</color>
+    <color name="splash_background">#0F0F0F</color>
+    <color name="video_overlay_color">#40000000</color>
+    <color name="version_text_color">#888888</color>
+
+    <color name="english_title_color">#80FFFFFF</color>
+    <color name="info_text_color">#818181</color>
+    <color name="accent_orange">#FF9800</color>
+
+    <color name="settings_header_color">#88FFFFFF</color>
+    <color name="settings_divider_color">#12FFFFFF</color>
+    <color name="settings_version_color">#55FFFFFF</color>
+
+    <color name="delete_red_color">#FF5252</color>
+    <color name="source_icon_tint">#000000</color>
+    <color name="geo_accent_color">#FFB74D</color>
+    <color name="chevron_tint_color">#30FFFFFF</color>
+
+
+
+
 
 
 

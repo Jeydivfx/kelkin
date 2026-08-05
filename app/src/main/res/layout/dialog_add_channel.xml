@@ -12,11 +12,11 @@
         android:layout_width="match_parent"
         android:layout_height="50dp"
         android:layout_marginBottom="12dp"
-        android:background="#CC0F1A2A"
-        android:hint="نام کانال"
+        android:background="@color/dialog_background"
+        android:hint="@string/hint_channel_name"
         android:paddingHorizontal="16dp"
-        android:textColor="#FFFFFF"
-        android:textColorHint="#AAAAAA"
+        android:textColor="@color/text_white"
+        android:textColorHint="@color/text_gray"
         android:textSize="16sp" />
 
     <EditText
@@ -24,11 +24,11 @@
         android:layout_width="match_parent"
         android:layout_height="50dp"
         android:layout_marginBottom="12dp"
-        android:background="#CC0F1A2A"
-        android:hint="لینک استریم"
+        android:background="@color/dialog_background"
+        android:hint="@string/hint_stream_url"
         android:paddingHorizontal="16dp"
-        android:textColor="#FFFFFF"
-        android:textColorHint="#AAAAAA"
+        android:textColor="@color/text_white"
+        android:textColorHint="@color/text_gray"
         android:textSize="16sp" />
 
     <EditText
@@ -36,13 +36,13 @@
         android:layout_width="match_parent"
         android:layout_height="100dp"
         android:layout_marginBottom="12dp"
-        android:background="#CC0F1A2A"
+        android:background="@color/dialog_background"
         android:gravity="top"
-        android:hint='لیست سورس‌ها (JSON) - مثال: [{"name":"سورس ۱", "url":"..."}, {"name":"سورس ۲", "url":"..."}]'
+        android:hint="@string/hint_source_json"
         android:inputType="textMultiLine"
         android:padding="12dp"
-        android:textColor="#FF9800"
-        android:textColorHint="#777777"
+        android:textColor="@color/json_text_color"
+        android:textColorHint="@color/json_hint_color"
         android:textSize="14sp" />
 
     <EditText
@@ -50,25 +50,25 @@
         android:layout_width="match_parent"
         android:layout_height="50dp"
         android:layout_marginBottom="12dp"
-        android:background="#CC0F1A2A"
-        android:hint="لینک لوگو"
+        android:background="@color/dialog_background"
+        android:hint="@string/hint_logo_url"
         android:paddingHorizontal="16dp"
-        android:textColor="#FFFFFF"
-        android:textColorHint="#AAAAAA"
+        android:textColor="@color/text_white"
+        android:textColorHint="@color/text_gray"
         android:textSize="16sp" />
 
     <TextView
         android:id="@+id/btnCategoryDropdown"
         android:layout_width="match_parent"
         android:layout_height="50dp"
-        android:background="#CC0F1A2A"
+        android:background="@color/dialog_background"
         android:clickable="true"
         android:focusable="true"
         android:gravity="center_vertical|right"
-        android:hint="انتخاب دسته‌بندی..."
+        android:hint="@string/hint_select_category"
         android:paddingHorizontal="16dp"
-        android:textColor="#FFFFFF"
-        android:textColorHint="#AAAAAA"
+        android:textColor="@color/text_white"
+        android:textColorHint="@color/text_gray"
         android:textSize="16sp"
         android:textDirection="rtl" />
 

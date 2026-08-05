@@ -34,12 +34,11 @@
                 android:layout_width="340dp"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
-                android:text="پشتیبانی و خدمات سیستم"
-                android:textColor="#88FFFFFF"
+                android:text="@string/settings_header_support"
+                android:textColor="@color/settings_header_color"
                 android:textSize="14sp"
                 android:gravity="right" />
 
-            <!-- دکمه اول: درباره ما -->
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/cardAbout"
                 android:layout_width="340dp"
@@ -55,7 +54,7 @@
                 android:background="@drawable/sl_button_high_contrast"
                 app:backgroundTint="@null"
                 android:fontFamily="@font/yekanbakh_bold"
-                android:text="درباره ما و شبکه‌های اجتماعی"
+                android:text="@string/settings_btn_about"
                 android:textColor="@drawable/sl_text_high_contrast"
                 android:textSize="15sp"
                 app:cornerRadius="6dp"
@@ -67,7 +66,6 @@
                 android:nextFocusUp="@id/cardAbout"
                 android:nextFocusDown="@id/cardClearCache" />
 
-            <!-- دکمه دوم: پاکسازی حافظه -->
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/cardClearCache"
                 android:layout_width="340dp"
@@ -83,7 +81,7 @@
                 android:background="@drawable/sl_button_high_contrast"
                 app:backgroundTint="@null"
                 android:fontFamily="@font/yekanbakh_bold"
-                android:text="پاکسازی حافظه موقت برنامه"
+                android:text="@string/settings_btn_clear_cache"
                 android:textColor="@drawable/sl_text_high_contrast"
                 android:textSize="15sp"
                 app:cornerRadius="6dp"
@@ -98,15 +96,15 @@
             <View
                 android:layout_width="340dp"
                 android:layout_height="1dp"
-                android:background="#12FFFFFF"
+                android:background="@color/settings_divider_color"
                 android:layout_marginBottom="12dp" />
 
             <TextView
                 android:id="@+id/txtAppVersion"
                 android:layout_width="340dp"
                 android:layout_height="wrap_content"
-                android:text="نسخه اپلیکیشن کلکین: 1.7"
-                android:textColor="#55FFFFFF"
+                android:text="@string/settings_app_version"
+                android:textColor="@color/settings_version_color"
                 android:textSize="12sp"
                 android:gravity="right" />
 

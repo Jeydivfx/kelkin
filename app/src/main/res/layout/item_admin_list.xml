@@ -7,7 +7,7 @@
     android:layout_marginHorizontal="16dp"
     android:layout_marginVertical="8dp"
     app:cardCornerRadius="16dp"
-    app:cardBackgroundColor="#CC0F1A2A"
+    app:cardBackgroundColor="@color/dialog_background"
     app:cardElevation="4dp">
 
     <LinearLayout
@@ -23,10 +23,10 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:textColor="#FFFFFF"
+            android:textColor="@color/text_white"
             android:textSize="18sp"
             android:fontFamily="sans-serif-medium"
-            android:text="نام فیلم" />
+            android:text="@string/placeholder_movie_name" />
 
         <ImageButton
             android:id="@+id/btnEdit"
@@ -35,7 +35,7 @@
             android:background="?attr/selectableItemBackgroundBorderless"
             android:src="@drawable/ic_edit"
             app:tint="@color/yellow"
-            android:contentDescription="ویرایش" />
+            android:contentDescription="@string/desc_edit" />
 
         <ImageButton
             android:id="@+id/btnDelete"
@@ -44,8 +44,8 @@
             android:layout_marginStart="8dp"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:src="@drawable/ic_delete"
-            app:tint="#FF5252"
-            android:contentDescription="حذف" />
+            app:tint="@color/delete_red_color"
+            android:contentDescription="@string/desc_delete" />
 
     </LinearLayout>
 </androidx.cardview.widget.CardView>

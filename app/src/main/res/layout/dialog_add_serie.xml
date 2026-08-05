@@ -11,7 +11,7 @@
         android:id="@+id/txtGeneratedId"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:textColor="#FFD700"
+        android:textColor="@color/yellow"
         android:textSize="14sp"
         android:textStyle="bold"
         android:layout_marginBottom="16dp" />
@@ -20,53 +20,55 @@
         android:id="@+id/edtNameFa"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="نام سریال"
-        android:textColor="#FFFFFF"
-        android:textColorHint="#777777"
+        android:hint="@string/hint_series_name"
+        android:textColor="@color/text_white"
+        android:textColorHint="@color/text_gray"
         android:textSize="14sp"
-        android:backgroundTint="#FFD700"
+        android:background="@color/dialog_background"
+        android:padding="12dp"
         android:layout_marginBottom="10dp" />
 
     <EditText
         android:id="@+id/edtDescFa"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="توضیحات (خلاصه داستان)"
-        android:textColor="#FFFFFF"
-        android:textColorHint="#777777"
+        android:hint="@string/hint_series_desc"
+        android:textColor="@color/text_white"
+        android:textColorHint="@color/text_gray"
         android:textSize="14sp"
-        android:backgroundTint="#FFD700"
+        android:background="@color/dialog_background"
+        android:padding="12dp"
         android:layout_marginBottom="10dp" />
 
     <EditText
         android:id="@+id/edtTmdbId"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="شناسه TMDB"
+        android:hint="@string/hint_tmdb_id"
         android:inputType="number"
-        android:textColor="#FFFFFF"
-        android:textColorHint="#777777"
+        android:textColor="@color/text_white"
+        android:textColorHint="@color/text_gray"
         android:textSize="14sp"
-        android:backgroundTint="#FFD700"
+        android:background="@color/dialog_background"
+        android:padding="12dp"
         android:layout_marginBottom="10dp" />
-
 
     <EditText
         android:id="@+id/edtUrl1"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:visibility="gone"
-        android:hint="URL 1" />
+        android:hint="@string/hint_url_1" />
 
     <TextView
         android:id="@+id/btnCategoryDropdown"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="انتخاب دسته‌بندی"
-        android:textColor="#FFFFFF"
+        android:text="@string/btn_select_category"
+        android:textColor="@color/text_white"
         android:textSize="16sp"
         android:padding="12dp"
-        android:background="#CC0F1A2A"
+        android:background="@color/dialog_background"
         android:gravity="center"
         android:layout_marginTop="10dp"
         android:clickable="true"

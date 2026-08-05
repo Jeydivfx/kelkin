@@ -13,7 +13,6 @@
     <string name="hero_year_placeholder">2026</string>
     <string name="hero_genre_placeholder">Action</string>
     <string name="hero_desc_placeholder">فقط برای تست.</string>
-    <string name="btn_play">پخش</string>
     <string name="btn_info">اطلاعات</string>
     <string name="title_trending">جدیدترین فیلم ها</string>
     <string name="title_continue">ادامه تماشا</string>
@@ -27,5 +26,137 @@
     <string name="admin_hint_password">رمز عبور</string>
     <string name="admin_btn_login">ورود</string>
     <string name="admin_btn_cancel">لغو</string>
+
+
+    <string name="hint_channel_name">نام کانال</string>
+    <string name="hint_stream_url">لینک استریم</string>
+    <string name="hint_source_json">لیست سورس‌ها (JSON) - مثال: [{"name":"سورس ۱", "url":"..."}, {"name":"سورس ۲", "url":"..."}]</string>
+    <string name="hint_logo_url">لینک لوگو</string>
+    <string name="hint_select_category">انتخاب دسته‌بندی...</string>
+
+
+    <string name="label_generated_movie_id">شناسه خودکار فیلم: </string>
+    <string name="hint_movie_name_fa">نام فیلم (فارسی)</string>
+    <string name="hint_movie_desc_fa">توضیحات فیلم (فارسی)</string>
+    <string name="hint_select_movie_category">انتخاب دسته‌بندی فیلم...</string>
+    <string name="hint_tmdb_id">شناسه TMDB ID</string>
+    <string name="hint_video_url">لینک مستقیم ویدیو یا لینک VK</string>
+
+
+    <string name="hint_series_name">نام سریال</string>
+    <string name="hint_series_desc">توضیحات (خلاصه داستان)</string>
+    <string name="hint_url_1">URL 1</string>
+    <string name="btn_select_category">انتخاب دسته‌بندی</string>
+
+    <string name="btn_add_new_channel">افزودن کانال جدید</string>
+
+    <string name="exit_dialog_title">خروج از برنامه</string>
+    <string name="exit_dialog_message">آیا مطمئن هستید که می‌خواهید خارج شوید؟</string>
+    <string name="btn_yes">بله</string>
+    <string name="btn_no">خیر</string>
+
+    <string name="title_select_playback_source">انتخاب سورس پخش</string>
+    <string name="title_more_channels">کانال‌های بیشتر</string>
+    <string name="app_version_text">نسخه ۱.۰.۰</string>
+    <string name="status_preparing_live">در حال آماده سازی ...</string>
+
+    <string name="title_admin_panel_kelkin">پنل مدیریت کلکین</string>
+    <string name="btn_manage_movies">مدیریت فیلم‌ها</string>
+    <string name="btn_manage_series">مدیریت سریال ها</string>
+    <string name="btn_manage_tv">مدیریت شبکه‌ها</string>
+
+    <string name="btn_continue_watch">ادامه تماشا</string>
+    <string name="btn_play">پخش</string>
+    <string name="title_cast">بازیگران</string>
+
+    <string name="btn_add_new_movie">افزودن فیلم جدید</string>
+    <string name="hint_search_archive">جستجو در آرشیو...</string>
+    <string name="title_found_movies">فیلم‌های پیدا شده</string>
+    <string name="filter_all_genres">همه ژانرها</string>
+    <string name="filter_movies">فیلم‌ها</string>
+    <string name="filter_based_on">بر اساس</string>
+    <string name="sort_release_date">تاریخ ساخت</string>
+    <string name="filter_all_categories">همه دسته‌ها</string>
+
+    <string name="title_episodes">قسمت‌ها</string>
+
+
+    <string name="settings_header_support">پشتیبانی و خدمات سیستم</string>
+    <string name="settings_btn_about">درباره ما و شبکه‌های اجتماعی</string>
+    <string name="settings_btn_clear_cache">پاکسازی حافظه موقت برنامه</string>
+    <string name="settings_app_version">نسخه اپلیکیشن کلکین: 1.7</string>
+
+    <string name="filter_all_channels">همه شبکه‌ها</string>
+    <string name="sort_alphabetical">ترتیب الفبا</string>
+    <string name="filter_favorites">علاقه‌مندی‌ها</string>
+
+    <string name="placeholder_movie_name">نام فیلم</string>
+    <string name="desc_edit">ویرایش</string>
+    <string name="desc_delete">حذف</string>
+
+    <string name="default_imdb_rating">7.8</string>
+
+
+    <string name="error_fetching_list">خطا در دریافت لیست</string>
+    <string name="dialog_title_delete_movie">حذف فیلم</string>
+    <string name="dialog_message_delete_movie">آیا مطمئن هستید که می‌خواهید این فیلم حذف شود؟</string>
+    <string name="msg_movie_deleted">فیلم حذف شد</string>
+    <string name="format_movie_id">شناسه فیلم: %s</string>
+    <string name="format_category_code">دسته‌بندی: %d</string>
+    <string name="format_category_name">دسته‌بندی: %s</string>
+    <string name="btn_save_changes">ذخیره تغییرات</string>
+    <string name="msg_updated_success">بروزرسانی شد</string>
+    <string name="msg_update_error">خطا در بروزرسانی</string>
+    <string name="btn_cancel">انصراف</string>
+    <string name="status_preparing">در حال آماده‌سازی...</string>
+    <string name="dialog_title_add_movie">افزودن فیلم جدید</string>
+    <string name="btn_add">افزودن</string>
+    <string name="msg_movie_added_id">فیلم با آیدی %d اضافه شد</string>
+    <string name="msg_add_error">خطا در افزودن</string>
+
+
+    <string name="btn_add_new_series">افزودن سریال جدید</string>
+    <string name="error_fetching_series_list">خطا در دریافت لیست سریال‌ها</string>
+    <string name="dialog_title_delete_series">حذف سریال</string>
+    <string name="dialog_message_delete_series">آیا مطمئن هستید که می‌خواهید این سریال حذف شود؟</string>
+    <string name="msg_series_deleted">سریال حذف شد</string>
+    <string name="msg_series_delete_error">خطا در حذف سریال</string>
+    <string name="format_series_id">شناسه سریال: %s</string>
+    <string name="dialog_title_edit_series">ویرایش اطلاعات سریال</string>
+    <string name="btn_manage_seasons">مدیریت فصل‌ها و اپیزودها</string>
+    <string name="status_loading_seasons">در حال بارگذاری فصل‌ها...</string>
+    <string name="hint_season_number">شماره فصل (مثلا 1)</string>
+    <string name="hint_episode_number">شماره قسمت (مثلا 1)</string>
+    <string name="hint_episode_url">لینک مستقیم ویدیوی اپیزود</string>
+    <string name="msg_no_seasons">هنوز فصلی ثبت نشده است.</string>
+    <string name="format_registered_seasons">فصل‌های ثبت‌شده: %d فصل</string>
+    <string name="format_season_title">📂 فصل %s (%d قسمت)</string>
+    <string name="format_episode_item">   • %s: %s</string>
+    <string name="btn_delete_emoji">🗑️ حذف</string>
+    <string name="msg_episode_deleted">اپیزود حذف شد</string>
+    <string name="dialog_title_manage_seasons">مدیریت فصل‌ها و اپیزودها</string>
+    <string name="btn_save">ذخیره</string>
+    <string name="msg_episode_added_success">قسمت %s از فصل %s ثبت شد</string>
+    <string name="msg_fill_all_fields">لطفاً تمام فیلدها را پر کنید</string>
+    <string name="btn_close">بستن</string>
+    <string name="dialog_title_add_series">افزودن سریال جدید</string>
+    <string name="msg_series_added_id">سریال با آیدی %d اضافه شد</string>
+    <string name="msg_add_error_detailed">خطا در افزودن: %s</string>
+    <string name="error_firebase_connection">خطا در اتصال به فایربیس</string>
+    <string name="error_fetching_info">خطا در دریافت اطلاعات</string>
+
+
+    <string name="dialog_title_add_channel">افزودن کانال</string>
+    <string name="dialog_title_edit_channel">ویرایش کانال</string>
+    <string name="msg_success">با موفقیت انجام شد</string>
+    <string name="msg_save_error_firebase">خطا در ذخیره در فایربیس</string>
+    <string name="dialog_title_delete_channel">حذف کانال</string>
+    <string name="dialog_message_delete_channel">آیا مطمئن هستید که می‌خواهید این کانال حذف شود؟</string>
+    <string name="msg_channel_deleted">کانال حذف شد</string>
+
+
+
+
+
 
 </resources>
