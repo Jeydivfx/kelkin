@@ -1,6 +1,5 @@
 package com.example.kelkin
 
-import android.util.Log
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
@@ -29,8 +28,6 @@ import androidx.tv.material3.Icon
 import androidx.tv.material3.Text
 import kotlinx.coroutines.delay
 
-private const val TAG = "SidebarDebug"
-
 val VazirBold = FontFamily(Font(R.font.vazir_bold, FontWeight.Bold))
 
 @Composable
@@ -55,7 +52,7 @@ fun Sidebar(
     val isInDetail = currentId == R.id.movieDetailFragment || currentId == R.id.seriesDetailsFragment
 
     val selectedItem = remember(currentId) {
-        val item = when (currentId) {
+        when (currentId) {
             R.id.homeFragment, R.id.movieDetailFragment, R.id.seriesDetailsFragment -> homeFR
             R.id.moviesFragment -> movieFR
             R.id.seriesFragment -> seriesFR
@@ -64,20 +61,16 @@ fun Sidebar(
             R.id.settingsFragment -> settingsFR
             else -> homeFR
         }
-        Log.d(TAG, "Selected Item resolved for currentId: $currentId")
-        item
     }
 
+
     LaunchedEffect(isExpanded) {
-        Log.d(TAG, "LaunchedEffect(isExpanded) -> isExpanded: $isExpanded, isInDetail: $isInDetail")
         if (isExpanded && !isInDetail) {
-            Log.d(TAG, "Requesting direct focus on selectedItem to prevent flash.")
             selectedItem.requestFocus()
         }
     }
 
     LaunchedEffect(currentId) {
-        Log.d(TAG, "LaunchedEffect(currentId) -> currentId: $currentId, isInDetail: $isInDetail")
         if (isInDetail) {
             onExpandedChange(false)
         }
@@ -90,7 +83,6 @@ fun Sidebar(
             .padding(top = 40.dp, start = 8.dp, end = 8.dp)
             .animateContentSize(animationSpec = tween(durationMillis = 200))
             .onFocusChanged { focusState ->
-                Log.d(TAG, "Column focus changed -> hasFocus: ${focusState.hasFocus}, isExpanded: $isExpanded")
                 if (!focusState.hasFocus && isExpanded) {
                     onExpandedChange(false)
                 }
@@ -106,11 +98,9 @@ fun Sidebar(
             isDefaultItem = currentId == R.id.homeFragment || currentId == R.id.movieDetailFragment,
             isInDetail = isInDetail,
             onFocus = {
-                Log.d(TAG, "Item [خانه] focused. isExpanded: $isExpanded")
                 onExpandedChange(true)
             },
             onClick = {
-                Log.d(TAG, "Item [خانه] clicked.")
                 onExpandedChange(false)
                 onMenuSelected("home")
             }
@@ -125,11 +115,9 @@ fun Sidebar(
             isDefaultItem = currentId == R.id.moviesFragment,
             isInDetail = isInDetail,
             onFocus = {
-                Log.d(TAG, "Item [فیلم ها] focused. isExpanded: $isExpanded")
                 onExpandedChange(true)
             },
             onClick = {
-                Log.d(TAG, "Item [فیلم ها] clicked.")
                 onExpandedChange(false)
                 onMenuSelected("movies")
             }
@@ -144,11 +132,9 @@ fun Sidebar(
             isDefaultItem = currentId == R.id.seriesFragment || currentId == R.id.seriesDetailsFragment,
             isInDetail = isInDetail,
             onFocus = {
-                Log.d(TAG, "Item [سریال ها] focused. isExpanded: $isExpanded")
                 onExpandedChange(true)
             },
             onClick = {
-                Log.d(TAG, "Item [سریال ها] clicked.")
                 onExpandedChange(false)
                 onMenuSelected("series")
             }
@@ -163,11 +149,9 @@ fun Sidebar(
             isDefaultItem = currentId == R.id.tvFragment,
             isInDetail = isInDetail,
             onFocus = {
-                Log.d(TAG, "Item [تلویزیون] focused. isExpanded: $isExpanded")
                 onExpandedChange(true)
             },
             onClick = {
-                Log.d(TAG, "Item [تلویزیون] clicked.")
                 onExpandedChange(false)
                 onMenuSelected("tv")
             }
@@ -182,11 +166,9 @@ fun Sidebar(
             isDefaultItem = currentId == R.id.searchFragment,
             isInDetail = isInDetail,
             onFocus = {
-                Log.d(TAG, "Item [جستجو] focused. isExpanded: $isExpanded")
                 onExpandedChange(true)
             },
             onClick = {
-                Log.d(TAG, "Item [جستجو] clicked.")
                 onExpandedChange(false)
                 onMenuSelected("search")
             }
@@ -203,11 +185,9 @@ fun Sidebar(
             isDefaultItem = currentId == R.id.settingsFragment,
             isInDetail = isInDetail,
             onFocus = {
-                Log.d(TAG, "Item [تنظیمات] focused. isExpanded: $isExpanded")
                 onExpandedChange(true)
             },
             onClick = {
-                Log.d(TAG, "Item [تنظیمات] clicked.")
                 onExpandedChange(false)
                 onMenuSelected("settings")
             }

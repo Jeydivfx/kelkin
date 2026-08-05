@@ -19,8 +19,8 @@ android {
         applicationId = "com.example.kelkin"
         minSdk = 23
         targetSdk = 36
-        versionCode = 6
-        versionName = "1.6"
+        versionCode = 7
+        versionName = "1.7"
 
     }
 
@@ -121,8 +121,6 @@ dependencies {
     implementation("androidx.compose.ui:ui-tooling-preview")
     implementation("androidx.compose.material:material")
 
-    implementation("androidx.tv:tv-foundation:1.0.0-alpha11")
-    implementation("androidx.tv:tv-material:1.0.0-alpha11")
     implementation("androidx.activity:activity-compose:1.9.0")
     implementation("androidx.navigation:navigation-compose:2.8.0")
     implementation("org.videolan.android:libvlc-all:3.6.0")
@@ -134,5 +132,8 @@ dependencies {
     implementation("com.google.android.exoplayer:exoplayer-hls:2.19.1")
     implementation("com.google.android.exoplayer:exoplayer-ui:2.19.1")
 
+
+    implementation("androidx.tv:tv-foundation:1.0.0")
+    implementation("androidx.tv:tv-material:1.0.0")
 
 }

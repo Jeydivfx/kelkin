@@ -22,30 +22,9 @@ class SettingsFragment : Fragment(R.layout.fragment_settings) {
 
         binding.cardAbout.postDelayed({ binding.cardAbout.requestFocus() }, 300)
 
-        setupFocusListeners()
         setupClickListeners()
 
         binding.txtAppVersion.text = " نسخه اپلیکیشن کلکین: ${getAppVersionName()}"
-    }
-
-    private fun setupFocusListeners() {
-        val buttons = listOf(binding.cardAbout, binding.cardClearCache)
-
-        buttons.forEach { button ->
-            button.setOnFocusChangeListener { _, hasFocus ->
-                if (hasFocus) {
-                    when (button.id) {
-                        R.id.cardAbout -> updateSidePanel("درباره ما", "ارتباط با پشتیبانی در تلگرام:\n@Kelkin_App", R.drawable.ic_menu_settings)
-                        R.id.cardClearCache -> updateSidePanel("حافظه موقت", "پاک کردن حافظه پنهان برنامه برای بهبود عملکرد سیستم پلیر.", R.drawable.ic_menu_settings)
-                    }
-                }
-            }
-        }
-    }
-
-    private fun updateSidePanel(title: String, desc: String, iconRes: Int) {
-        binding.txtSettingDescription.text = "$title\n\n$desc"
-        binding.imgSettingDetail.setImageResource(iconRes)
     }
 
     private fun setupClickListeners() {
