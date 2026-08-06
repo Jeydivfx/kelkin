@@ -6,6 +6,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
+import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.example.kelkin.DataClass.Series
 import com.example.kelkin.R
 import com.example.kelkin.databinding.ItemMovieCardBinding
@@ -43,6 +44,7 @@ class SeriesAdapter(
 
             Glide.with(itemView.context)
                 .load(finalUrl)
+                .diskCacheStrategy(DiskCacheStrategy.ALL)
                 .placeholder(R.drawable.hero_test_header)
                 .error(R.drawable.hero_test_header)
                 .centerCrop()

@@ -21,6 +21,7 @@
     <color name="hero_overlay_end">#00090909</color>
     <color name="hero_fade_color">#121212</color>
     <color name="dialog_background">#FF1A1A1A</color>
+    <color name="black_translucent_80">#80000000</color>
 
 
     <color name="card_focused_bg">#33FFD700</color>

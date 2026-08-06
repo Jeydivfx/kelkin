@@ -37,16 +37,17 @@ class MovieAdapter(
     class MovieViewHolder(private val binding: ItemMovieCardBinding) : RecyclerView.ViewHolder(binding.root) {
 
         fun bind(movie: Movie, onMovieClick: (Movie) -> Unit, position: Int, totalCount: Int) {
-            val finalUrl = if (!movie.posterUrl.isNullOrEmpty()) {
-                "https://image.tmdb.org/t/p/w500${movie.posterUrl}"
-            } else null
+            val finalUrl = movie.posterUrl
 
             Glide.with(itemView.context)
                 .load(finalUrl)
+                .diskCacheStrategy(com.bumptech.glide.load.engine.DiskCacheStrategy.ALL)
+                .skipMemoryCache(false)
                 .placeholder(R.drawable.hero_test_header)
                 .error(R.drawable.hero_test_header)
                 .centerCrop()
                 .into(binding.moviePoster)
+
 
             if (movie.voteAverage > 0.0) {
                 val ratingFormatted = String.format(Locale.ENGLISH, "%.1f", movie.voteAverage).toPersianDigits()
@@ -70,7 +71,6 @@ class MovieAdapter(
             itemView.setOnKeyListener { _, keyCode, event ->
                 if (event.action == KeyEvent.ACTION_DOWN) {
                     when (keyCode) {
-
                         KeyEvent.KEYCODE_DPAD_LEFT -> {
                             if (position >= totalCount - 1) return@setOnKeyListener true
                         }

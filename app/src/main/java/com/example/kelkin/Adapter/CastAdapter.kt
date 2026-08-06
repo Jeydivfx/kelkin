@@ -7,6 +7,7 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
+import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.example.kelkin.DataClass.CastMember
 import com.example.kelkin.R
 
@@ -34,6 +35,7 @@ class CastAdapter(private val cast: List<CastMember>) : RecyclerView.Adapter<Cas
             Glide.with(holder.itemView.context)
                 .load(imageUrl)
                 .circleCrop()
+                .diskCacheStrategy(DiskCacheStrategy.ALL)
                 .placeholder(R.drawable.ic_person)
                 .error(R.drawable.ic_person)
                 .into(holder.imgCast)

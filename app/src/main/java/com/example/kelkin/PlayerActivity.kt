@@ -43,18 +43,15 @@ class PlayerActivity : AppCompatActivity() {
     private var exoPlayer: ExoPlayer? = null
     private lateinit var viewModel: HomeViewModel
     private lateinit var sourceAdapter: SourceAdapter
-
     private lateinit var currentChannel: Channel
     private var selectedCategoryId: Long = 0L
-
     private var videoPlatform = VideoPlatform.DIRECT
     private var currentVideoUrl: String = ""
     private var startPosition: Long = 0L
     private var currentHeaders: StreamHeaders? = null
-
     private var liveProgressBar: ProgressBar? = null
     private var liveStatusText: TextView? = null
-
+    private var isControllerShown = false
     private val isReleased = AtomicBoolean(false)
 
     companion object {
@@ -179,8 +176,26 @@ class PlayerActivity : AppCompatActivity() {
         hideAllVideoViews()
         binding.playerView.visibility = View.VISIBLE
         binding.playerView.useController = true
-
+        binding.playerView.controllerShowTimeoutMs = 3000
         binding.playerView.setShowSubtitleButton(true)
+        binding.playerView.subtitleView?.let { subtitleView ->
+            val captionStyle = androidx.media3.ui.CaptionStyleCompat(
+                android.graphics.Color.YELLOW,
+                androidx.core.content.ContextCompat.getColor(this, R.color.black_translucent_80),
+                android.graphics.Color.TRANSPARENT,
+                androidx.media3.ui.CaptionStyleCompat.EDGE_TYPE_OUTLINE,
+                android.graphics.Color.BLACK,
+                null
+            )
+            subtitleView.setStyle(captionStyle)
+
+
+            subtitleView.setApplyEmbeddedStyles(true)
+        }
+
+        binding.playerView.setControllerVisibilityListener(PlayerView.ControllerVisibilityListener { visibility ->
+            isControllerShown = (visibility == View.VISIBLE)
+        })
 
         val trackSelector = DefaultTrackSelector(this).apply {
             setParameters(
@@ -196,8 +211,6 @@ class PlayerActivity : AppCompatActivity() {
             .build()
             .also { player ->
                 binding.playerView.player = player
-
-
                 player.setMediaItem(MediaItem.fromUri(url))
                 if (startPos > 0) {
                     player.seekTo(startPos)
@@ -487,8 +500,12 @@ class PlayerActivity : AppCompatActivity() {
 
     private fun setupBackPressHandler() {
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
+            @OptIn(UnstableApi::class)
             override fun handleOnBackPressed() {
                 when {
+                    binding.playerView.visibility == View.VISIBLE && isControllerShown -> {
+                        binding.playerView.hideController()
+                    }
                     binding.sourceOverlay.visibility == View.VISIBLE -> {
                         binding.sourceOverlay.visibility = View.GONE
                         binding.root.requestFocus()

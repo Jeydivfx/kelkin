@@ -5,6 +5,7 @@ import android.view.ViewGroup
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
+import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import com.example.kelkin.R
 import com.example.kelkin.databinding.ItemEpisodeCardBinding
@@ -30,27 +31,12 @@ class EpisodesAdapter(
     class EpisodeViewHolder(private val binding: ItemEpisodeCardBinding) : RecyclerView.ViewHolder(binding.root) {
         fun bind(epKey: String, videoUrl: String, backdropPath: String, onClick: (String, String) -> Unit) {
             binding.root.isFocusable = true
-
-            //
             binding.txtEpisodeTitle.text = "قسمت ${epKey.replace("ep", "")}"
-
-            binding.root.setOnFocusChangeListener { _, hasFocus ->
-                if (hasFocus) {
-
-                    binding.txtEpisodeTitle.setTextColor(ContextCompat.getColor(binding.root.context, android.R.color.black))
-
-                } else {
-
-                    binding.txtEpisodeTitle.setTextColor(ContextCompat.getColor(binding.root.context, R.color.text_white))
-
-                }
-            }
-
-
             if (backdropPath.isNotEmpty()) {
                 val fullImageUrl = if (backdropPath.startsWith("http")) backdropPath else "https://image.tmdb.org/t/p/w500$backdropPath"
                 Glide.with(binding.imgEpisodeBackdrop.context)
                     .load(fullImageUrl)
+                    .diskCacheStrategy(DiskCacheStrategy.ALL)
                     .transition(DrawableTransitionOptions.withCrossFade())
                     .into(binding.imgEpisodeBackdrop)
             }

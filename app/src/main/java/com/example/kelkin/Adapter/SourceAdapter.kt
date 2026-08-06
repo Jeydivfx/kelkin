@@ -19,7 +19,6 @@ class SourceAdapter(
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): SourceViewHolder {
-        // اینجا باید یک فایل XML به اسم item_source طراحی کنی
         val view = LayoutInflater.from(parent.context).inflate(R.layout.item_source, parent, false)
         return SourceViewHolder(view)
     }

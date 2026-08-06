@@ -32,10 +32,8 @@ class SeasonsAdapter(
 
     class SeasonViewHolder(private val binding: ItemSeasonCardBinding) : RecyclerView.ViewHolder(binding.root) {
         fun bind(seasonKey: String, isSelected: Boolean, onClick: () -> Unit) {
-            // فرض بر اینکه در لایوت یک TextView به نام txtSeasonName داری
+
             binding.root.isFocusable = true
-            // اینجا می‌توانی متن یا استایل دکمه فصل را بر اساس انتخاب‌شده بودن تغییر دهی
-            // مثلاً: binding.txtSeasonName.text = "فصل $seasonKey"
 
             binding.root.setOnClickListener { onClick() }
         }

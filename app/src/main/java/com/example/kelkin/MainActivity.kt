@@ -30,7 +30,7 @@ class MainActivity : AppCompatActivity() {
 
 
         navController.addOnDestinationChangedListener { _, destination, _ ->
-            // هم موقع رفتن به صفحات دیتایلز و هم موقع برگشتن به صفحه اصلی (Home)، منو را ببند
+
             if (destination.id == R.id.movieDetailFragment ||
                 destination.id == R.id.seriesDetailsFragment ||
                 destination.id == R.id.homeFragment) {
@@ -109,7 +109,6 @@ class MainActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
-        // Clean up navigation listener
         navController.removeOnDestinationChangedListener { _, _, _ -> }
     }
 }

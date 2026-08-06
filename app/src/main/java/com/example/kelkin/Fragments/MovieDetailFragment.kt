@@ -18,6 +18,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
+import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import com.example.kelkin.Adapter.CastAdapter
 import com.example.kelkin.DataClass.Movie
@@ -141,6 +142,7 @@ class MovieDetailFragment : Fragment(R.layout.fragment_movie_detail) {
         view.findViewById<ImageView>(R.id.imgBackdrop)?.let {
             Glide.with(this)
                 .load("https://image.tmdb.org/t/p/original${details.backdrop_path}")
+                .diskCacheStrategy(DiskCacheStrategy.ALL)
                 .transition(DrawableTransitionOptions.withCrossFade(1000))
                 .into(it)
         }

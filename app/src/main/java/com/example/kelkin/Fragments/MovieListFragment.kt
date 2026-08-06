@@ -136,11 +136,10 @@ class MovieListFragment : Fragment(R.layout.fragment_movie_list) {
         builder.setNegativeButton(getString(R.string.btn_cancel), null)
 
         val dialog = builder.create()
-        // رفع مشکل پس‌زمینه سیاه دیالوگ
+
         dialog.window?.setBackgroundDrawableResource(R.drawable.dialog_background_shape)
         dialog.show()
 
-        // استایل‌دهی دکمه‌ها مشابه دکمه‌های خروج
         dialog.getButton(AlertDialog.BUTTON_POSITIVE).apply {
             setTextColor(requireContext().getColor(R.color.yellow))
             setTypeface(null, android.graphics.Typeface.BOLD)
@@ -265,11 +264,9 @@ class MovieListFragment : Fragment(R.layout.fragment_movie_list) {
         builder.setNegativeButton(getString(R.string.btn_cancel), null)
 
         val dialog = builder.create()
-        // رفع مشکل پس‌زمینه سیاه دیالوگ
         dialog.window?.setBackgroundDrawableResource(R.drawable.dialog_background_shape)
         dialog.show()
 
-        // استایل‌دهی دکمه‌ها مشابه دکمه‌های خروج
         dialog.getButton(AlertDialog.BUTTON_POSITIVE).apply {
             setTextColor(requireContext().getColor(R.color.yellow))
             setTypeface(null, android.graphics.Typeface.BOLD)

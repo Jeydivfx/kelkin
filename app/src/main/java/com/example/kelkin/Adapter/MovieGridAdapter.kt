@@ -10,6 +10,7 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
+import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.example.kelkin.DataClass.Movie
 import com.example.kelkin.R
 import com.example.kelkin.`object`.TranslationHelper.toPersianDigits
@@ -84,6 +85,7 @@ class MovieGridAdapter(private val onMovieClick: (Movie) -> Unit) :
 
             Glide.with(itemView.context)
                 .load(fullUrl)
+                .diskCacheStrategy(DiskCacheStrategy.ALL)
                 .placeholder(R.drawable.hero_test_header)
                 .error(R.drawable.ic_menu_movie)
                 .centerCrop()

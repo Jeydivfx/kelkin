@@ -144,7 +144,6 @@ class MoviesFragment : Fragment() {
             this.categoryList = categories ?: emptyList()
         }
 
-        // مشاهده لیست فیلم‌ها
         viewModel.moviesList.observe(viewLifecycleOwner) { movies ->
             if (movies != null) {
                 binding.progressBarMovies.visibility = View.GONE

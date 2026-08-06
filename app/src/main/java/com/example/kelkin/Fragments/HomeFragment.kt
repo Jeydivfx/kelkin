@@ -11,6 +11,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.NavHostFragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.bumptech.glide.Glide
+import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.example.kelkin.Adapter.MovieAdapter
 import com.example.kelkin.DataClass.Movie
 import com.example.kelkin.DataClass.TmdbMovieDetails
@@ -127,19 +128,26 @@ class HomeFragment : Fragment() {
     private fun observeData() {
         viewModel.moviesList.observe(viewLifecycleOwner) { movies ->
             if (!movies.isNullOrEmpty()) {
+                val currentDetails = viewModel.movieDetailsMap.value
                 movies.forEach { movie ->
-                    viewModel.fetchTmdbDetails(movie.tmdb_id)
+                    if (!movie.tmdb_id.isNullOrEmpty()) {
+                        if (currentDetails == null || !currentDetails.containsKey(movie.tmdb_id)) {
+                            viewModel.fetchTmdbDetails(movie.tmdb_id)
+                        }
+                    }
                 }
             }
             renderUI()
         }
 
-
         viewModel.seriesList.observe(viewLifecycleOwner) { seriesList ->
             if (!seriesList.isNullOrEmpty()) {
+                val currentDetails = viewModel.movieDetailsMap.value
                 seriesList.forEach { series ->
                     if (!series.tmdb_id.isNullOrEmpty()) {
-                        viewModel.fetchSeriesTmdbDetails(series.tmdb_id)
+                        if (currentDetails == null || !currentDetails.containsKey(series.tmdb_id)) {
+                            viewModel.fetchSeriesTmdbDetails(series.tmdb_id)
+                        }
                     }
                 }
             }
@@ -148,13 +156,16 @@ class HomeFragment : Fragment() {
 
         viewModel.myList.observe(viewLifecycleOwner) { myList ->
             if (!myList.isNullOrEmpty()) {
+                val currentDetails = viewModel.movieDetailsMap.value
                 myList.forEach { item ->
                     if (!item.tmdb_id.isNullOrEmpty()) {
-                        val isSeries = viewModel.seriesList.value?.any { it.tmdb_id == item.tmdb_id } == true
-                        if (isSeries) {
-                            viewModel.fetchSeriesTmdbDetails(item.tmdb_id)
-                        } else {
-                            viewModel.fetchTmdbDetails(item.tmdb_id)
+                        if (currentDetails == null || !currentDetails.containsKey(item.tmdb_id)) {
+                            val isSeries = viewModel.seriesList.value?.any { it.tmdb_id == item.tmdb_id } == true
+                            if (isSeries) {
+                                viewModel.fetchSeriesTmdbDetails(item.tmdb_id)
+                            } else {
+                                viewModel.fetchTmdbDetails(item.tmdb_id)
+                            }
                         }
                     }
                 }
@@ -164,13 +175,16 @@ class HomeFragment : Fragment() {
 
         viewModel.continueWatchingList.observe(viewLifecycleOwner) { continueList ->
             if (!continueList.isNullOrEmpty()) {
+                val currentDetails = viewModel.movieDetailsMap.value
                 continueList.forEach { item ->
                     if (!item.tmdb_id.isNullOrEmpty()) {
-                        val isSeries = viewModel.seriesList.value?.any { it.tmdb_id == item.tmdb_id } == true
-                        if (isSeries) {
-                            viewModel.fetchSeriesTmdbDetails(item.tmdb_id)
-                        } else {
-                            viewModel.fetchTmdbDetails(item.tmdb_id)
+                        if (currentDetails == null || !currentDetails.containsKey(item.tmdb_id)) {
+                            val isSeries = viewModel.seriesList.value?.any { it.tmdb_id == item.tmdb_id } == true
+                            if (isSeries) {
+                                viewModel.fetchSeriesTmdbDetails(item.tmdb_id)
+                            } else {
+                                viewModel.fetchTmdbDetails(item.tmdb_id)
+                            }
                         }
                     }
                 }
@@ -180,7 +194,6 @@ class HomeFragment : Fragment() {
 
         viewModel.movieDetailsMap.observe(viewLifecycleOwner) { renderUI() }
     }
-
 
     private fun renderUI() {
         val movies = viewModel.moviesList.value ?: return
@@ -228,7 +241,6 @@ class HomeFragment : Fragment() {
 
     private fun updateHeroBanner(tmdb: TmdbMovieDetails?, fb: Movie) {
         binding.apply {
-            //heroTitle.text = tmdb?.title ?: fb.name_fa
             heroTitle.text = tmdb?.title
             heroDescription.text = fb.description_fa
 
@@ -238,6 +250,7 @@ class HomeFragment : Fragment() {
                 heroGenre.text = TranslationHelper.translateGenres(tmdb.genres.joinToString(", ") { it.name })
                 Glide.with(requireContext())
                     .load("https://image.tmdb.org/t/p/original${tmdb.backdrop_path}")
+                    .diskCacheStrategy(DiskCacheStrategy.ALL)
                     .into(heroImage)
             } else {
                 imdbScore.text = "--"
