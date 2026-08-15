@@ -6,11 +6,13 @@ import android.graphics.Typeface
 import android.os.Bundle
 import android.text.Spannable
 import android.text.SpannableString
+import com.example.kelkin.`object`.TranslationHelper
 import android.text.style.ForegroundColorSpan
 import android.text.style.StyleSpan
 import android.util.Log
 import android.view.View
 import android.widget.LinearLayout
+import android.widget.TextView
 import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
@@ -28,6 +30,7 @@ import com.example.kelkin.MainActivity
 import com.example.kelkin.R
 import com.example.kelkin.ViewModels.HomeViewModel
 import com.example.kelkin.databinding.FragmentSeriesDetailsBinding
+import com.example.kelkin.`object`.TranslationHelper.toPersianDigits
 import com.google.android.material.button.MaterialButton
 import com.google.gson.Gson
 import kotlinx.coroutines.launch
@@ -227,22 +230,47 @@ class SeriesDetailsFragment : Fragment(R.layout.fragment_series_details) {
             selectedSeries?.let { setupSeasonsButtonsAndEpisodes(it) }
         }
 
-        val ratingStr = String.format(Locale.ENGLISH, "%.1f", details.vote_average)
-        val genresStr = details.genres.joinToString("، ") { it.name }
-        val yearStr = details.first_air_date?.take(4) ?: ""
 
-        val fullText = "IMDB $ratingStr  |  $genresStr  |  $yearStr"
-        val spannable = SpannableString(fullText)
-        val imdbPart = "IMDB $ratingStr"
-        val startIndex = fullText.indexOf(imdbPart)
+        val yearStr = (details.first_air_date?.take(4) ?: "").toPersianDigits()
+        binding.txtYear.text = yearStr
 
-        if (startIndex != -1) {
-            val endIndex = startIndex + imdbPart.length
-            spannable.setSpan(ForegroundColorSpan(Color.parseColor("#FFD700")), startIndex, endIndex, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
-            spannable.setSpan(StyleSpan(Typeface.BOLD), startIndex, endIndex, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
+
+        val ratingStr = String.format(Locale.ENGLISH, "%.1f", details.vote_average).toPersianDigits()
+        binding.txtRating.text = "  امتیاز  $ratingStr"
+
+
+        val limitedGenres = details.genres.take(2).joinToString("، ") { it.name }
+        val genresStr = TranslationHelper.translateGenres(limitedGenres)
+        binding.txtGenres.text = genresStr
+
+
+        val series = selectedSeries
+        val langName = viewModel.languagesList.value?.find {
+            it.id.toString() == series?.language || "lan_%02d".format(it.id) == series?.language || it.name == series?.language
+        }?.name?.toPersianDigits()
+
+        binding.txtLanguage.apply {
+            if (!langName.isNullOrEmpty()) {
+                text = langName
+                visibility = View.VISIBLE
+            } else {
+                visibility = View.GONE
+            }
         }
 
-        binding.txtInfo.text = spannable
+
+        val qualityName = viewModel.qualitiesList.value?.find {
+            it.id.toString() == series?.quality || "qu_%02d".format(it.id) == series?.quality || it.name == series?.quality
+        }?.name?.toPersianDigits()
+
+        binding.txtQuality.apply {
+            if (!qualityName.isNullOrEmpty()) {
+                text = qualityName
+                visibility = View.VISIBLE
+            } else {
+                visibility = View.GONE
+            }
+        }
     }
 
     override fun onDestroyView() {

@@ -1,76 +1,111 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="vertical"
-    android:padding="20dp"
-    android:background="@drawable/bg_gradient_main"
-    android:layoutDirection="rtl">
+    android:layoutDirection="rtl"
+    android:background="@drawable/bg_gradient_main">
 
-    <TextView
-        android:id="@+id/txtGeneratedId"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:textColor="@color/yellow"
-        android:textSize="14sp"
-        android:textStyle="bold"
-        android:layout_marginBottom="16dp" />
+        android:orientation="vertical"
+        android:padding="20dp">
 
-    <EditText
-        android:id="@+id/edtNameFa"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="@string/hint_series_name"
-        android:textColor="@color/text_white"
-        android:textColorHint="@color/text_gray"
-        android:textSize="14sp"
-        android:background="@color/dialog_background"
-        android:padding="12dp"
-        android:layout_marginBottom="10dp" />
+        <TextView
+            android:id="@+id/txtGeneratedId"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="@color/yellow"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="16dp" />
 
-    <EditText
-        android:id="@+id/edtDescFa"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="@string/hint_series_desc"
-        android:textColor="@color/text_white"
-        android:textColorHint="@color/text_gray"
-        android:textSize="14sp"
-        android:background="@color/dialog_background"
-        android:padding="12dp"
-        android:layout_marginBottom="10dp" />
+        <EditText
+            android:id="@+id/edtNameFa"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="@string/hint_series_name"
+            android:textColor="@color/text_white"
+            android:textColorHint="@color/text_gray"
+            android:textSize="14sp"
+            android:background="@color/dialog_background"
+            android:padding="12dp"
+            android:layout_marginBottom="10dp" />
 
-    <EditText
-        android:id="@+id/edtTmdbId"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="@string/hint_tmdb_id"
-        android:inputType="number"
-        android:textColor="@color/text_white"
-        android:textColorHint="@color/text_gray"
-        android:textSize="14sp"
-        android:background="@color/dialog_background"
-        android:padding="12dp"
-        android:layout_marginBottom="10dp" />
+        <EditText
+            android:id="@+id/edtDescFa"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="@string/hint_series_desc"
+            android:textColor="@color/text_white"
+            android:textColorHint="@color/text_gray"
+            android:textSize="14sp"
+            android:background="@color/dialog_background"
+            android:padding="12dp"
+            android:layout_marginBottom="10dp" />
 
-    <EditText
-        android:id="@+id/edtUrl1"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:visibility="gone"
-        android:hint="@string/hint_url_1" />
+        <!-- انتقال شناسه TMDB به بالاتر -->
+        <EditText
+            android:id="@+id/edtTmdbId"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="@string/hint_tmdb_id"
+            android:inputType="number"
+            android:textColor="@color/text_white"
+            android:textColorHint="@color/text_gray"
+            android:textSize="14sp"
+            android:background="@color/dialog_background"
+            android:padding="12dp"
+            android:layout_marginBottom="10dp" />
 
-    <TextView
-        android:id="@+id/btnCategoryDropdown"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/btn_select_category"
-        android:textColor="@color/text_white"
-        android:textSize="16sp"
-        android:padding="12dp"
-        android:background="@color/dialog_background"
-        android:gravity="center"
-        android:layout_marginTop="10dp"
-        android:clickable="true"
-        android:focusable="true" />
-</LinearLayout>
+        <TextView
+            android:id="@+id/btnCategoryDropdown"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/btn_select_category"
+            android:textColor="@color/text_white"
+            android:textSize="16sp"
+            android:padding="12dp"
+            android:background="@color/dialog_background"
+            android:gravity="center"
+            android:layout_marginBottom="10dp"
+            android:clickable="true"
+            android:focusable="true" />
+
+        <TextView
+            android:id="@+id/btnLanguageDropdown"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="انتخاب زبان"
+            android:textColor="@color/text_white"
+            android:textSize="16sp"
+            android:padding="12dp"
+            android:background="@color/dialog_background"
+            android:gravity="center"
+            android:layout_marginBottom="10dp"
+            android:clickable="true"
+            android:focusable="true" />
+
+        <TextView
+            android:id="@+id/btnQualityDropdown"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="انتخاب کیفیت"
+            android:textColor="@color/text_white"
+            android:textSize="16sp"
+            android:padding="12dp"
+            android:background="@color/dialog_background"
+            android:gravity="center"
+            android:layout_marginBottom="10dp"
+            android:clickable="true"
+            android:focusable="true" />
+
+        <EditText
+            android:id="@+id/edtUrl1"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:visibility="gone"
+            android:hint="@string/hint_url_1" />
+
+    </LinearLayout>
+</ScrollView>

@@ -28,6 +28,13 @@ class MovieListFragment : Fragment(R.layout.fragment_movie_list) {
 
     private val categoryNames = mutableListOf<String>()
     private val categoryMap = mutableMapOf<String, Long>()
+
+    private val languageNames = mutableListOf<String>()
+    private val languageMap = mutableMapOf<String, String>()
+
+    private val qualityNames = mutableListOf<String>()
+    private val qualityMap = mutableMapOf<String, String>()
+
     private lateinit var adapter: AdminItemAdapter
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -41,6 +48,7 @@ class MovieListFragment : Fragment(R.layout.fragment_movie_list) {
         })
 
         fetchCategoriesForDropdown()
+        fetchLanguagesAndQualitiesForDropdown()
 
         binding.btnAddMovie.setOnClickListener {
             showAddMovieDialog()
@@ -67,7 +75,7 @@ class MovieListFragment : Fragment(R.layout.fragment_movie_list) {
                     val key = child.key
                     val value = child.value as? Map<String, Any>
                     if (key != null && value != null) key to value else null
-                }
+                }.reversed()
                 adapter.updateData(list)
             }
             override fun onCancelled(error: DatabaseError) {
@@ -98,6 +106,8 @@ class MovieListFragment : Fragment(R.layout.fragment_movie_list) {
         val edtTmdbId = view.findViewById<EditText>(R.id.edtTmdbId)
         val edtUrl1 = view.findViewById<EditText>(R.id.edtUrl1)
         val btnCategoryDropdown = view.findViewById<TextView>(R.id.btnCategoryDropdown)
+        val btnLanguageDropdown = view.findViewById<TextView>(R.id.btnLanguageDropdown)
+        val btnQualityDropdown = view.findViewById<TextView>(R.id.btnQualityDropdown)
 
         txtGeneratedId.text = getString(R.string.format_movie_id, id)
         edtNameFa.setText(data["name_fa"] as? String ?: "")
@@ -107,12 +117,34 @@ class MovieListFragment : Fragment(R.layout.fragment_movie_list) {
 
         var selectedCategoryCode = (data["category"] as? Long) ?: 0L
         val catName = categoryMap.entries.find { it.value == selectedCategoryCode }?.key
-        btnCategoryDropdown.text = catName ?: getString(R.string.format_category_code, selectedCategoryCode)
+        btnCategoryDropdown.text = catName ?: "انتخاب دسته‌بندی"
+
+        var selectedLanguageCode = (data["language"] as? String) ?: "lan_01"
+        val langName = languageMap.entries.find { it.value == selectedLanguageCode }?.key
+        btnLanguageDropdown.text = langName ?: "انتخاب زبان"
+
+        var selectedQualityCode = (data["quality"] as? String) ?: "qu_01"
+        val qualName = qualityMap.entries.find { it.value == selectedQualityCode }?.key
+        btnQualityDropdown.text = qualName ?: "انتخاب کیفیت"
 
         btnCategoryDropdown.setOnClickListener {
             showSelectionMenu(categoryNames, it) { selectedName ->
-                btnCategoryDropdown.text = getString(R.string.format_category_name, selectedName)
+                btnCategoryDropdown.text = selectedName
                 selectedCategoryCode = categoryMap[selectedName] ?: 0L
+            }
+        }
+
+        btnLanguageDropdown.setOnClickListener {
+            showSelectionMenu(languageNames, it) { selectedName ->
+                btnLanguageDropdown.text = selectedName
+                selectedLanguageCode = languageMap[selectedName] ?: "lan_01"
+            }
+        }
+
+        btnQualityDropdown.setOnClickListener {
+            showSelectionMenu(qualityNames, it) { selectedName ->
+                btnQualityDropdown.text = selectedName
+                selectedQualityCode = qualityMap[selectedName] ?: "qu_01"
             }
         }
 
@@ -124,7 +156,9 @@ class MovieListFragment : Fragment(R.layout.fragment_movie_list) {
                 "description_fa" to edtDescFa.text.toString(),
                 "tmdb_id" to edtTmdbId.text.toString(),
                 "videoUrl1" to edtUrl1.text.toString(),
-                "category" to selectedCategoryCode
+                "category" to selectedCategoryCode,
+                "language" to selectedLanguageCode,
+                "quality" to selectedQualityCode
             )
 
             FirebaseManager.getMoviesRef().child(id).setValue(updatedMap)
@@ -136,7 +170,6 @@ class MovieListFragment : Fragment(R.layout.fragment_movie_list) {
         builder.setNegativeButton(getString(R.string.btn_cancel), null)
 
         val dialog = builder.create()
-
         dialog.window?.setBackgroundDrawableResource(R.drawable.dialog_background_shape)
         dialog.show()
 
@@ -160,6 +193,40 @@ class MovieListFragment : Fragment(R.layout.fragment_movie_list) {
                     if (name.isNotEmpty()) {
                         categoryNames.add(name)
                         categoryMap[name] = id
+                    }
+                }
+            }
+            override fun onCancelled(error: DatabaseError) {}
+        })
+    }
+
+    private fun fetchLanguagesAndQualitiesForDropdown() {
+        FirebaseManager.getDatabase().getReference("language").addListenerForSingleValueEvent(object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                languageNames.clear()
+                languageMap.clear()
+                for (lang in snapshot.children) {
+                    val name = lang.child("name").getValue(String::class.java) ?: ""
+                    val key = lang.key ?: ""
+                    if (name.isNotEmpty() && key.isNotEmpty()) {
+                        languageNames.add(name)
+                        languageMap[name] = key
+                    }
+                }
+            }
+            override fun onCancelled(error: DatabaseError) {}
+        })
+
+        FirebaseManager.getDatabase().getReference("quality").addListenerForSingleValueEvent(object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                qualityNames.clear()
+                qualityMap.clear()
+                for (qual in snapshot.children) {
+                    val name = qual.child("name").getValue(String::class.java) ?: ""
+                    val key = qual.key ?: ""
+                    if (name.isNotEmpty() && key.isNotEmpty()) {
+                        qualityNames.add(name)
+                        qualityMap[name] = key
                     }
                 }
             }
@@ -195,15 +262,34 @@ class MovieListFragment : Fragment(R.layout.fragment_movie_list) {
         val edtTmdbId = view.findViewById<EditText>(R.id.edtTmdbId)
         val edtUrl1 = view.findViewById<EditText>(R.id.edtUrl1)
         val btnCategoryDropdown = view.findViewById<TextView>(R.id.btnCategoryDropdown)
+        val btnLanguageDropdown = view.findViewById<TextView>(R.id.btnLanguageDropdown)
+        val btnQualityDropdown = view.findViewById<TextView>(R.id.btnQualityDropdown)
         val txtGeneratedId = view.findViewById<TextView>(R.id.txtGeneratedId)
 
         var selectedCategoryCode = 0L
+        var selectedLanguageCode = "lan_01"
+        var selectedQualityCode = "qu_01"
+
         txtGeneratedId.text = getString(R.string.status_preparing)
 
         btnCategoryDropdown.setOnClickListener {
             showSelectionMenu(categoryNames, it) { selectedName ->
-                btnCategoryDropdown.text = getString(R.string.format_category_name, selectedName)
+                btnCategoryDropdown.text = selectedName
                 selectedCategoryCode = categoryMap[selectedName] ?: 0L
+            }
+        }
+
+        btnLanguageDropdown.setOnClickListener {
+            showSelectionMenu(languageNames, it) { selectedName ->
+                btnLanguageDropdown.text = selectedName
+                selectedLanguageCode = languageMap[selectedName] ?: "lan_01"
+            }
+        }
+
+        btnQualityDropdown.setOnClickListener {
+            showSelectionMenu(qualityNames, it) { selectedName ->
+                btnQualityDropdown.text = selectedName
+                selectedQualityCode = qualityMap[selectedName] ?: "qu_01"
             }
         }
 
@@ -244,7 +330,9 @@ class MovieListFragment : Fragment(R.layout.fragment_movie_list) {
                                         "description_fa" to edtDescFa.text.toString(),
                                         "tmdb_id" to edtTmdbId.text.toString(),
                                         "videoUrl1" to edtUrl1.text.toString(),
-                                        "category" to selectedCategoryCode
+                                        "category" to selectedCategoryCode,
+                                        "language" to selectedLanguageCode,
+                                        "quality" to selectedQualityCode
                                     )
 
                                     FirebaseManager.getMoviesRef().child(newKey).setValue(newMap)

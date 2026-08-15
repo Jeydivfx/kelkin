@@ -5,7 +5,13 @@
     <!-- Login fragment -->
     <string name="welcome_title">خوش آمدید!</string>
     <string name="welcome_subtitle">برای تجربه تماشای متفاوت، متصل شوید.</string>
-    <string name="login_with_google">ورود با گوگل</string>
+    <string name="login_with_google">ورود با حساب گوگل</string>
+    <string name="status_connecting_google">در حال اتصال به حساب گوگل...</string>
+    <string name="status_validating">در حال اعتبارسنجی اطلاعات...</string>
+    <string name="status_login_success">ورود با موفقیت انجام شد، در حال ورود...</string>
+    <string name="status_account_inactive">حساب شما هنوز تایید نشده است. به ادمین اطلاع دهید.</string>
+    <string name="status_google_error">خطا در ورود با گوگل: %s</string>
+    <string name="status_firebase_error">خطا در احراز هویت سرور.</string>
 
     <!-- Fragment Home -->
     <string name="hero_title_placeholder">THE DARK KNIGHT</string>

@@ -131,6 +131,7 @@ class MovieDetailFragment : Fragment(R.layout.fragment_movie_detail) {
 
     private fun updateUI(details: com.example.kelkin.DataClass.TmdbMovieDetails, credits: com.example.kelkin.DataClass.MovieCreditsResponse) {
         val view = view ?: return
+        val movie = selectedMovie ?: return
 
         view.findViewById<RecyclerView>(R.id.rvCast)?.apply {
             layoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
@@ -147,36 +148,46 @@ class MovieDetailFragment : Fragment(R.layout.fragment_movie_detail) {
                 .into(it)
         }
 
-        val ratingStr = String.format(Locale.ENGLISH, "%.1f", details.vote_average).toPersianDigits()
-        val genresStr = TranslationHelper.translateGenres(details.genres.joinToString("، ") { it.name })
+
         val yearStr = details.release_date.take(4).toPersianDigits()
-
-        val fullText = "IMDB $ratingStr  |  $genresStr  |  $yearStr"
-        val spannable = SpannableString(fullText)
+        view.findViewById<TextView>(R.id.txtYear)?.text = yearStr
 
 
-        val imdbPart = "IMDB $ratingStr"
-        val startIndex = fullText.indexOf(imdbPart)
+        val ratingStr = String.format(Locale.ENGLISH, "%.1f", details.vote_average).toPersianDigits()
+        view.findViewById<TextView>(R.id.txtRating)?.text = "  امتیاز  $ratingStr"
 
-        if (startIndex != -1) {
-            val endIndex = startIndex + imdbPart.length
 
-            spannable.setSpan(
-                ForegroundColorSpan(Color.parseColor("#FFD700")),
-                startIndex,
-                endIndex,
-                Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
-            )
+        val limitedGenres = details.genres.take(2).joinToString("، ") { it.name }
+        val genresStr = TranslationHelper.translateGenres(limitedGenres)
+        view.findViewById<TextView>(R.id.txtGenres)?.text = genresStr
 
-            spannable.setSpan(
-                StyleSpan(Typeface.BOLD),
-                startIndex,
-                endIndex,
-                Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
-            )
+
+        val langName = viewModel.languagesList.value?.find {
+            it.id.toString() == movie.language || "lan_%02d".format(it.id) == movie.language || it.name == movie.language
+        }?.name?.toPersianDigits()
+
+        view.findViewById<TextView>(R.id.txtLanguage)?.apply {
+            if (!langName.isNullOrEmpty()) {
+                text = langName
+                visibility = View.VISIBLE
+            } else {
+                visibility = View.GONE
+            }
         }
 
-        view.findViewById<TextView>(R.id.txtInfo)?.text = spannable
+
+        val qualityName = viewModel.qualitiesList.value?.find {
+            it.id.toString() == movie.quality || "qu_%02d".format(it.id) == movie.quality || it.name == movie.quality
+        }?.name?.toPersianDigits()
+
+        view.findViewById<TextView>(R.id.txtQuality)?.apply {
+            if (!qualityName.isNullOrEmpty()) {
+                text = qualityName
+                visibility = View.VISIBLE
+            } else {
+                visibility = View.GONE
+            }
+        }
     }
 
 

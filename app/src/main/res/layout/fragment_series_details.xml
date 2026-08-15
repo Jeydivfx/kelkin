@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/bg_gradient_main"
+    android:background="@color/bg_black"
     android:layoutDirection="rtl">
 
     <ImageView
@@ -14,7 +14,6 @@
         android:alpha="0.4"
         android:scaleType="centerCrop"
         tools:src="@drawable/hero_test_header" />
-
 
     <View
         android:layout_width="match_parent"
@@ -64,20 +63,91 @@
             android:alpha="0.7"
             tools:text="Series Original Title" />
 
-        <TextView
-            android:id="@+id/txtInfo"
+        <!-- ردیف کپسول‌های اطلاعات سریال -->
+        <LinearLayout
+            android:id="@+id/movie_info_row"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:orientation="horizontal"
             android:layout_marginTop="12dp"
-            android:fontFamily="@font/montserrat_regular"
-            android:includeFontPadding="false"
-            android:letterSpacing="0.02"
-            android:textColor="@color/info_text_color"
-            android:textSize="15sp"
-            android:textDirection="rtl"
-            android:layout_gravity="right"
-            android:lineSpacingExtra="4dp"
-            tools:text="Action, Drama  |  8.8  |  2024" />
+            android:gravity="center_vertical"
+            android:layoutDirection="rtl">
+
+
+            <TextView
+                android:id="@+id/txtRating"
+                android:layout_width="wrap_content"
+                android:layout_height="32dp"
+                android:layout_marginStart="8dp"
+                android:gravity="center"
+                android:paddingHorizontal="12dp"
+                android:background="@drawable/bg_hero_tag"
+                android:fontFamily="@font/yekanbakh_bold"
+                android:textColor="@color/text_white"
+                android:textSize="12sp"
+                tools:text="IMDB ۷.۳" />
+
+
+            <TextView
+                android:id="@+id/txtQuality"
+                android:layout_width="wrap_content"
+                android:layout_height="32dp"
+                android:layout_marginStart="8dp"
+                android:gravity="center"
+                android:paddingHorizontal="12dp"
+                android:background="@drawable/bg_hero_tag"
+                android:fontFamily="@font/yekanbakh_bold"
+                android:textColor="@color/text_white"
+                android:textSize="12sp"
+                android:visibility="gone"
+                tools:text="Ultra HD"
+                tools:visibility="visible" />
+
+
+            <TextView
+                android:id="@+id/txtLanguage"
+                android:layout_width="wrap_content"
+                android:layout_height="32dp"
+                android:layout_marginStart="8dp"
+                android:gravity="center"
+                android:paddingHorizontal="12dp"
+                android:background="@drawable/bg_hero_tag"
+                android:fontFamily="@font/yekanbakh_bold"
+                android:textColor="@color/text_white"
+                android:textSize="12sp"
+                android:visibility="gone"
+                tools:text="فارسی"
+                tools:visibility="visible" />
+
+            <TextView
+                android:id="@+id/txtYear"
+                android:layout_width="wrap_content"
+                android:layout_height="32dp"
+                android:layout_marginStart="8dp"
+                android:minWidth="55dp"
+                android:gravity="center"
+                android:paddingHorizontal="10dp"
+                android:background="@drawable/bg_hero_tag"
+                android:fontFamily="@font/yekanbakh_bold"
+                android:textColor="@color/text_white"
+                android:textSize="12sp"
+                tools:text="۱۹۹۱" />
+
+
+            <TextView
+                android:id="@+id/txtGenres"
+                android:layout_width="wrap_content"
+                android:layout_height="32dp"
+                android:layout_marginStart="8dp"
+                android:gravity="center"
+                android:paddingHorizontal="16dp"
+                android:background="@drawable/bg_hero_tag"
+                android:fontFamily="@font/yekanbakh_bold"
+                android:textColor="@color/text_white"
+                android:textSize="12sp"
+                tools:text="اکشن، ماجراجویی" />
+
+        </LinearLayout>
 
         <TextView
             android:id="@+id/txtDescription"
@@ -92,7 +162,6 @@
             android:maxLines="2"
             tools:text="خلاصه داستان سریال..." />
 
-
         <HorizontalScrollView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -105,7 +174,6 @@
                 android:layout_height="wrap_content"
                 android:gravity="center_vertical"
                 android:orientation="horizontal">
-
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnBookmarkSeries"
@@ -123,11 +191,7 @@
                     app:iconGravity="textStart"
                     app:iconPadding="0dp"
                     app:iconSize="20dp"
-                    app:iconTint="@drawable/sl_text_high_contrast"
-                    app:layout_constraintTop_toTopOf="parent"
-                    app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintStart_toEndOf="@id/rvSeasons" />
-
+                    app:iconTint="@drawable/sl_text_high_contrast" />
 
             </LinearLayout>
         </HorizontalScrollView>
@@ -141,15 +205,14 @@
             app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
             android:orientation="horizontal" />
 
-
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
             android:text="@string/title_episodes"
+            android:fontFamily="@font/yekanbakh_bold"
             android:textColor="@color/text_white"
-            android:textSize="18sp"
-            android:textStyle="bold" />
+            android:textSize="18sp" />
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/rvEpisodes"

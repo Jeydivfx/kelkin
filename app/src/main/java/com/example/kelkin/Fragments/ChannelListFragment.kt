@@ -86,7 +86,7 @@ class ChannelListFragment : Fragment(R.layout.fragment_channel_list) {
                     val key = child.key
                     val value = child.value as? Map<String, Any>
                     if (key != null && value != null) key to value else null
-                }
+                }.reversed()
                 adapter.updateData(list)
             }
             override fun onCancelled(error: DatabaseError) {}

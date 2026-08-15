@@ -10,12 +10,14 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
 
     companion object {
         private const val DATABASE_NAME = "kelkin.db"
-        private const val DATABASE_VERSION = 5
+        private const val DATABASE_VERSION = 7
         const val TABLE_MOVIES = "movies"
         const val TABLE_CHANNELS = "channels"
         const val TABLE_CATEGORIES = "categories"
         const val TABLE_TV_CATEGORIES = "tv_categories"
         const val TABLE_SERIES_CATEGORIES = "series_categories"
+        const val TABLE_LANGUAGES = "languages"
+        const val TABLE_QUALITIES = "qualities"
         const val TABLE_SERIES = "series"
         const val TABLE_CREDENTIALS = "credentials"
         const val TABLE_STREAM_CONFIG = "stream_config"
@@ -32,6 +34,8 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         db.execSQL("DROP TABLE IF EXISTS $TABLE_CHANNELS")
         db.execSQL("DROP TABLE IF EXISTS $TABLE_TV_CATEGORIES")
         db.execSQL("DROP TABLE IF EXISTS $TABLE_SERIES_CATEGORIES")
+        db.execSQL("DROP TABLE IF EXISTS $TABLE_LANGUAGES")
+        db.execSQL("DROP TABLE IF EXISTS $TABLE_QUALITIES")
         db.execSQL("DROP TABLE IF EXISTS $TABLE_SERIES")
         db.execSQL("DROP TABLE IF EXISTS $TABLE_CATEGORIES")
         db.execSQL("DROP TABLE IF EXISTS $TABLE_CREDENTIALS")
@@ -43,6 +47,8 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         db.execSQL("CREATE TABLE $TABLE_CATEGORIES (id INTEGER PRIMARY KEY, name TEXT)")
         db.execSQL("CREATE TABLE $TABLE_TV_CATEGORIES (id INTEGER PRIMARY KEY, name TEXT)")
         db.execSQL("CREATE TABLE $TABLE_SERIES_CATEGORIES (id INTEGER PRIMARY KEY, name TEXT)")
+        db.execSQL("CREATE TABLE $TABLE_LANGUAGES (id INTEGER PRIMARY KEY, name TEXT)")
+        db.execSQL("CREATE TABLE $TABLE_QUALITIES (id INTEGER PRIMARY KEY, name TEXT)")
 
         db.execSQL("""
             CREATE TABLE $TABLE_CHANNELS (
@@ -66,7 +72,9 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
                 posterUrl TEXT, 
                 lastPosition INTEGER, 
                 totalDuration INTEGER,
-                voteAverage INTEGER
+                voteAverage INTEGER,
+                language TEXT,
+                quality TEXT
             )
         """.trimIndent())
 
@@ -81,11 +89,11 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
                 lastPosition INTEGER, 
                 totalDuration INTEGER,
                 voteAverage INTEGER,
-                seasons_json TEXT
+                seasons_json TEXT,
+                language TEXT,
+                quality TEXT
             )
         """.trimIndent())
-
-
 
         db.execSQL("""
         CREATE TABLE $TABLE_STREAM_CONFIG (
@@ -100,14 +108,12 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
     }
 
     private fun insertDefaultData(db: SQLiteDatabase) {
-
         val values = ContentValues().apply {
             put("id", 1)
             put("apiKey", DEFAULT_API_KEY)
             put("userAgent", "Mozilla/5.0")
         }
         db.insertWithOnConflict(TABLE_CREDENTIALS, null, values, SQLiteDatabase.CONFLICT_REPLACE)
-
 
         val configValues = ContentValues().apply {
             put("id", 1)
@@ -117,7 +123,6 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         }
         db.insertWithOnConflict(TABLE_STREAM_CONFIG, null, configValues, SQLiteDatabase.CONFLICT_REPLACE)
     }
-
 
     fun searchMovies(query: String): List<Movie> {
         val movieList = mutableListOf<Movie>()
@@ -140,6 +145,8 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
                     val posterUrlIndex = cursor.getColumnIndexOrThrow("posterUrl")
                     val lastPosIndex = cursor.getColumnIndexOrThrow("lastPosition")
                     val totalDurIndex = cursor.getColumnIndexOrThrow("totalDuration")
+                    val languageIndex = cursor.getColumnIndexOrThrow("language")
+                    val qualityIndex = cursor.getColumnIndexOrThrow("quality")
 
                     val movie = Movie(
                         id = cursor.getLong(idIndex),
@@ -150,7 +157,9 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
                         videoUrl1 = cursor.getString(videoUrl1Index) ?: "",
                         posterUrl = cursor.getString(posterUrlIndex) ?: "",
                         lastPosition = cursor.getLong(lastPosIndex),
-                        totalDuration = cursor.getLong(totalDurIndex)
+                        totalDuration = cursor.getLong(totalDurIndex),
+                        language = cursor.getString(tmdbIdIndex) ?: "",
+                        quality = cursor.getString(tmdbIdIndex) ?: ""
                     )
                     movieList.add(movie)
                 } while (cursor.moveToNext())

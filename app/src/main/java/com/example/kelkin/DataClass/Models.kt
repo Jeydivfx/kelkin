@@ -4,6 +4,16 @@ import android.os.Parcelable
 import java.io.Serializable
 
 
+data class Language(
+    val id: Long = 0L,
+    val name: String = ""
+) : Serializable
+
+data class Quality(
+    val id: Long = 0L,
+    val name: String = ""
+) : Serializable
+
 data class SeriesCategory(
     val id: Int = 0,
     val name: String = ""
@@ -19,8 +29,10 @@ data class Series(
     var lastPosition: Long = 0,
     var totalDuration: Long = 0,
     var voteAverage: Double = 0.0,
-    val seasons: Map<String, Map<String, String>> = emptyMap()
-): Serializable
+    val seasons: Map<String, Map<String, String>> = emptyMap(),
+    var language: String = "",
+    var quality: String = ""
+) : Serializable
 
 
 data class Category(
@@ -72,9 +84,12 @@ data class Movie(
     var posterUrl: String = "",
     var lastPosition: Long = 0,
     var totalDuration: Long = 0,
-    var voteAverage: Double = 0.0
-) : Serializable{
-    constructor() : this(0, "", "", 0, "", "",  "", 0, 0)}
+    var voteAverage: Double = 0.0,
+    var language: String = "",
+    var quality: String = ""
+) : Serializable {
+    constructor() : this(0, "", "", 0, "", "", "", 0, 0, 0.0, "", "")
+}
 
 
 data class TmdbMovieDetails(

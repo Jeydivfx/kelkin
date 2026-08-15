@@ -32,7 +32,6 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
     val moviesList = MutableLiveData<List<Movie>>()
     val credentials = MutableLiveData<Credentials>()
     val movieDetailsMap = MutableLiveData<Map<String, TmdbMovieDetails>>()
-
     val streamHeaders = MutableLiveData<StreamHeaders>()
     private val detailsCache = mutableMapOf<String, TmdbMovieDetails>()
     private val _myList = MutableLiveData<MutableList<Movie>>(mutableListOf())
@@ -42,17 +41,16 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
     val continueWatchingList: LiveData<MutableList<Movie>> get() = _continueWatchingList
     private val _channels = MutableLiveData<List<Channel>>(emptyList())
     val channels: LiveData<List<Channel>> get() = _channels
-
     val seriesList = MutableLiveData<List<Series>>()
     private val _series = MutableLiveData<List<Series>>(emptyList())
     val series: LiveData<List<Series>> get() = _series
     val seriesCategoriesList = MutableLiveData<List<SeriesCategory>>()
-
-
     private val _movies = MutableLiveData<List<Movie>>(emptyList())
     val movies: LiveData<List<Movie>> get() = _movies
-
+    val languagesList = MutableLiveData<List<Language>>()
+    val qualitiesList = MutableLiveData<List<Quality>>()
     val tvCategoriesList = MutableLiveData<List<TvCategory>>()
+
 
 
     init {
@@ -64,7 +62,11 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
         loadTvCategories()
         loadSeriesFromLocalDatabase()
         loadSeriesCategories()
+        loadLanguages()
+        loadQualities()
 
+        startSyncLanguages()
+        startSyncQualities()
         startSyncMovies()
         startSyncCategories()
         startSyncChannels()
@@ -90,29 +92,23 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
             val posterCol = cursor.getColumnIndexOrThrow("posterUrl")
             val lastPosCol = cursor.getColumnIndexOrThrow("lastPosition")
             val durationCol = cursor.getColumnIndexOrThrow("totalDuration")
+            val langCol = cursor.getColumnIndexOrThrow("language")
+            val qualCol = cursor.getColumnIndexOrThrow("quality")
 
             while (cursor.moveToNext()) {
                 try {
-                    val id = cursor.getLong(idCol)
-                    val name = cursor.getString(nameCol) ?: ""
-                    val desc = cursor.getString(descCol) ?: ""
-                    val cat = cursor.getLong(categoryCol)
-                    val tmdbId = cursor.getString(tmdbCol) ?: ""
-                    val videoUrl = cursor.getString(videoCol) ?: ""
-                    val poster = cursor.getString(posterCol) ?: ""
-                    val lastPos = cursor.getLong(lastPosCol)
-                    val duration = cursor.getLong(durationCol)
-
                     val movie = Movie(
-                        id = id,
-                        name_fa = name,
-                        description_fa = desc,
-                        category = cat,
-                        tmdb_id = tmdbId,
-                        videoUrl1 = videoUrl,
-                        posterUrl = poster,
-                        lastPosition = lastPos,
-                        totalDuration = duration
+                        id = cursor.getLong(idCol),
+                        name_fa = cursor.getString(nameCol) ?: "",
+                        description_fa = cursor.getString(descCol) ?: "",
+                        category = cursor.getLong(categoryCol),
+                        tmdb_id = cursor.getString(tmdbCol) ?: "",
+                        videoUrl1 = cursor.getString(videoCol) ?: "",
+                        posterUrl = cursor.getString(posterCol) ?: "",
+                        lastPosition = cursor.getLong(lastPosCol),
+                        totalDuration = cursor.getLong(durationCol),
+                        language = cursor.getString(langCol) ?: "",
+                        quality = cursor.getString(qualCol) ?: ""
                     )
                     mList.add(movie)
                 } catch (e: Exception) {
@@ -142,6 +138,8 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
                 val tmdbCol = cursor.getColumnIndexOrThrow("tmdb_id")
                 val posterCol = cursor.getColumnIndexOrThrow("posterUrl")
                 val seasonsJsonCol = cursor.getColumnIndexOrThrow("seasons_json")
+                val langCol = cursor.getColumnIndexOrThrow("language")
+                val qualCol = cursor.getColumnIndexOrThrow("quality")
 
                 while (cursor.moveToNext()) {
                     val id = cursor.getLong(idCol)
@@ -151,6 +149,8 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
                     val tmdbId = cursor.getString(tmdbCol) ?: ""
                     val posterUrl = cursor.getString(posterCol) ?: ""
                     val seasonsJson = cursor.getString(seasonsJsonCol)
+                    val language = cursor.getString(langCol) ?: ""
+                    val quality = cursor.getString(qualCol) ?: ""
 
 
                     val type = object : TypeToken<Map<String, Map<String, String>>>() {}.type
@@ -172,7 +172,9 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
                         category = category,
                         tmdb_id = tmdbId,
                         posterUrl = posterUrl,
-                        seasons = seasonsMap
+                        seasons = seasonsMap,
+                        language = language,
+                        quality = quality
                     )
                     sList.add(seriesItem)
                 }
@@ -186,7 +188,6 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
             _series.postValue(sList)
         }
     }
-
     fun startSyncMovies() {
         database.child("movies").addValueEventListener(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
@@ -202,6 +203,8 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
                                 put("tmdb_id", child.child("tmdb_id").value?.toString() ?: "")
                                 put("description_fa", child.child("description_fa").value?.toString() ?: "")
                                 put("videoUrl1", child.child("videoUrl1").value?.toString() ?: "")
+                                put("language", child.child("language").value?.toString() ?: "")
+                                put("quality", child.child("quality").value?.toString() ?: "")
                             }
                             db.insert("movies", null, values)
                         }
@@ -549,7 +552,6 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
                         db.delete("series", null, null)
 
                         for (child in snapshot.children) {
-                            // استخراج دقیق نود seasons به صورت یک Map کامل از فایربیس
                             val seasonsSnapshot = child.child("seasons").value
                             val seasonsJson = if (seasonsSnapshot != null) gson.toJson(seasonsSnapshot) else "{}"
 
@@ -559,7 +561,9 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
                                 put("category", child.child("category").value?.toString()?.toIntOrNull() ?: 0)
                                 put("tmdb_id", child.child("tmdb_id").value?.toString() ?: "")
                                 put("description_fa", child.child("description_fa").value?.toString() ?: "")
-                                put("seasons_json", seasonsJson) // ذخیره ساختار فصل‌ها و اپیزودها به صورت JSON
+                                put("seasons_json", seasonsJson)
+                                put("language", child.child("language").value?.toString() ?: "")
+                                put("quality", child.child("quality").value?.toString() ?: "")
                             }
                             db.insert("series", null, values)
                         }
@@ -702,6 +706,114 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
             null
         }
     }
+
+
+    fun loadLanguages() {
+        viewModelScope.launch(Dispatchers.IO) {
+            val db = dbHelper.readableDatabase
+            val list = mutableListOf<Language>()
+            list.add(Language(0, "همه زبان‌ها"))
+
+            val cursor = db.query("languages", null, null, null, null, null, null)
+
+            if (cursor.moveToFirst()) {
+                do {
+                    val id = cursor.getInt(cursor.getColumnIndexOrThrow("id"))
+                    val name = cursor.getString(cursor.getColumnIndexOrThrow("name")) ?: ""
+                    list.add(Language(id.toLong(), name))
+                } while (cursor.moveToNext())
+            }
+            cursor.close()
+            languagesList.postValue(list)
+        }
+    }
+
+    fun startSyncLanguages() {
+        database.child("language").addValueEventListener(object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                viewModelScope.launch(Dispatchers.IO) {
+                    val db = dbHelper.writableDatabase
+                    try {
+                        db.beginTransaction()
+                        db.delete("languages", null, null)
+
+                        for (child in snapshot.children) {
+                            val key = child.key ?: ""
+                            val id = key.replace("lan_", "").toIntOrNull() ?: child.child("id").value?.toString()?.toIntOrNull() ?: 0
+                            val name = child.child("name").value?.toString() ?: ""
+
+                            val values = ContentValues().apply {
+                                put("id", id)
+                                put("name", name)
+                            }
+                            db.insert("languages", null, values)
+                        }
+                        db.setTransactionSuccessful()
+                    } catch (e: Exception) {
+                    } finally {
+                        db.endTransaction()
+                    }
+                    loadLanguages()
+                }
+            }
+
+            override fun onCancelled(error: DatabaseError) {}
+        })
+    }
+
+    fun loadQualities() {
+        viewModelScope.launch(Dispatchers.IO) {
+            val db = dbHelper.readableDatabase
+            val list = mutableListOf<Quality>()
+            list.add(Quality(0, "همه کیفیت‌ها"))
+
+            val cursor = db.query("qualities", null, null, null, null, null, null)
+
+            if (cursor.moveToFirst()) {
+                do {
+                    val id = cursor.getInt(cursor.getColumnIndexOrThrow("id"))
+                    val name = cursor.getString(cursor.getColumnIndexOrThrow("name")) ?: ""
+                    list.add(Quality(id.toLong(), name))
+                } while (cursor.moveToNext())
+            }
+            cursor.close()
+            qualitiesList.postValue(list)
+        }
+    }
+
+    fun startSyncQualities() {
+        database.child("quality").addValueEventListener(object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                viewModelScope.launch(Dispatchers.IO) {
+                    val db = dbHelper.writableDatabase
+                    try {
+                        db.beginTransaction()
+                        db.delete("qualities", null, null)
+
+                        for (child in snapshot.children) {
+                            val key = child.key ?: ""
+                            val id = key.replace("qu_", "").toIntOrNull() ?: child.child("id").value?.toString()?.toIntOrNull() ?: 0
+                            val name = child.child("name").value?.toString() ?: ""
+
+                            val values = ContentValues().apply {
+                                put("id", id)
+                                put("name", name)
+                            }
+                            db.insert("qualities", null, values)
+                        }
+                        db.setTransactionSuccessful()
+                    } catch (e: Exception) {
+                    } finally {
+                        db.endTransaction()
+                    }
+                    loadQualities()
+                }
+            }
+
+            override fun onCancelled(error: DatabaseError) {}
+        })
+    }
+
 
 
 }

@@ -241,21 +241,49 @@ class HomeFragment : Fragment() {
 
     private fun updateHeroBanner(tmdb: TmdbMovieDetails?, fb: Movie) {
         binding.apply {
-            heroTitle.text = tmdb?.title
+            heroTitle.text = if (!fb.name_fa.isNullOrEmpty()) fb.name_fa else (tmdb?.title ?: "")
             heroDescription.text = fb.description_fa
 
-            if (tmdb != null) {
-                imdbScore.text = String.format(Locale.ENGLISH, "%.1f", tmdb.vote_average).toPersianDigits()
-                heroYear.text = tmdb.release_date.take(4).toPersianDigits()
-                heroGenre.text = TranslationHelper.translateGenres(tmdb.genres.joinToString(", ") { it.name })
+            // تبدیل هوشمند شناسه کیفیت به نام اصلی (دقیقاً مثل MovieDetailFragment)
+            val qualityName = viewModel.qualitiesList.value?.find {
+                it.id.toString() == fb.quality || "qu_%02d".format(it.id) == fb.quality || it.name.equals(fb.quality, ignoreCase = true)
+            }?.name?.toPersianDigits()
+
+            if (!qualityName.isNullOrEmpty()) {
+                heroQuality.text = qualityName
+                heroQuality.visibility = View.VISIBLE
+            } else {
+                heroQuality.visibility = View.GONE
+            }
+
+            // تبدیل هوشمند شناسه زبان به نام اصلی
+            val languageName = viewModel.languagesList.value?.find {
+                it.id.toString() == fb.language || "lan_%02d".format(it.id) == fb.language || it.name.equals(fb.language, ignoreCase = true)
+            }?.name?.toPersianDigits()
+
+            if (!languageName.isNullOrEmpty()) {
+                heroLanguage.text = languageName
+                heroLanguage.visibility = View.VISIBLE
+            } else {
+                heroLanguage.visibility = View.GONE
+            }
+
+            // سال ساخت از TMDB
+            val releaseDate = tmdb?.release_date
+            if (!releaseDate.isNullOrEmpty() && releaseDate.length >= 4) {
+                val year = releaseDate.substring(0, 4)
+                heroYear.text = year.toPersianDigits()
+                heroYear.visibility = View.VISIBLE
+            } else {
+                heroYear.visibility = View.GONE
+            }
+
+            if (tmdb != null && !tmdb.backdrop_path.isNullOrEmpty()) {
                 Glide.with(requireContext())
                     .load("https://image.tmdb.org/t/p/original${tmdb.backdrop_path}")
                     .diskCacheStrategy(DiskCacheStrategy.ALL)
                     .into(heroImage)
             } else {
-                imdbScore.text = "--"
-                heroYear.text = "--"
-                heroGenre.text = "نامشخص"
                 heroImage.setImageResource(R.drawable.hero_test_header)
             }
 
@@ -279,7 +307,6 @@ class HomeFragment : Fragment() {
                     .navigate(R.id.action_homeFragment_to_movieDetailFragment, bundle)
             }
         }
-
     }
 
     private fun setupHeroButtonsScroll() {

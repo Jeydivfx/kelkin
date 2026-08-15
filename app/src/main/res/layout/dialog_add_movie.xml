@@ -66,6 +66,40 @@
             android:textSize="15sp"
             android:textDirection="rtl" />
 
+        <!-- دکمه کشویی انتخاب زبان -->
+        <TextView
+            android:id="@+id/btnLanguageDropdown"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:layout_marginBottom="12dp"
+            android:background="@color/dialog_background"
+            android:clickable="true"
+            android:focusable="true"
+            android:gravity="center_vertical|right"
+            android:hint="انتخاب زبان"
+            android:paddingHorizontal="16dp"
+            android:textColor="@color/text_white"
+            android:textColorHint="@color/text_gray"
+            android:textSize="15sp"
+            android:textDirection="rtl" />
+
+        <!-- دکمه کشویی انتخاب کیفیت -->
+        <TextView
+            android:id="@+id/btnQualityDropdown"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:layout_marginBottom="12dp"
+            android:background="@color/dialog_background"
+            android:clickable="true"
+            android:focusable="true"
+            android:gravity="center_vertical|right"
+            android:hint="انتخاب کیفیت"
+            android:paddingHorizontal="16dp"
+            android:textColor="@color/text_white"
+            android:textColorHint="@color/text_gray"
+            android:textSize="15sp"
+            android:textDirection="rtl" />
+
         <EditText
             android:id="@+id/edtTmdbId"
             android:layout_width="match_parent"

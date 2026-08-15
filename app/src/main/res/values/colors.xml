@@ -11,8 +11,9 @@
     <color name="sidebar_glass_bg">#CC000000</color>
     <color name="yellow">#FFEB3B</color>
     <color name="btn_default_bg">#40FFFFFF</color>
-    <color name="json_text_color">#FF9800</color>
+    <color name="json_text_color">#4CAF50</color>
     <color name="json_hint_color">#777777</color>
+    <color name="green">#4CAF50</color>
 
 
     <color name="tv_background_solid">#FF0F0F0F</color>
