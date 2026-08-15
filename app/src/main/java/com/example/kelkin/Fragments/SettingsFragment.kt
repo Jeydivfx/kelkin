@@ -1,5 +1,6 @@
 package com.example.kelkin.Fragments
 
+import android.content.Context
 import android.os.Bundle
 import android.view.View
 import android.widget.Toast
@@ -20,14 +21,57 @@ class SettingsFragment : Fragment(R.layout.fragment_settings) {
         super.onViewCreated(view, savedInstanceState)
         _binding = FragmentSettingsBinding.bind(view)
 
-        binding.cardAbout.postDelayed({ binding.cardAbout.requestFocus() }, 300)
+        binding.cardSubtitleSize.postDelayed({ binding.cardSubtitleSize.requestFocus() }, 300)
 
+        loadSubtitleSettingsUI()
         setupClickListeners()
 
         binding.txtAppVersion.text = " نسخه اپلیکیشن کلکین: ${getAppVersionName()}"
     }
 
+    private fun loadSubtitleSettingsUI() {
+        val prefs = requireContext().getSharedPreferences("subtitle_prefs", Context.MODE_PRIVATE)
+        val sizeIndex = prefs.getInt("sub_size_index", 1) // 0: کوچک، 1: متوسط، 2: بزرگ
+        val colorIndex = prefs.getInt("sub_color_index", 0) // 0: زرد، 1: سفید، 2: سبز
+
+        val sizes = arrayOf("کوچک", "متوسط", "بزرگ")
+        val colors = arrayOf("زرد", "سفید", "سبز")
+
+        binding.cardSubtitleSize.text = "اندازه فونت زیرنویس: ${sizes[sizeIndex]}"
+        binding.cardSubtitleColor.text = "رنگ زیرنویس: ${colors[colorIndex]}"
+    }
+
     private fun setupClickListeners() {
+        val prefs = requireContext().getSharedPreferences("subtitle_prefs", Context.MODE_PRIVATE)
+
+        binding.cardSubtitleSize.setOnClickListener {
+            val sizes = arrayOf("کوچک", "متوسط", "بزرگ")
+            var currentIndex = prefs.getInt("sub_size_index", 1)
+
+            android.app.AlertDialog.Builder(requireContext(), R.style.CustomAlertDialog)
+                .setTitle("انتخاب اندازه زیرنویس")
+                .setSingleChoiceItems(sizes, currentIndex) { dialog, which ->
+                    prefs.edit().putInt("sub_size_index", which).apply()
+                    loadSubtitleSettingsUI()
+                    dialog.dismiss()
+                }
+                .show()
+        }
+
+        binding.cardSubtitleColor.setOnClickListener {
+            val colors = arrayOf("زرد", "سفید", "سبز")
+            var currentIndex = prefs.getInt("sub_color_index", 0)
+
+            android.app.AlertDialog.Builder(requireContext(), R.style.CustomAlertDialog)
+                .setTitle("انتخاب رنگ زیرنویس")
+                .setSingleChoiceItems(colors, currentIndex) { dialog, which ->
+                    prefs.edit().putInt("sub_color_index", which).apply()
+                    loadSubtitleSettingsUI()
+                    dialog.dismiss()
+                }
+                .show()
+        }
+
         binding.cardClearCache.setOnClickListener {
             requireContext().cacheDir.deleteRecursively()
             Toast.makeText(context, "حافظه موقت پاک شد", Toast.LENGTH_SHORT).show()

@@ -13,6 +13,7 @@ import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.annotation.OptIn
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContentProviderCompat.requireContext
 import androidx.lifecycle.ViewModelProvider
 import androidx.media3.common.MediaItem
 import androidx.media3.common.PlaybackException
@@ -178,9 +179,20 @@ class PlayerActivity : AppCompatActivity() {
         binding.playerView.useController = true
         binding.playerView.controllerShowTimeoutMs = 3000
         binding.playerView.setShowSubtitleButton(true)
+
+        val prefs = getSharedPreferences("subtitle_prefs", android.content.Context.MODE_PRIVATE)
+        val sizeIndex = prefs.getInt("sub_size_index", 1)
+        val colorIndex = prefs.getInt("sub_color_index", 0)
+
+        val textColor = when (colorIndex) {
+            1 -> android.graphics.Color.WHITE
+            2 -> android.graphics.Color.GREEN
+            else -> android.graphics.Color.YELLOW
+        }
+
         binding.playerView.subtitleView?.let { subtitleView ->
             val captionStyle = androidx.media3.ui.CaptionStyleCompat(
-                android.graphics.Color.YELLOW,
+                textColor,
                 androidx.core.content.ContextCompat.getColor(this, R.color.black_translucent_80),
                 android.graphics.Color.TRANSPARENT,
                 androidx.media3.ui.CaptionStyleCompat.EDGE_TYPE_OUTLINE,
@@ -188,21 +200,35 @@ class PlayerActivity : AppCompatActivity() {
                 null
             )
             subtitleView.setStyle(captionStyle)
-
-
             subtitleView.setApplyEmbeddedStyles(true)
+
+            val textSizeFraction = when (sizeIndex) {
+                0 -> 0.04f
+                1 -> 0.06f
+                2 -> 0.09f
+                else -> 0.06f
+            }
+            subtitleView.setFractionalTextSize(textSizeFraction)
         }
 
-        binding.playerView.setControllerVisibilityListener(PlayerView.ControllerVisibilityListener { visibility ->
-            isControllerShown = (visibility == View.VISIBLE)
-        })
+        binding.playerView.setControllerVisibilityListener(
+            androidx.media3.ui.PlayerView.ControllerVisibilityListener { visibility ->
+                isControllerShown = (visibility == View.VISIBLE)
+            }
+        )
 
         val trackSelector = DefaultTrackSelector(this).apply {
             setParameters(
                 buildUponParameters()
-                    .setIgnoredTextSelectionFlags(androidx.media3.common.C.SELECTION_FLAG_DEFAULT or androidx.media3.common.C.SELECTION_FLAG_AUTOSELECT)
-                    .setPreferredTextLanguage(null)
-                    .setSelectUndeterminedTextLanguage(false)
+
+                    .setPreferredAudioLanguages("fa", "en")
+                    .setRendererDisabled(androidx.media3.common.C.TRACK_TYPE_TEXT, true)
+
+                    .setDisabledTextTrackSelectionFlags(
+                        androidx.media3.common.C.SELECTION_FLAG_DEFAULT or
+                                androidx.media3.common.C.SELECTION_FLAG_FORCED or
+                                androidx.media3.common.C.SELECTION_FLAG_AUTOSELECT
+                    )
             )
         }
 
@@ -212,6 +238,20 @@ class PlayerActivity : AppCompatActivity() {
             .also { player ->
                 binding.playerView.player = player
                 player.setMediaItem(MediaItem.fromUri(url))
+
+
+                player.addListener(object : androidx.media3.common.Player.Listener {
+                    override fun onPlaybackStateChanged(playbackState: Int) {
+                        if (playbackState == androidx.media3.common.Player.STATE_READY) {
+
+                            trackSelector.setParameters(
+                                trackSelector.buildUponParameters()
+                                    .setRendererDisabled(androidx.media3.common.C.TRACK_TYPE_TEXT, true)
+                            )
+                        }
+                    }
+                })
+
                 if (startPos > 0) {
                     player.seekTo(startPos)
                 }

@@ -161,6 +161,11 @@
     <string name="msg_channel_deleted">کانال حذف شد</string>
 
 
+    <string name="settings_header_subtitle">تنظیمات کلکین</string>
+    <string name="settings_btn_subtitle_size">اندازه فونت زیرنویس: متوسط</string>
+    <string name="settings_btn_subtitle_color">رنگ زیرنویس: زرد</string>
+
+
 
 
 
