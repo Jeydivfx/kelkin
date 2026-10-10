@@ -30,6 +30,7 @@ data class Series(
     var totalDuration: Long = 0,
     var voteAverage: Double = 0.0,
     val seasons: Map<String, Map<String, String>> = emptyMap(),
+    var remoteKey: String = "",
     var language: String = "",
     var quality: String = ""
 ) : Serializable
@@ -57,7 +58,7 @@ data class StreamHeaders(
 )
 
 data class Channel(
-    val id: Int = 0,
+    val id: Long = 0,
     val name_fa: String = "",
     val category: Long = 0,
     val logoUrl: String = "",
@@ -86,7 +87,11 @@ data class Movie(
     var totalDuration: Long = 0,
     var voteAverage: Double = 0.0,
     var language: String = "",
-    var quality: String = ""
+    var quality: String = "",
+    var contentType: String = "movie",
+    var remoteKey: String = "",
+    var seasonKey: String = "",
+    var episodeKey: String = ""
 ) : Serializable {
     constructor() : this(0, "", "", 0, "", "", "", 0, 0, 0.0, "", "")
 }

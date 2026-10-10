@@ -19,8 +19,8 @@ class VirtualMouseView @JvmOverloads constructor(
 ) : FrameLayout(context, attrs, defStyleAttr) {
 
     private val pointer: ImageView
-    private val speed = 30f
-    private val currentPos = PointF(640f, 360f)
+    private val speed get() = (width * 0.018f).coerceAtLeast(8f)
+    private val currentPos = PointF(0f, 0f)
     private val hideHandler = Handler(Looper.getMainLooper())
     private val hideRunnable = Runnable {
         pointer.animate().alpha(0f).setDuration(300).start()
@@ -62,7 +62,7 @@ class VirtualMouseView @JvmOverloads constructor(
         if (event.action == KeyEvent.ACTION_DOWN) {
             val activity = context as? PlayerActivity
 
-            val currentPlatform = activity?.intent?.getStringExtra("video_url") // یک روش کمکی برای گرفتن وضعیت پلتفرم جاری اکتیویتی
+
             if (activity == null) return super.dispatchKeyEvent(event)
             if (activity.binding.playerView.visibility == View.VISIBLE) {
                 return super.dispatchKeyEvent(event)
@@ -100,8 +100,8 @@ class VirtualMouseView @JvmOverloads constructor(
         val newX = currentPos.x + dx
         val newY = currentPos.y + dy
 
-        val maxX = width.toFloat() - pointer.width
-        val maxY = height.toFloat() - pointer.height
+        val maxX = (width.toFloat() - pointer.width).coerceAtLeast(0f)
+        val maxY = (height.toFloat() - pointer.height).coerceAtLeast(0f)
 
         currentPos.x = newX.coerceIn(0f, maxX)
         currentPos.y = newY.coerceIn(0f, maxY)
@@ -113,8 +113,10 @@ class VirtualMouseView @JvmOverloads constructor(
     fun click(targetWebView: WebView) {
         val location = IntArray(2)
         pointer.getLocationOnScreen(location)
-        val clickX = location[0].toFloat() + (pointer.width / 2)
-        val clickY = location[1].toFloat() + (pointer.height / 2)
+        val webLocation = IntArray(2)
+        targetWebView.getLocationOnScreen(webLocation)
+        val clickX = location[0].toFloat() - webLocation[0] + pointer.width / 2f
+        val clickY = location[1].toFloat() - webLocation[1] + pointer.height / 2f
         simulateTouch(clickX, clickY, targetWebView)
     }
 
@@ -132,6 +134,12 @@ class VirtualMouseView @JvmOverloads constructor(
         upEvent.recycle()
     }
     
+    override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
+        super.onSizeChanged(w, h, oldw, oldh)
+        currentPos.set(w / 2f, h / 2f)
+        pointer.translationX = currentPos.x; pointer.translationY = currentPos.y
+    }
+
     override fun onDetachedFromWindow() {
         hideHandler.removeCallbacks(hideRunnable)
         super.onDetachedFromWindow()

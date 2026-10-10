@@ -1,5 +1,7 @@
 package com.example.kelkin.Fragments
 
+import com.example.kelkin.utils.*
+
 import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -13,6 +15,8 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.example.kelkin.Adapter.MovieAdapter
+import com.example.kelkin.Adapter.HomeCardAdapter
+import com.example.kelkin.Adapter.HomeCard
 import com.example.kelkin.DataClass.Movie
 import com.example.kelkin.DataClass.TmdbMovieDetails
 import com.example.kelkin.MainActivity
@@ -28,10 +32,12 @@ class HomeFragment : Fragment() {
 
     private var _binding: FragmentHomeBinding? = null
     val binding get() = _binding!!
+    private var heroSynopsis = ""
     private lateinit var viewModel: HomeViewModel
 
+    private lateinit var focusMemory: RecyclerFocusMemory
     private lateinit var trendingAdapter: MovieAdapter
-    private lateinit var continueAdapter: MovieAdapter
+    private lateinit var continueAdapter: HomeCardAdapter
     private lateinit var myListAdapter: MovieAdapter
 
 
@@ -45,154 +51,94 @@ class HomeFragment : Fragment() {
         viewModel = ViewModelProvider(requireActivity())[HomeViewModel::class.java]
 
         setupRecyclerViews()
+        focusMemory = RecyclerFocusMemory(this, binding.btnPlay)
+        listOf(binding.rvTrending, binding.rvContinue, binding.rvMylist).forEach { focusMemory.track(it) }
         observeData()
         setupHeroButtonsScroll()
-
-        binding.btnPlay.post {
-            binding.btnPlay.requestFocus()
+        val ui = binding
+        ui.heroDescription.addOnLayoutChangeListener { _, left, _, right, _, oldLeft, _, oldRight, _ ->
+            if (right - left != oldRight - oldLeft) formatHeroSynopsis()
         }
+        fun resizeHero() {
+            if (ui.root.height == 0) return
+            val density = resources.displayMetrics.density
+            // Reserve space for the complete first poster row, without negative overlap.
+            val posterHeight = maxOf(ui.rvTrending.height, (204 * density).toInt())
+            val headingHeight = maxOf(ui.titleTrending.height, (24 * density).toInt())
+            val available = ui.root.height - posterHeight - headingHeight - (32 * density).toInt()
+            val height = if (com.example.kelkin.BuildConfig.IS_TV)
+                maxOf(available, ui.heroContent.height + (88 * density).toInt())
+            else maxOf((350 * density).toInt(), ui.heroContent.height + (84 * density).toInt())
+            if (ui.heroSection.layoutParams.height != height) {
+                ui.heroSection.layoutParams = ui.heroSection.layoutParams.apply { this.height = height }
+            }
+        }
+        ui.root.addOnLayoutChangeListener { _, _, _, _, _, _, _, _, _ -> resizeHero() }
+        ui.heroContent.addOnLayoutChangeListener { _, _, _, _, _, _, _, _, _ -> resizeHero() }
+
+
 
     }
 
     private fun setupRecyclerViews() {
-        val onMovieClick: (Movie) -> Unit = { movie ->
+        val onMovieClick: (Movie) -> Unit = onMovieClick@{ movie ->
             val navController = NavHostFragment.findNavController(this)
-
-
-            val correspondingSeries = viewModel.seriesList.value?.find {
-                it.tmdb_id == movie.tmdb_id || it.id.toString() == movie.id.toString()
-            }
-
-            if (correspondingSeries != null) {
-
-                val bundle = Bundle().apply {
-                    putSerializable("selected_series", correspondingSeries)
+            if (movie.contentType == "series") {
+                val series = viewModel.seriesList.value?.find { it.identity() == movie.identity() }
+                if (series == null) {
+                    Toast.makeText(context, "این سریال در آرشیو فعلی موجود نیست", Toast.LENGTH_SHORT).show()
+                    return@onMovieClick
                 }
-                navController.navigate(R.id.action_homeFragment_to_seriesDetailsFragment, bundle)
+                navController.navigate(R.id.action_homeFragment_to_seriesDetailsFragment, Bundle().apply { putSerializable("selected_series", series) })
             } else {
-
-                val bundle = Bundle().apply {
-                    putSerializable("selected_movie", movie)
-                }
-                navController.navigate(R.id.action_homeFragment_to_movieDetailFragment, bundle)
+                navController.navigate(R.id.action_homeFragment_to_movieDetailFragment, Bundle().apply { putSerializable("selected_movie", movie) })
             }
         }
-
-        trendingAdapter = MovieAdapter(onMovieClick = onMovieClick)
-        continueAdapter = MovieAdapter(onMovieClick = onMovieClick)
-        myListAdapter = MovieAdapter(onMovieClick = onMovieClick)
-
-        fun lockEdges(recyclerView: androidx.recyclerview.widget.RecyclerView) {
-            recyclerView.setOnKeyListener { _, keyCode, event ->
-                if (event.action == android.view.KeyEvent.ACTION_DOWN) {
-                    val layoutManager = recyclerView.layoutManager as LinearLayoutManager
-                    val itemCount = recyclerView.adapter?.itemCount ?: 0
-                    val firstVisible = layoutManager.findFirstVisibleItemPosition()
-                    val lastVisible = layoutManager.findLastVisibleItemPosition()
-
-                    if (keyCode == android.view.KeyEvent.KEYCODE_DPAD_LEFT && lastVisible >= itemCount - 1) {
-                        return@setOnKeyListener true
-                    }
-                    if (keyCode == android.view.KeyEvent.KEYCODE_DPAD_RIGHT && firstVisible <= 0) {
-                        return@setOnKeyListener true
-                    }
-                }
-                false
-            }
-
-            recyclerView.setOnFocusChangeListener { v, hasFocus ->
-                if (hasFocus) {
-                    v.requestFocus()
-                }
+        trendingAdapter = MovieAdapter(onMovieClick).apply { posterSizeScale = 1.1f; homePolish = true }
+        continueAdapter = HomeCardAdapter(true, onMovieClick)
+        myListAdapter = MovieAdapter(onMovieClick).apply { posterSizeScale = 1.1f; homePolish = true }
+        listOf(trendingAdapter, myListAdapter).forEach { adapter ->
+            adapter.onVisible = { movie ->
+                if (movie.contentType == "series") viewModel.fetchSeriesTmdbDetails(movie.tmdb_id) else viewModel.fetchTmdbDetails(movie.tmdb_id)
             }
         }
-
-        binding.rvTrending.apply {
-            layoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
-            adapter = trendingAdapter
-            lockEdges(this)
+        continueAdapter.onVisible = { movie ->
+            if (movie.contentType == "series") viewModel.fetchSeriesTmdbDetails(movie.tmdb_id)
+            else viewModel.fetchTmdbDetails(movie.tmdb_id)
         }
-
-        binding.rvContinue.apply {
-            layoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
-            adapter = continueAdapter
-            lockEdges(this)
-        }
-
-        binding.rvMylist.apply {
-            layoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
-            adapter = myListAdapter
-            lockEdges(this)
+        listOf(binding.rvTrending to trendingAdapter, binding.rvContinue to continueAdapter, binding.rvMylist to myListAdapter).forEach { (list, adapter) ->
+            list.layoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
+            list.itemAnimator = null
+            list.adapter = adapter
         }
     }
     private fun observeData() {
         viewModel.moviesList.observe(viewLifecycleOwner) { movies ->
-            if (!movies.isNullOrEmpty()) {
-                val currentDetails = viewModel.movieDetailsMap.value
-                movies.forEach { movie ->
-                    if (!movie.tmdb_id.isNullOrEmpty()) {
-                        if (currentDetails == null || !currentDetails.containsKey(movie.tmdb_id)) {
-                            viewModel.fetchTmdbDetails(movie.tmdb_id)
-                        }
-                    }
-                }
-            }
+            movies.orEmpty().sortedByDescending { it.id }.take(10).forEach { viewModel.fetchTmdbDetails(it.tmdb_id) }
             renderUI()
         }
-
-        viewModel.seriesList.observe(viewLifecycleOwner) { seriesList ->
-            if (!seriesList.isNullOrEmpty()) {
-                val currentDetails = viewModel.movieDetailsMap.value
-                seriesList.forEach { series ->
-                    if (!series.tmdb_id.isNullOrEmpty()) {
-                        if (currentDetails == null || !currentDetails.containsKey(series.tmdb_id)) {
-                            viewModel.fetchSeriesTmdbDetails(series.tmdb_id)
-                        }
-                    }
-                }
-            }
-            renderUI()
-        }
-
-        viewModel.myList.observe(viewLifecycleOwner) { myList ->
-            if (!myList.isNullOrEmpty()) {
-                val currentDetails = viewModel.movieDetailsMap.value
-                myList.forEach { item ->
-                    if (!item.tmdb_id.isNullOrEmpty()) {
-                        if (currentDetails == null || !currentDetails.containsKey(item.tmdb_id)) {
-                            val isSeries = viewModel.seriesList.value?.any { it.tmdb_id == item.tmdb_id } == true
-                            if (isSeries) {
-                                viewModel.fetchSeriesTmdbDetails(item.tmdb_id)
-                            } else {
-                                viewModel.fetchTmdbDetails(item.tmdb_id)
-                            }
-                        }
-                    }
-                }
-            }
-            renderUI()
-        }
-
-        viewModel.continueWatchingList.observe(viewLifecycleOwner) { continueList ->
-            if (!continueList.isNullOrEmpty()) {
-                val currentDetails = viewModel.movieDetailsMap.value
-                continueList.forEach { item ->
-                    if (!item.tmdb_id.isNullOrEmpty()) {
-                        if (currentDetails == null || !currentDetails.containsKey(item.tmdb_id)) {
-                            val isSeries = viewModel.seriesList.value?.any { it.tmdb_id == item.tmdb_id } == true
-                            if (isSeries) {
-                                viewModel.fetchSeriesTmdbDetails(item.tmdb_id)
-                            } else {
-                                viewModel.fetchTmdbDetails(item.tmdb_id)
-                            }
-                        }
-                    }
-                }
-            }
-            renderUI()
-        }
-
+        viewModel.seriesList.observe(viewLifecycleOwner) { renderUI() }
+        viewModel.myList.observe(viewLifecycleOwner) { items -> hydrateCards(items.orEmpty()); renderUI() }
+        viewModel.continueWatchingList.observe(viewLifecycleOwner) { items -> hydrateCards(items.orEmpty()); renderUI() }
         viewModel.movieDetailsMap.observe(viewLifecycleOwner) { renderUI() }
+        viewModel.languagesList.observe(viewLifecycleOwner) { renderUI() }
+        viewModel.qualitiesList.observe(viewLifecycleOwner) { renderUI() }
+        viewModel.syncError.observe(viewLifecycleOwner) { error ->
+            if (viewModel.moviesList.value.isNullOrEmpty()) {
+                binding.heroTitle.text = "به کلکین خوش آمدید"
+                binding.heroDescription.text = error ?: "آرشیو هنوز خالی است."
+                binding.btnPlay.text = "تلاش دوباره"
+                binding.btnPlay.contentDescription = "تلاش دوباره"
+                binding.btnPlay.setOnClickListener { viewModel.refresh() }
+                binding.btnInfo.visibility = View.GONE
+            }
+        }
+    }
+
+    private fun hydrateCards(items: List<Movie>) {
+        items.take(20).forEach {
+            if (it.contentType == "series") viewModel.fetchSeriesTmdbDetails(it.tmdb_id) else viewModel.fetchTmdbDetails(it.tmdb_id)
+        }
     }
 
     private fun renderUI() {
@@ -201,19 +147,22 @@ class HomeFragment : Fragment() {
 
         fun processList(list: List<Movie>): List<Movie> {
             return list.map { movie ->
-                val tmdbDetails = details[movie.tmdb_id]
+                val tmdbDetails = details[metadataKey(movie.contentType, movie.tmdb_id)]
                 movie.copy(
                     posterUrl = tmdbDetails?.poster_path?.let { "https://image.tmdb.org/t/p/w500$it" } ?: movie.posterUrl,
-                    voteAverage = tmdbDetails?.vote_average ?: 0.0
+                    voteAverage = tmdbDetails?.vote_average ?: movie.voteAverage
                 )
             }
         }
 
-        trendingAdapter.submitList(processList(movies.sortedByDescending { it.id }.take(10)))
+        trendingAdapter.submitList(processList(movies.sortedByDescending { it.id }.take(10))) { focusMemory.restore() }
 
 
-        val continueList = processList(viewModel.continueWatchingList.value?.take(10) ?: emptyList())
-        continueAdapter.submitList(continueList)
+        val continueList = processList(viewModel.continueWatchingList.value ?: emptyList())
+        continueAdapter.submitList(continueList.map { movie ->
+            val backdrop = details[metadataKey(movie.contentType, movie.tmdb_id)]?.backdrop_path
+            HomeCard(movie, ImageUrls.backdrop(backdrop) ?: ImageUrls.poster(movie.posterUrl))
+        }) { _binding?.rvContinue?.let { focusMemory.restoreAfterRemoval(it) } }
         if (continueList.isEmpty()) {
             binding.rvContinue.visibility = View.GONE
             binding.emptyContinueText.visibility = View.VISIBLE
@@ -223,8 +172,8 @@ class HomeFragment : Fragment() {
         }
 
 
-        val myList = processList(viewModel.myList.value?.take(10) ?: emptyList())
-        myListAdapter.submitList(myList)
+        val myList = processList(viewModel.myList.value ?: emptyList())
+        myListAdapter.submitList(myList) { _binding?.rvMylist?.let { focusMemory.restoreAfterRemoval(it) } }
         if (myList.isEmpty()) {
             binding.rvMylist.visibility = View.GONE
             binding.emptyMylistText.visibility = View.VISIBLE
@@ -235,14 +184,18 @@ class HomeFragment : Fragment() {
 
         val latest = movies.maxByOrNull { it.id }
         if (latest != null) {
-            updateHeroBanner(details[latest.tmdb_id], latest)
+            updateHeroBanner(details[metadataKey("movie", latest.tmdb_id)], latest)
         }
     }
 
     private fun updateHeroBanner(tmdb: TmdbMovieDetails?, fb: Movie) {
         binding.apply {
+            btnPlay.text = "پخش"
+            btnPlay.contentDescription = "پخش فیلم"
+            btnInfo.visibility = View.VISIBLE
             heroTitle.text = if (!fb.name_fa.isNullOrEmpty()) fb.name_fa else (tmdb?.title ?: "")
-            heroDescription.text = fb.description_fa
+            heroSynopsis = fb.description_fa.orEmpty()
+            formatHeroSynopsis()
 
             // تبدیل هوشمند شناسه کیفیت به نام اصلی (دقیقاً مثل MovieDetailFragment)
             val qualityName = viewModel.qualitiesList.value?.find {
@@ -279,8 +232,10 @@ class HomeFragment : Fragment() {
             }
 
             if (tmdb != null && !tmdb.backdrop_path.isNullOrEmpty()) {
-                Glide.with(requireContext())
-                    .load("https://image.tmdb.org/t/p/original${tmdb.backdrop_path}")
+                Glide.with(heroImage)
+                    .load(ImageUrls.backdrop(tmdb.backdrop_path))
+                    .dontTransform()
+                    .transition(com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade(450))
                     .diskCacheStrategy(DiskCacheStrategy.ALL)
                     .into(heroImage)
             } else {
@@ -293,7 +248,7 @@ class HomeFragment : Fragment() {
                         putExtra("video_url", fb.videoUrl1)
                         putExtra("movie_json", Gson().toJson(fb))
                         putExtra("movie_tmdb_id", fb.tmdb_id)
-                        putExtra("last_pos", 0L)
+                        putExtra("start_pos", 0L)
                     }
                     startActivity(intent)
                 } else {
@@ -307,6 +262,30 @@ class HomeFragment : Fragment() {
                     .navigate(R.id.action_homeFragment_to_movieDetailFragment, bundle)
             }
         }
+    }
+
+    private fun formatHeroSynopsis() {
+        val ui = _binding ?: return
+        val textView = ui.heroDescription
+        val width = textView.width - textView.paddingLeft - textView.paddingRight
+        val source = heroSynopsis.replace(Regex("\\s+"), " ").trim()
+        if (width <= 0 || source.isEmpty()) {
+            textView.text = source
+            return
+        }
+        val layout = android.text.StaticLayout.Builder.obtain(source, 0, source.length, textView.paint, width)
+            .setTextDirection(android.text.TextDirectionHeuristics.RTL)
+            .setIncludePad(false).build()
+        if (layout.lineCount <= 1) {
+            textView.text = source
+            return
+        }
+        val split = layout.getLineEnd(0)
+        val first = source.substring(0, split).trimEnd()
+        val remainder = source.substring(split).trimStart()
+        val second = android.text.TextUtils.ellipsize(remainder, textView.paint, width * 0.5f,
+            android.text.TextUtils.TruncateAt.END)
+        textView.text = "$first\n$second"
     }
 
     private fun setupHeroButtonsScroll() {

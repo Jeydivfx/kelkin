@@ -1,63 +1,13 @@
-<?xml version="1.0" encoding="utf-8"?>
-<androidx.core.widget.NestedScrollView
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:background="@drawable/bg_gradient_main"
-    android:fillViewport="true">
-
-    <androidx.constraintlayout.widget.ConstraintLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layoutDirection="rtl"
-        android:padding="32dp">
-
-        <EditText
-            android:id="@+id/edtSearch"
-            android:layout_width="500dp"
-            android:layout_height="50dp"
-            android:background="@drawable/bg_search_modern"
-            android:gravity="center_vertical|right"
-            android:hint="@string/hint_search_archive"
-            android:paddingHorizontal="20dp"
-            android:textColor="@color/text_white"
-            android:textColorHint="@color/text_gray"
-            android:textSize="16sp"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent" />
-
-        <GridLayout
-            android:id="@+id/gridKeyboard"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="30dp"
-            android:columnCount="10"
-            app:layout_constraintTop_toBottomOf="@id/edtSearch"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent" />
-
-        <TextView
-            android:id="@+id/txtResultTitle"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/title_found_movies"
-            android:textColor="@color/text_white"
-            android:fontFamily="@font/vazir_bold"
-            android:textSize="13sp"
-            android:layout_marginTop="40dp"
-            android:gravity="right"
-            app:layout_constraintTop_toBottomOf="@id/gridKeyboard" />
-
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/rvResults"
-            android:layout_width="match_parent"
-            android:layout_height="220dp"
-            android:layout_marginTop="12dp"
-            android:clipToPadding="false"
-            android:layoutDirection="rtl"
-            app:layout_constraintTop_toBottomOf="@id/txtResultTitle" />
-
+<?xml version='1.0' encoding='utf-8'?>
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto" android:layout_width="match_parent" android:layout_height="match_parent" android:id="@+id/searchScrollView" android:background="@drawable/bg_catalog_page" android:fillViewport="true">
+    <androidx.constraintlayout.widget.ConstraintLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layoutDirection="rtl" android:padding="32dp">
+        <LinearLayout android:id="@+id/catalogHeader" android:layout_width="0dp" android:layout_height="wrap_content" android:orientation="vertical" android:paddingBottom="4dp" app:layout_constraintTop_toTopOf="parent" app:layout_constraintStart_toStartOf="parent" app:layout_constraintEnd_toEndOf="parent">
+            <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="جستجو" android:textSize="28sp" android:textColor="@color/text_white" android:fontFamily="@font/yekanbakh_bold" android:gravity="right" android:textDirection="rtl" android:includeFontPadding="false" />
+            <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="نام فارسی فیلم، سریال یا شبکه را وارد کنید" android:textSize="12sp" android:textColor="@color/text_gray" android:fontFamily="@font/yekanbakh_bold" android:gravity="right" android:textDirection="rtl" android:includeFontPadding="false" android:layout_marginTop="6dp" />
+        </LinearLayout>
+        <EditText android:id="@+id/edtSearch" android:layout_width="528dp" android:layout_height="46dp" android:background="@drawable/bg_catalog_search" android:gravity="center_vertical|right" android:hint="@string/hint_search_archive" android:paddingHorizontal="20dp" android:textColor="@color/text_white" android:textColorHint="@color/text_gray" android:textSize="16sp" app:layout_constraintStart_toStartOf="parent" app:layout_constraintEnd_toEndOf="parent" android:singleLine="true" android:fontFamily="@font/yekanbakh_regular" android:textDirection="rtl" android:layout_marginTop="18dp" app:layout_constraintTop_toBottomOf="@id/catalogHeader" />
+        <GridLayout android:id="@+id/gridKeyboard" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="12dp" android:columnCount="12" android:clipChildren="false" android:clipToPadding="false" app:layout_constraintTop_toBottomOf="@id/edtSearch" app:layout_constraintStart_toStartOf="parent" app:layout_constraintEnd_toEndOf="parent" android:background="@drawable/bg_catalog_panel" android:padding="10dp" />
+        <TextView android:id="@+id/txtResultTitle" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/title_found_movies" android:textColor="@color/text_white" android:fontFamily="@font/yekanbakh_bold" android:textSize="15sp" android:layout_marginTop="20dp" android:gravity="right" app:layout_constraintTop_toBottomOf="@id/gridKeyboard" />
+        <androidx.recyclerview.widget.RecyclerView android:id="@+id/rvResults" android:layout_width="match_parent" android:layout_height="192dp" android:nestedScrollingEnabled="false" android:focusable="false" android:paddingVertical="8dp" android:layout_marginTop="12dp" android:clipToPadding="false" android:layoutDirection="rtl" app:layout_constraintTop_toBottomOf="@id/txtResultTitle" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 </androidx.core.widget.NestedScrollView>

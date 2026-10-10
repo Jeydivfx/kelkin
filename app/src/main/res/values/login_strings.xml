@@ -1,0 +1,10 @@
+<resources>
+    <string name="login_panel_title">خوش آمدید</string>
+    <string name="login_panel_subtitle">با حساب گوگل وارد کلکین شوید.</string>
+    <string name="login_retry_activation">بررسی دوبارهٔ فعال‌سازی</string>
+    <string name="login_status_hint">پس از ورود، وضعیت فعال‌سازی حساب بررسی می‌شود.</string>
+    <string name="login_brand_title">پنجره‌ای به\nدنیای تماشا</string>
+    <string name="login_brand_subtitle">تماشای فیلم های دوبله فارسی با کیفیت عالی.</string>
+    <string name="login_brand_categories">فیلم   •   سریال   •   تلویزیون زنده</string>
+    <string name="intro_skip_hint">برای رد کردن اینترو، OK را بزنید</string>
+</resources>

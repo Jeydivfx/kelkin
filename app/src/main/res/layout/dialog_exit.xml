@@ -48,10 +48,10 @@
             app:backgroundTint="@null"
             android:fontFamily="@font/yekanbakh_bold"
             android:text="@string/btn_yes"
-            android:textColor="@drawable/sl_text_high_contrast"
+            android:textColor="@color/sl_text_high_contrast"
             android:textSize="18sp"
             app:cornerRadius="6dp"
-            android:focusable="true" />
+            android:focusable="true"  android:backgroundTint="@null" android:stateListAnimator="@null" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnExitNo"
@@ -65,9 +65,9 @@
             app:backgroundTint="@null"
             android:fontFamily="@font/yekanbakh_bold"
             android:text="@string/btn_no"
-            android:textColor="@drawable/sl_text_high_contrast"
+            android:textColor="@color/sl_text_high_contrast"
             android:textSize="18sp"
             app:cornerRadius="6dp"
-            android:focusable="true" />
+            android:focusable="true"  android:backgroundTint="@null" android:stateListAnimator="@null" />
     </LinearLayout>
 </LinearLayout>

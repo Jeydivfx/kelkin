@@ -35,5 +35,6 @@ object DialogUtils {
         }
 
         dialog.show()
+        btnNo.requestFocus()
     }
 }

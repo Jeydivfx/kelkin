@@ -25,6 +25,8 @@ class CastAdapter(private val cast: List<CastMember>) : RecyclerView.Adapter<Cas
 
     override fun onBindViewHolder(holder: CastViewHolder, position: Int) {
         val member = cast[position]
+        holder.itemView.isFocusable = false
+        holder.itemView.isClickable = false
         holder.txtName.text = member.name
 
         val profilePath = member.profile_path

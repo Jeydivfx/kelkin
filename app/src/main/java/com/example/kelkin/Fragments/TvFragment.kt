@@ -1,6 +1,11 @@
 package com.example.kelkin.Fragments
 
+import androidx.navigation.fragment.findNavController
+
+import com.example.kelkin.utils.*
+
 import android.content.Intent
+import com.example.kelkin.utils.showSortPicker
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -30,9 +35,11 @@ class TvFragment : Fragment() {
     private lateinit var channelAdapter: ChannelAdapter
 
     private var tvCategoryList = listOf<TvCategory>()
+    private var favoritesOnly = false
     private var currentCategory: Long = 0
     private var currentSort: String = "default"
-    private var isFirstFocusSet = false
+    private lateinit var focusMemory: RecyclerFocusMemory
+    private lateinit var statusView: CatalogStatusView
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         _binding = FragmentTvBinding.inflate(inflater, container, false)
@@ -45,7 +52,15 @@ class TvFragment : Fragment() {
 
         binding.progressBar.visibility = View.VISIBLE
 
+        val screenState = findNavController().currentBackStackEntry!!.savedStateHandle
+        currentCategory = screenState.get<Long>("category") ?: 0L
+        currentSort = screenState.get<String>("sort") ?: "default"
         setupRecyclerView()
+        focusMemory = RecyclerFocusMemory(this, binding.btnTvCategory)
+        focusMemory.track(binding.rvChannels)
+        statusView = CatalogStatusView(binding.root) { viewModel.refresh() }
+        viewModel.syncError.observe(viewLifecycleOwner) { applyFilters() }
+        viewModel.catalogLoading.observe(viewLifecycleOwner) { applyFilters() }
         setupFilterButtons()
         observeData()
     }
@@ -53,19 +68,26 @@ class TvFragment : Fragment() {
     private fun setupFilterButtons() {
         binding.btnTvCategory.setOnClickListener { showCategoryMenu() }
         binding.btnTvSort.setOnClickListener { showSortMenu() }
-        binding.btnTvFavorites.setOnClickListener {  }
+        binding.btnTvFavorites.text = if (favoritesOnly) "همه کانال‌ها" else "علاقه‌مندی‌ها"
+        binding.btnTvFavorites.setOnClickListener {
+            favoritesOnly = !favoritesOnly
+            binding.btnTvFavorites.text = if (favoritesOnly) "همه کانال‌ها" else "علاقه‌مندی‌ها"
+            applyFilters()
+        }
     }
 
     private fun observeData() {
         viewModel.tvCategoriesList.observe(viewLifecycleOwner) { categories ->
             this.tvCategoryList = categories ?: emptyList()
+            binding.btnTvCategory.text = tvCategoryList.find { it.id.toLong() == currentCategory }?.name ?: "همه شبکه‌ها"
+            binding.btnTvSort.text = if (currentSort == "default") "ترتیب: پیش‌فرض" else "ترتیب: عنوان (الفبا)"
         }
 
         viewModel.channels.observe(viewLifecycleOwner) { channels ->
             if (channels != null) {
                 binding.progressBar.visibility = View.GONE
                 applyFilters()
-                if (channels.isNotEmpty() && !isFirstFocusSet) setFirstFocus()
+
             }
         }
     }
@@ -92,24 +114,19 @@ class TvFragment : Fragment() {
     }
 
     private fun showSortMenu() {
-        val sortOptions = listOf("لیست پیش‌فرض", "ترتیب الفبا")
-        val wrapper = ContextThemeWrapper(requireContext(), androidx.appcompat.R.style.Widget_AppCompat_PopupMenu)
-        val popup = ListPopupWindow(wrapper, null, androidx.appcompat.R.attr.listPopupWindowStyle)
-
-        popup.anchorView = binding.btnTvSort
-        popup.setAdapter(ArrayAdapter(requireContext(), android.R.layout.simple_list_item_1, sortOptions))
-        popup.isModal = true
-
-        popup.setOnItemClickListener { _, _, position, _ ->
+        val sortOptions = listOf("ترتیب پیش‌فرض", "عنوان (الفبا)")
+        showSortPicker(binding.btnTvSort, if (currentSort == "default") 0 else 1, true) { position ->
             currentSort = if (position == 0) "default" else "alpha"
-            binding.btnTvSort.text = sortOptions[position]
+            binding.btnTvSort.text = "ترتیب: ${sortOptions[position]}"
             applyFilters()
-            popup.dismiss()
         }
-        popup.show()
     }
 
     private fun applyFilters() {
+        if (!::statusView.isInitialized) return
+        findNavController().currentBackStackEntry?.savedStateHandle?.apply {
+            set("category", currentCategory); set("sort", currentSort)
+        }
         val allChannels = viewModel.channels.value ?: return
 
         var filteredList = if (currentCategory == 0L) {
@@ -118,6 +135,10 @@ class TvFragment : Fragment() {
             allChannels.filter { it.category == currentCategory }
         }
 
+        if (favoritesOnly) {
+            val favorites = requireContext().getSharedPreferences("kelkin_prefs", 0).getStringSet("favorite_channels", emptySet()).orEmpty()
+            filteredList = filteredList.filter { it.id.toString() in favorites }
+        }
         val persianCollator = Collator.getInstance(Locale("fa"))
         filteredList = if (currentSort == "alpha") {
             filteredList.sortedWith { c1, c2 -> persianCollator.compare(c1.name_fa, c2.name_fa) }
@@ -125,13 +146,17 @@ class TvFragment : Fragment() {
             filteredList.sortedBy { it.id }
         }
 
-        channelAdapter.submitList(filteredList)
+        channelAdapter.submitList(filteredList) { focusMemory.restore() }
+        val empty = filteredList.isEmpty()
+        binding.rvChannels.visibility = if (empty) View.GONE else View.VISIBLE
+        statusView.show(empty, viewModel.catalogLoading.value == true, viewModel.syncError.value)
+        binding.progressBar.visibility = if (empty && viewModel.catalogLoading.value == true) View.VISIBLE else View.GONE
     }
 
     private fun setupRecyclerView() {
 
 
-        binding.rvChannels.layoutManager = GridLayoutManager(requireContext(), 5)
+        binding.rvChannels.configureCatalogGrid()
         channelAdapter = ChannelAdapter { channel ->
             val channelJson = Gson().toJson(channel)
             val intent = Intent(requireContext(), PlayerActivity::class.java).apply {
@@ -146,18 +171,12 @@ class TvFragment : Fragment() {
         binding.rvChannels.adapter = channelAdapter
     }
 
-    private fun setFirstFocus() {
-        binding.rvChannels.postDelayed({
-            if (_binding != null) {
-                binding.rvChannels.layoutManager?.findViewByPosition(0)?.requestFocus()
-                isFirstFocusSet = true
-            }
-        }, 300)
-    }
+    private fun restoreFocus() { focusMemory.restore() }
 
 
     override fun onResume() {
         super.onResume()
+        if (::channelAdapter.isInitialized) applyFilters()
         (requireActivity() as? MainActivity)?.collapseSidebar()
     }
 

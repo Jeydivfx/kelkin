@@ -18,10 +18,10 @@
         app:backgroundTint="@null"
         android:fontFamily="@font/yekanbakh_bold"
         android:text="@string/btn_add_new_series"
-        android:textColor="@drawable/sl_text_high_contrast"
+        android:textColor="@color/sl_text_high_contrast"
         android:textSize="16sp"
         app:cornerRadius="6dp"
-        android:focusable="true" />
+        android:focusable="true"  android:backgroundTint="@null" android:stateListAnimator="@null" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rvMoviesAdmin"

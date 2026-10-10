@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="200dp"
+    android:layout_width="420dp"
     android:layout_height="wrap_content"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:background="@color/dialog_background"
@@ -23,13 +23,13 @@
         android:layout_width="match_parent"
         android:layout_height="48dp"
         android:layout_marginTop="20dp"
-        android:hint="@string/admin_hint_username"
+        android:hint="ایمیل مدیر"
         android:textColor="@color/text_white"
         android:textColorHint="@color/text_gray"
         android:fontFamily="@font/yekanbakh_regular"
         android:textSize="16sp"
         android:paddingHorizontal="16dp"
-        android:inputType="text"
+        android:inputType="textEmailAddress"
         android:gravity="right|center_vertical"
         android:textAlignment="gravity"
         android:focusable="true" />
@@ -50,6 +50,18 @@
         android:textAlignment="gravity"
         android:focusable="true" />
 
+    <TextView
+        android:id="@+id/txtAdminLoginStatus"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:textColor="#FFB4AB"
+        android:textSize="15sp"
+        android:fontFamily="@font/yekanbakh_regular"
+        android:gravity="center"
+        android:accessibilityLiveRegion="polite"
+        android:visibility="gone" />
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -69,10 +81,10 @@
             app:backgroundTint="@null"
             android:fontFamily="@font/yekanbakh_bold"
             android:text="@string/admin_btn_login"
-            android:textColor="@drawable/sl_text_high_contrast"
+            android:textColor="@color/sl_text_high_contrast"
             android:textSize="18sp"
             app:cornerRadius="6dp"
-            android:focusable="true" />
+            android:focusable="true"  android:backgroundTint="@null" android:stateListAnimator="@null" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnAdminCancel"
@@ -86,9 +98,9 @@
             app:backgroundTint="@null"
             android:fontFamily="@font/yekanbakh_bold"
             android:text="@string/admin_btn_cancel"
-            android:textColor="@drawable/sl_text_high_contrast"
+            android:textColor="@color/sl_text_high_contrast"
             android:textSize="18sp"
             app:cornerRadius="6dp"
-            android:focusable="true" />
+            android:focusable="true"  android:backgroundTint="@null" android:stateListAnimator="@null" />
     </LinearLayout>
 </LinearLayout>

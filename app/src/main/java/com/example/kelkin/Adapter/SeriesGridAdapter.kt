@@ -1,5 +1,7 @@
 package com.example.kelkin.Adapter
 
+import com.example.kelkin.utils.*
+
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -16,22 +18,30 @@ import com.example.kelkin.R
 import com.example.kelkin.`object`.TranslationHelper.toPersianDigits
 
 class SeriesGridAdapter(private val onSeriesClick: (Series) -> Unit) :
-    ListAdapter<Series, SeriesGridAdapter.SeriesViewHolder>(SeriesDiffCallback()) {
+    ListAdapter<Series, SeriesGridAdapter.SeriesViewHolder>(SeriesDiffCallback()), FocusKeyProvider {
+
+
+    init { setHasStableIds(true) }
+    override fun getItemId(position: Int) = stableContentId(getItem(position).identity())
+    override fun focusKey(position: Int) = currentList.getOrNull(position)?.identity()
+    override fun positionOfKey(key: String) = currentList.indexOfFirst { it.identity() == key }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): SeriesViewHolder {
         val view = LayoutInflater.from(parent.context).inflate(R.layout.item_series_grid, parent, false)
         return SeriesViewHolder(view)
     }
 
+    var onVisible: ((Series) -> Unit)? = null
     override fun onBindViewHolder(holder: SeriesViewHolder, position: Int) {
         val series = getItem(position)
+        onVisible?.invoke(series)
         holder.bind(series)
 
         holder.itemView.setOnClickListener { onSeriesClick(series) }
 
         holder.itemView.setOnFocusChangeListener { view, hasFocus ->
             if (hasFocus) {
-                view.animate().scaleX(1.1f).scaleY(1.1f).setDuration(200).start()
+                view.animate().scaleX(1.04f).scaleY(1.04f).setDuration(200).start()
                 view.elevation = 10f
                 view.z = 10f
             } else {
@@ -51,33 +61,18 @@ class SeriesGridAdapter(private val onSeriesClick: (Series) -> Unit) :
 
         fun bind(series: Series) {
             txtTitle.text = series.name_fa
+            itemView.contentDescription = series.name_fa
 
             val rating = series.voteAverage
             val ratingStr = if (rating > 0.0) {
                 String.format(java.util.Locale.ENGLISH, "%.1f", rating)
             } else {
-                "--"
+                "—"
             }
 
             txtImdbRating.text = ratingStr.toPersianDigits()
 
-            val baseTMDB = "https://image.tmdb.org/t/p/w500"
-            val posterPath = series.posterUrl
-
-            Log.d("SeriesSearchTest", "PosterRawPath: ${series.posterUrl}")
-
-            val fullUrl = if (!posterPath.isNullOrEmpty()) {
-                val cleanPath = if (posterPath.startsWith("/")) posterPath else "/$posterPath"
-                baseTMDB + cleanPath
-            } else {
-                null
-            }
-
-            Log.d("SeriesSearchTest", "نام سریال: ${series.name_fa} | لینک پوستر: ${series.posterUrl}")
-
-            if (fullUrl != null) {
-                Log.d("SeriesSearchTest", "Loading Image: $fullUrl")
-            }
+            val fullUrl = ImageUrls.poster(series.posterUrl)
 
             Glide.with(itemView.context)
                 .load(fullUrl)
@@ -90,7 +85,7 @@ class SeriesGridAdapter(private val onSeriesClick: (Series) -> Unit) :
     }
 
     class SeriesDiffCallback : DiffUtil.ItemCallback<Series>() {
-        override fun areItemsTheSame(oldItem: Series, newItem: Series) = oldItem.tmdb_id == newItem.tmdb_id
+        override fun areItemsTheSame(oldItem: Series, newItem: Series) = oldItem.identity() == newItem.identity()
         override fun areContentsTheSame(oldItem: Series, newItem: Series) = oldItem == newItem
     }
 }

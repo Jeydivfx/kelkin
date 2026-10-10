@@ -22,17 +22,46 @@
         <item name="android:layoutDirection">rtl</item>
         <item name="android:textDirection">rtl</item>
         <item name="buttonBarPositiveButtonStyle">@style/AlertButtonRtl</item>
+        <item name="buttonBarNegativeButtonStyle">@style/AlertButtonRtl</item>
+        <item name="buttonBarNeutralButtonStyle">@style/AlertButtonRtl</item>
+        <item name="android:buttonBarPositiveButtonStyle">@style/PlatformDialogButton</item>
+        <item name="android:buttonBarNegativeButtonStyle">@style/PlatformDialogButton</item>
+        <item name="android:buttonBarNeutralButtonStyle">@style/PlatformDialogButton</item>
         <item name="colorPrimary">@color/yellow</item>
         <item name="colorSecondary">@color/yellow</item>
         <item name="android:colorAccent">@color/yellow</item>
         <item name="android:colorControlActivated">@color/yellow</item>
-        <item name="android:windowBackground">@color/bg_black</item>
+        <item name="android:windowBackground">@drawable/bg_dialog</item>
+        <item name="android:colorBackground">@color/dialog_background</item>
         <item name="android:textColorPrimary">@color/text_white</item>
-        <item name="colorAccent">@color/netflix_red</item>
+        <item name="android:textColorSecondary">@color/text_white</item>
+        <item name="android:textColor">@color/text_white</item>
+        <item name="textColorAlertDialogListItem">@color/text_white</item>
+        <item name="colorAccent">@color/yellow</item>
     </style>
 
     <style name="AlertButtonRtl" parent="Widget.MaterialComponents.Button.TextButton.Dialog">
         <item name="android:layoutDirection">rtl</item>
+        <item name="android:background">@drawable/bg_dialog_button</item>
+        <item name="backgroundTint">@null</item>
+        <item name="android:backgroundTint">@null</item>
+        <item name="android:textColor">@color/sl_text_high_contrast</item>
+        <item name="android:fontFamily">@font/yekanbakh_bold</item>
+        <item name="android:minHeight">48dp</item>
+        <item name="android:layout_margin">6dp</item>
+        <item name="android:paddingLeft">20dp</item>
+        <item name="android:paddingRight">20dp</item>
+    </style>
+
+    <style name="PlatformDialogButton" parent="android:style/Widget.Material.Button.Borderless">
+        <item name="android:background">@drawable/bg_dialog_button</item>
+        <item name="android:backgroundTint">@null</item>
+        <item name="android:textColor">@color/sl_text_high_contrast</item>
+        <item name="android:fontFamily">@font/yekanbakh_bold</item>
+        <item name="android:minHeight">48dp</item>
+        <item name="android:layout_margin">6dp</item>
+        <item name="android:paddingLeft">20dp</item>
+        <item name="android:paddingRight">20dp</item>
     </style>
 
     <style name="CustomRadioButton" parent="Theme.MaterialComponents.Light.Dialog.Alert">

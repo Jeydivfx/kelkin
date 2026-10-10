@@ -1,0 +1,71 @@
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+    "movies": {
+      ".read": "auth != null && (root.child('users').child(auth.uid).child('isActive').val() === true || root.child('admins').child(auth.uid).val() === true)",
+      ".write": "auth != null && root.child('admins').child(auth.uid).val() === true",
+      ".indexOn": [
+        "id"
+      ]
+    },
+    "series": {
+      ".read": "auth != null && (root.child('users').child(auth.uid).child('isActive').val() === true || root.child('admins').child(auth.uid).val() === true)",
+      ".write": "auth != null && root.child('admins').child(auth.uid).val() === true",
+      ".indexOn": [
+        "id"
+      ]
+    },
+    "channels": {
+      ".read": "auth != null && (root.child('users').child(auth.uid).child('isActive').val() === true || root.child('admins').child(auth.uid).val() === true)",
+      ".write": "auth != null && root.child('admins').child(auth.uid).val() === true",
+      ".indexOn": [
+        "id"
+      ]
+    },
+    "category": {
+      ".read": "auth != null && (root.child('users').child(auth.uid).child('isActive').val() === true || root.child('admins').child(auth.uid).val() === true)",
+      ".write": "auth != null && root.child('admins').child(auth.uid).val() === true"
+    },
+    "tv_categories": {
+      ".read": "auth != null && (root.child('users').child(auth.uid).child('isActive').val() === true || root.child('admins').child(auth.uid).val() === true)",
+      ".write": "auth != null && root.child('admins').child(auth.uid).val() === true"
+    },
+    "series_categories": {
+      ".read": "auth != null && (root.child('users').child(auth.uid).child('isActive').val() === true || root.child('admins').child(auth.uid).val() === true)",
+      ".write": "auth != null && root.child('admins').child(auth.uid).val() === true"
+    },
+    "language": {
+      ".read": "auth != null && (root.child('users').child(auth.uid).child('isActive').val() === true || root.child('admins').child(auth.uid).val() === true)",
+      ".write": "auth != null && root.child('admins').child(auth.uid).val() === true"
+    },
+    "quality": {
+      ".read": "auth != null && (root.child('users').child(auth.uid).child('isActive').val() === true || root.child('admins').child(auth.uid).val() === true)",
+      ".write": "auth != null && root.child('admins').child(auth.uid).val() === true"
+    },
+    "app_config": {
+      ".read": "auth != null && (root.child('users').child(auth.uid).child('isActive').val() === true || root.child('admins').child(auth.uid).val() === true)",
+      ".write": "auth != null && root.child('admins').child(auth.uid).val() === true"
+    },
+    "admins": {
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid",
+        ".write": false
+      }
+    },
+    "users": {
+      "$uid": {
+        ".read": "auth != null && (auth.uid === $uid || root.child('admins').child(auth.uid).val() === true)",
+        ".write": "(auth != null && root.child('admins').child(auth.uid).val() === true) || (auth != null && auth.uid === $uid && !data.exists() && newData.child('isActive').val() === false)"
+      }
+    },
+    "catalog_counters": {
+      ".read": "auth != null && root.child('admins').child(auth.uid).val() === true",
+      ".write": "auth != null && root.child('admins').child(auth.uid).val() === true"
+    },
+    "credentials": {
+      ".read": false,
+      ".write": false
+    }
+  }
+}

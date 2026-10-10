@@ -1,5 +1,8 @@
 package com.example.kelkin.Fragments
 
+import com.example.kelkin.utils.*
+import androidx.navigation.fragment.findNavController
+
 import android.annotation.SuppressLint
 import android.graphics.Color
 import android.graphics.Typeface
@@ -42,6 +45,8 @@ class SeriesDetailsFragment : Fragment(R.layout.fragment_series_details) {
     private lateinit var viewModel: HomeViewModel
     private var _binding: FragmentSeriesDetailsBinding? = null
 
+    private var selectedSeasonKey = ""
+    private lateinit var focusMemory: RecyclerFocusMemory
     private var currentBackdropPath: String = ""
     private val binding get() = _binding!!
 
@@ -55,9 +60,16 @@ class SeriesDetailsFragment : Fragment(R.layout.fragment_series_details) {
         selectedSeries = arguments?.getSerializable("selected_series") as? Series
             ?: arguments?.getSerializable("series_data") as? Series
 
+        selectedSeasonKey = findNavController().currentBackStackEntry!!.savedStateHandle.get<String>("selected_season").orEmpty()
+        focusMemory = RecyclerFocusMemory(this, binding.btnBookmarkSeries)
         selectedSeries?.let { series ->
             binding.txtTitle.text = series.name_fa
             binding.txtDescription.text = series.description_fa
+            binding.txtDescription.makeDescriptionExpandable(series.name_fa)
+            view.hideEmptyDetailTags()
+            binding.txtRating.text = if (series.voteAverage > 0) "امتیاز %.1f".format(Locale.ENGLISH, series.voteAverage).toPersianDigits() else ""
+            viewModel.languagesList.observe(viewLifecycleOwner) { view.bindLocalDetailTags(series.asCard(), it.orEmpty(), viewModel.qualitiesList.value.orEmpty()) }
+            viewModel.qualitiesList.observe(viewLifecycleOwner) { view.bindLocalDetailTags(series.asCard(), viewModel.languagesList.value.orEmpty(), it.orEmpty()) }
 
             setupBookmarkButton(series)
             setupSeasonsButtonsAndEpisodes(series)
@@ -69,7 +81,7 @@ class SeriesDetailsFragment : Fragment(R.layout.fragment_series_details) {
     }
 
     private fun setupBookmarkButton(series: Series) {
-        val dummyMovieForBookmark = Movie().apply {
+        val dummyMovieForBookmark = series.asCard().apply {
             id = series.id
             name_fa = series.name_fa
             description_fa = series.description_fa
@@ -83,11 +95,11 @@ class SeriesDetailsFragment : Fragment(R.layout.fragment_series_details) {
             binding.btnBookmarkSeries.setIconResource(iconRes)
         }
 
-        val isInitialBookmarked = viewModel.isInMyList(series.tmdb_id)
+        val isInitialBookmarked = viewModel.isInMyList(dummyMovieForBookmark)
         updateBookmarkIcon(isInitialBookmarked)
 
         binding.btnBookmarkSeries.setOnClickListener {
-            val currentlyBookmarked = viewModel.isInMyList(series.tmdb_id)
+            val currentlyBookmarked = viewModel.isInMyList(dummyMovieForBookmark)
             if (currentlyBookmarked) {
                 viewModel.removeFromMyList(dummyMovieForBookmark)
                 updateBookmarkIcon(false)
@@ -102,34 +114,20 @@ class SeriesDetailsFragment : Fragment(R.layout.fragment_series_details) {
 
     @SuppressLint("ResourceType")
     private fun setupSeasonsButtonsAndEpisodes(series: Series) {
-        val seasonKeys = series.seasons.keys.sorted()
-        if (seasonKeys.isEmpty()) return
+        val seasonKeys = series.seasons.keys.sortedBy { it.toIntOrNull() ?: Int.MAX_VALUE }
+        if (seasonKeys.isEmpty()) {
+            binding.episodeSectionTitle.text = "هنوز قسمتی برای این سریال ثبت نشده است."
+            return
+        }
 
-        var selectedSeasonKey = seasonKeys.first()
+        if (selectedSeasonKey !in seasonKeys) selectedSeasonKey = seasonKeys.first()
 
         val layoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
         binding.rvEpisodes.layoutManager = layoutManager
 
-        binding.rvEpisodes.setOnKeyListener { _, keyCode, event ->
-            if (event.action == android.view.KeyEvent.ACTION_DOWN) {
-                val layoutManager = binding.rvEpisodes.layoutManager as LinearLayoutManager
-                val firstVisible = layoutManager.findFirstVisibleItemPosition()
-                val lastVisible = layoutManager.findLastVisibleItemPosition()
-                val itemCount = binding.rvEpisodes.adapter?.itemCount ?: 0
-
-                if (keyCode == android.view.KeyEvent.KEYCODE_DPAD_RIGHT && firstVisible <= 0) {
-                    return@setOnKeyListener true
-                }
-
-                if (keyCode == android.view.KeyEvent.KEYCODE_DPAD_LEFT && lastVisible >= itemCount - 1) {
-                    return@setOnKeyListener true
-                }
-            }
-            false
-        }
-
         fun updateEpisodes(seasonKey: String) {
             val episodesMap = series.seasons[seasonKey] ?: emptyMap()
+            binding.episodeSectionTitle.text = if (episodesMap.isEmpty()) "این فصل هنوز قسمتی ندارد." else getString(R.string.title_episodes)
 
             // مرتب‌سازی صعودی دقیق از قسمت ۱ به بعد
             val episodeList = episodesMap.entries.sortedBy { it.key.replace("ep", "").toIntOrNull() ?: 0 }
@@ -140,7 +138,7 @@ class SeriesDetailsFragment : Fragment(R.layout.fragment_series_details) {
             binding.rvEpisodes.adapter = adapter
 
             // تضمین شروع از اولین کارت (قسمت اول)
-            binding.rvEpisodes.scrollToPosition(0)
+            if (binding.rvEpisodes.hasFocus()) binding.rvEpisodes.scrollToPosition(0)
         }
 
         val container = binding.layoutSeasonButtonsContainer
@@ -153,16 +151,19 @@ class SeriesDetailsFragment : Fragment(R.layout.fragment_series_details) {
         seasonKeys.forEachIndexed { index, seasonKey ->
             val seasonButton = MaterialButton(requireContext()).apply {
                 text = "فصل ${seasonKey.toIntOrNull() ?: seasonKey}"
+                tag = seasonKey
+                isSelected = seasonKey == selectedSeasonKey
                 typeface = androidx.core.content.res.ResourcesCompat.getFont(requireContext(), R.font.yekanbakh_bold)
                 textSize = 16f
-                setTextColor(ContextCompat.getColorStateList(context, R.drawable.sl_text_high_contrast))
+                setTextColor(ContextCompat.getColorStateList(context, R.color.sl_text_high_contrast))
+                backgroundTintList = null
                 setBackgroundResource(R.drawable.sl_button_high_contrast)
                 backgroundTintList = null
                 cornerRadius = 6.dpToPx(requireContext())
 
                 val params = LinearLayout.LayoutParams(
                     LinearLayout.LayoutParams.WRAP_CONTENT,
-                    44.dpToPx(requireContext())
+                    (if (com.example.kelkin.BuildConfig.IS_TV) 44 else 48).dpToPx(requireContext())
                 ).apply {
                     marginEnd = 8.dpToPx(requireContext())
                 }
@@ -170,7 +171,9 @@ class SeriesDetailsFragment : Fragment(R.layout.fragment_series_details) {
 
                 setOnClickListener {
                     selectedSeasonKey = seasonKey
+                    findNavController().currentBackStackEntry?.savedStateHandle?.set("selected_season", seasonKey)
                     updateEpisodes(seasonKey)
+                    for (i in 1 until container.childCount) container.getChildAt(i).isSelected = container.getChildAt(i).tag == seasonKey
                 }
             }
 
@@ -181,30 +184,43 @@ class SeriesDetailsFragment : Fragment(R.layout.fragment_series_details) {
             container.addView(seasonButton)
         }
 
-        firstButton?.postDelayed({
-            if (isAdded && view != null) {
-                firstButton?.requestFocus()
-            }
-        }, 400)
+
 
         updateEpisodes(selectedSeasonKey)
+        focusMemory.track(binding.rvEpisodes)
+        viewModel.continueWatchingList.observe(viewLifecycleOwner) { history ->
+            val saved = history.orEmpty().find { it.identity() == series.identity() && it.episodeKey.isNotBlank() }
+            binding.btnContinueSeries.visibility = if (saved != null) View.VISIBLE else View.GONE
+            binding.btnContinueSeries.text = "ادامه فصل ${saved?.seasonKey?.toIntOrNull() ?: ""}، قسمت ${saved?.episodeKey?.removePrefix("ep")?.toIntOrNull() ?: ""}"
+            binding.btnContinueSeries.setOnClickListener {
+                val latest = viewModel.continueWatchingList.value.orEmpty().find { it.identity() == series.identity() } ?: return@setOnClickListener
+                val url = series.seasons[latest.seasonKey]?.get(latest.episodeKey)
+                if (url.isNullOrBlank()) {
+                    Toast.makeText(context, "این قسمت دیگر در آرشیو موجود نیست", Toast.LENGTH_SHORT).show()
+                } else {
+                    selectedSeasonKey = latest.seasonKey
+                    launchPlayer(series, url, latest.episodeKey, latest.lastPosition)
+                }
+            }
+        }
     }
 
-    private fun launchPlayer(series: Series, videoUrl: String, episodeTitle: String) {
+    private fun launchPlayer(series: Series, videoUrl: String, episodeTitle: String, startPos: Long = 0L) {
+        if (videoUrl.isBlank()) { Toast.makeText(context, "لینک پخش موجود نیست", Toast.LENGTH_SHORT).show(); return }
+        val card = series.asCard().copy(videoUrl1 = videoUrl, seasonKey = selectedSeasonKey, episodeKey = episodeTitle)
         val intent = android.content.Intent(requireContext(), com.example.kelkin.PlayerActivity::class.java).apply {
             putExtra("video_url", videoUrl)
-            putExtra("movie_tmdb_id", series.tmdb_id)
-            putExtra("movie_json", Gson().toJson(series))
-            putExtra("start_pos", 0L)
+            putExtra("movie_json", Gson().toJson(card))
+            putExtra("start_pos", startPos)
         }
         startActivity(intent)
     }
 
     private fun fetchSeriesTmdbDetails(tmdbId: String) {
-        lifecycleScope.launch {
+        viewLifecycleOwner.lifecycleScope.launch {
             try {
                 val tvDetails = viewModel.fetchTvDetailsForPoster(tmdbId)
-                if (tvDetails != null && isAdded) {
+                if (tvDetails != null && _binding != null) {
                     activity?.runOnUiThread {
                         updateUI(tvDetails)
                     }
@@ -222,12 +238,12 @@ class SeriesDetailsFragment : Fragment(R.layout.fragment_series_details) {
             currentBackdropPath = details.backdrop_path
 
             Glide.with(this)
-                .load("https://image.tmdb.org/t/p/original${details.backdrop_path}")
+                .load(ImageUrls.backdrop(details.backdrop_path))
                 .diskCacheStrategy(DiskCacheStrategy.ALL)
                 .transition(DrawableTransitionOptions.withCrossFade(1000))
                 .into(binding.imgBackdrop)
 
-            selectedSeries?.let { setupSeasonsButtonsAndEpisodes(it) }
+            (binding.rvEpisodes.adapter as? EpisodesAdapter)?.updateBackdrop(currentBackdropPath)
         }
 
 
@@ -236,7 +252,7 @@ class SeriesDetailsFragment : Fragment(R.layout.fragment_series_details) {
 
 
         val ratingStr = String.format(Locale.ENGLISH, "%.1f", details.vote_average).toPersianDigits()
-        binding.txtRating.text = "  امتیاز  $ratingStr"
+        binding.txtRating.text = if (details.vote_average > 0) "  امتیاز  $ratingStr" else ""
 
 
         val limitedGenres = details.genres.take(2).joinToString("، ") { it.name }
@@ -271,6 +287,11 @@ class SeriesDetailsFragment : Fragment(R.layout.fragment_series_details) {
                 visibility = View.GONE
             }
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        viewModel.loadContinueList()
     }
 
     override fun onDestroyView() {

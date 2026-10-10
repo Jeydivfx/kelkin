@@ -1,5 +1,8 @@
 package com.example.kelkin.Fragments
 
+import com.example.kelkin.utils.*
+import kotlinx.coroutines.CancellationException
+
 import android.graphics.Color
 import android.graphics.Typeface
 import android.os.Bundle
@@ -45,7 +48,7 @@ class MovieDetailFragment : Fragment(R.layout.fragment_movie_detail) {
             val lastPos = data?.getLongExtra("last_pos", 0L) ?: 0L
             val totalDur = data?.getLongExtra("total_dur", 0L) ?: 0L
             selectedMovie?.let { movie ->
-                if (lastPos > 10000) viewModel.updateContinueWatching(movie, lastPos, totalDur)
+                viewModel.loadContinueList()
             }
         }
     }
@@ -68,19 +71,23 @@ class MovieDetailFragment : Fragment(R.layout.fragment_movie_detail) {
             val txtDescription = view.findViewById<TextView>(R.id.txtDescription)
 
 
-            btnPlay.postDelayed({
-                if (isAdded && view != null) {
-                    btnPlay.requestFocus()
-                }
-            }, 400)
+            RecyclerFocusMemory(this, btnContinue.takeIf { it.visibility == View.VISIBLE } ?: btnPlay)
 
             txtTitle.text = movie.name_fa
             txtDescription.text = movie.description_fa
+            txtDescription.makeDescriptionExpandable(movie.name_fa)
+            view.hideEmptyDetailTags()
+            view.findViewById<TextView>(R.id.txtRating).text = if (movie.voteAverage > 0) "امتیاز %.1f".format(Locale.ENGLISH, movie.voteAverage).toPersianDigits() else ""
+            viewModel.languagesList.observe(viewLifecycleOwner) { view.bindLocalDetailTags(movie, it.orEmpty(), viewModel.qualitiesList.value.orEmpty()) }
+            viewModel.qualitiesList.observe(viewLifecycleOwner) { view.bindLocalDetailTags(movie, viewModel.languagesList.value.orEmpty(), it.orEmpty()) }
+            viewModel.movieDetailsMap.value?.get(metadataKey("movie", movie.tmdb_id))?.let {
+                updateUI(it, com.example.kelkin.DataClass.MovieCreditsResponse(it.id, emptyList(), emptyList()))
+            }
 
             // Bookmark Logic
-            btnBookmark.setIconResource(if (viewModel.isInMyList(movie.tmdb_id)) R.drawable.ic_bookmark_filled else R.drawable.ic_bookmark)
+            btnBookmark.setIconResource(if (viewModel.isInMyList(movie)) R.drawable.ic_bookmark_filled else R.drawable.ic_bookmark)
             btnBookmark.setOnClickListener {
-                if (viewModel.isInMyList(movie.tmdb_id)) {
+                if (viewModel.isInMyList(movie)) {
                     viewModel.removeFromMyList(movie)
                     btnBookmark.setIconResource(R.drawable.ic_bookmark)
                 } else {
@@ -89,13 +96,14 @@ class MovieDetailFragment : Fragment(R.layout.fragment_movie_detail) {
                 }
             }
 
-            val savedProgress = viewModel.continueWatchingList.value?.find { it.tmdb_id == movie.tmdb_id }
-            if (savedProgress != null && savedProgress.lastPosition > 10000) {
-                btnContinue.visibility = View.VISIBLE
-                btnContinue.text = "ادامه پخش از دقیقه ${savedProgress.lastPosition / 1000 / 60}"
-                btnContinue.setOnClickListener { launchPlayer(movie, savedProgress.lastPosition) }
-            } else {
-                btnContinue.visibility = View.GONE
+            viewModel.continueWatchingList.observe(viewLifecycleOwner) { history ->
+                val saved = history.orEmpty().find { it.identity() == movie.identity() }
+                btnContinue.visibility = if (saved != null && saved.lastPosition >= 2000) View.VISIBLE else View.GONE
+                btnContinue.text = "ادامه تماشا"
+                btnContinue.setOnClickListener {
+                    val position = viewModel.continueWatchingList.value.orEmpty().find { it.identity() == movie.identity() }?.lastPosition ?: 0L
+                    launchPlayer(movie, position)
+                }
             }
 
             btnPlay.setOnClickListener { launchPlayer(movie, 0L) }
@@ -110,22 +118,18 @@ class MovieDetailFragment : Fragment(R.layout.fragment_movie_detail) {
             putExtra("movie_json", Gson().toJson(movie))
             putExtra("start_pos", startPos)
         }
+        if (movie.videoUrl1.isBlank()) {
+            android.widget.Toast.makeText(context, "لینک پخش موجود نیست", android.widget.Toast.LENGTH_SHORT).show()
+            return
+        }
         playerLauncher.launch(intent)
     }
 
     private fun fetchFullDetails(tmdbId: String) {
-        lifecycleScope.launch {
-            try {
-                viewModel.getMovieFullDetails(tmdbId) { details, credits ->
-                    if (details != null && credits != null) {
-                        activity?.runOnUiThread {
-                            updateUI(details, credits)
-                        }
-                    }
-                }
-            } catch (e: Exception) {
-                Log.e("kelkinDebug", "Error: ${e.message}")
-            }
+        if (tmdbId.isBlank()) return
+        viewLifecycleOwner.lifecycleScope.launch {
+            val (details, credits) = viewModel.getMovieFullDetails(tmdbId)
+            if (details != null) updateUI(details, credits ?: com.example.kelkin.DataClass.MovieCreditsResponse(details.id, emptyList(), emptyList()))
         }
     }
 
@@ -142,7 +146,7 @@ class MovieDetailFragment : Fragment(R.layout.fragment_movie_detail) {
 
         view.findViewById<ImageView>(R.id.imgBackdrop)?.let {
             Glide.with(this)
-                .load("https://image.tmdb.org/t/p/original${details.backdrop_path}")
+                .load(ImageUrls.backdrop(details.backdrop_path))
                 .diskCacheStrategy(DiskCacheStrategy.ALL)
                 .transition(DrawableTransitionOptions.withCrossFade(1000))
                 .into(it)
@@ -154,7 +158,7 @@ class MovieDetailFragment : Fragment(R.layout.fragment_movie_detail) {
 
 
         val ratingStr = String.format(Locale.ENGLISH, "%.1f", details.vote_average).toPersianDigits()
-        view.findViewById<TextView>(R.id.txtRating)?.text = "  امتیاز  $ratingStr"
+        view.findViewById<TextView>(R.id.txtRating)?.text = if (details.vote_average > 0) "  امتیاز  $ratingStr" else ""
 
 
         val limitedGenres = details.genres.take(2).joinToString("، ") { it.name }

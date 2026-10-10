@@ -1,0 +1,4 @@
+<resources>
+    <item type="id" name="adminSignInAction" />
+    <item type="id" name="accountSignOutAction" />
+</resources>

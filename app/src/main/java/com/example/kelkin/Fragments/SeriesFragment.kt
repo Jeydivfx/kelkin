@@ -1,5 +1,9 @@
 package com.example.kelkin.Fragments
 
+
+import com.example.kelkin.utils.*
+
+import com.example.kelkin.utils.showSortPicker
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -33,7 +37,8 @@ class SeriesFragment : Fragment() {
     private var currentSort: String = "date"
     private var seriesCategoryList = listOf<SeriesCategory>()
 
-    private var isFirstFocusSet = false
+    private lateinit var focusMemory: RecyclerFocusMemory
+    private lateinit var statusView: CatalogStatusView
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         _binding = FragmentSeriesBinding.inflate(inflater, container, false)
@@ -48,7 +53,15 @@ class SeriesFragment : Fragment() {
 
         viewModel.loadSeriesCategories()
 
+        val screenState = findNavController().currentBackStackEntry!!.savedStateHandle
+        currentCategory = screenState.get<Int>("category") ?: 0
+        currentSort = screenState.get<String>("sort") ?: "date"
         setupRecyclerView()
+        focusMemory = RecyclerFocusMemory(this, binding.btnSeriesGenreFilter)
+        focusMemory.track(binding.rvSeriesAll)
+        statusView = CatalogStatusView(binding.root) { viewModel.refresh() }
+        viewModel.syncError.observe(viewLifecycleOwner) { applyFilters() }
+        viewModel.catalogLoading.observe(viewLifecycleOwner) { applyFilters() }
         setupFilterButtons()
         observeSeries()
     }
@@ -80,24 +93,19 @@ class SeriesFragment : Fragment() {
     }
 
     private fun showSortMenu() {
-        val sortOptions = listOf("تاریخ ساخت", "عنوان (الفبا)")
-        val wrapper = ContextThemeWrapper(requireContext(), androidx.appcompat.R.style.Widget_AppCompat_PopupMenu)
-        val listPopupWindow = ListPopupWindow(wrapper, null, androidx.appcompat.R.attr.listPopupWindowStyle)
-
-        listPopupWindow.anchorView = binding.btnSeriesSortOrder
-        listPopupWindow.setAdapter(ArrayAdapter(requireContext(), android.R.layout.simple_list_item_1, sortOptions))
-        listPopupWindow.isModal = true
-
-        listPopupWindow.setOnItemClickListener { _, _, position, _ ->
+        val sortOptions = listOf("تازه اضافه‌شده", "عنوان (الفبا)")
+        showSortPicker(binding.btnSeriesSortOrder, if (currentSort == "date") 0 else 1, false) { position ->
             currentSort = if (position == 0) "date" else "title"
-            binding.btnSeriesSortOrder.text = sortOptions[position]
+            binding.btnSeriesSortOrder.text = "ترتیب: ${sortOptions[position]}"
             applyFilters()
-            listPopupWindow.dismiss()
         }
-        listPopupWindow.show()
     }
 
     private fun applyFilters() {
+        if (!::statusView.isInitialized) return
+        findNavController().currentBackStackEntry?.savedStateHandle?.apply {
+            set("category", currentCategory); set("sort", currentSort)
+        }
         val allSeries = viewModel.seriesList.value ?: emptyList()
         val detailsMap = viewModel.movieDetailsMap.value ?: emptyMap()
 
@@ -118,11 +126,11 @@ class SeriesFragment : Fragment() {
         }
 
         val finalDisplayList = filteredList.map { seriesItem ->
-            if (seriesItem.tmdb_id.isNotEmpty() && !detailsMap.containsKey(seriesItem.tmdb_id)) {
+            if (filteredList.indexOf(seriesItem) < 30 && seriesItem.tmdb_id.isNotEmpty() && !detailsMap.containsKey(metadataKey("series", seriesItem.tmdb_id))) {
                 viewModel.fetchSeriesTmdbDetails(seriesItem.tmdb_id)
             }
 
-            val tmdbDetails = detailsMap[seriesItem.tmdb_id]
+            val tmdbDetails = detailsMap[metadataKey("series", seriesItem.tmdb_id)]
 
             seriesItem.copy().apply {
                 if (posterUrl.isEmpty()) {
@@ -135,19 +143,25 @@ class SeriesFragment : Fragment() {
             }
         }
 
-        seriesAdapter.submitList(finalDisplayList)
+        seriesAdapter.submitList(finalDisplayList) { focusMemory.restore() }
+        val empty = finalDisplayList.isEmpty()
+        binding.rvSeriesAll.visibility = if (empty) View.GONE else View.VISIBLE
+        statusView.show(empty, viewModel.catalogLoading.value == true, viewModel.syncError.value)
+        binding.progressBarSeries.visibility = if (empty && viewModel.catalogLoading.value == true) View.VISIBLE else View.GONE
     }
 
     private fun observeSeries() {
         viewModel.seriesCategoriesList.observe(viewLifecycleOwner) { categories ->
             this.seriesCategoryList = categories ?: emptyList()
+            binding.btnSeriesGenreFilter.text = seriesCategoryList.find { it.id == currentCategory }?.name ?: "همه دسته‌ها"
+            binding.btnSeriesSortOrder.text = if (currentSort == "date") "ترتیب: تازه اضافه‌شده" else "ترتیب: عنوان (الفبا)"
         }
 
         viewModel.seriesList.observe(viewLifecycleOwner) { series ->
             if (series != null) {
                 binding.progressBarSeries.visibility = View.GONE
                 applyFilters()
-                tryAutoFocus()
+
             }
         }
 
@@ -157,29 +171,18 @@ class SeriesFragment : Fragment() {
     }
 
     private fun setupRecyclerView() {
-        binding.rvSeriesAll.layoutManager = GridLayoutManager(requireContext(), 5)
-        binding.rvSeriesAll.addItemDecoration(GridSpacingItemDecoration(5, 20, true))
+        binding.rvSeriesAll.configureCatalogGrid()
 
         seriesAdapter = SeriesGridAdapter { series ->
             val bundle = Bundle().apply { putSerializable("selected_series", series) }
             findNavController().navigate(R.id.action_seriesFragment_to_seriesDetailsFragment, bundle)
         }
 
+        seriesAdapter.onVisible = { viewModel.fetchSeriesTmdbDetails(it.tmdb_id) }
         binding.rvSeriesAll.adapter = seriesAdapter
     }
 
-    private fun tryAutoFocus() {
-        if (isFirstFocusSet || seriesAdapter.itemCount == 0) return
-        binding.rvSeriesAll.postDelayed({
-            if (_binding != null && !isFirstFocusSet) {
-                val firstItem = binding.rvSeriesAll.layoutManager?.findViewByPosition(0)
-                firstItem?.let {
-                    it.requestFocus()
-                    isFirstFocusSet = true
-                }
-            }
-        }, 300)
-    }
+    private fun restoreFocus() { focusMemory.restore() }
 
     override fun onDestroyView() {
         super.onDestroyView()

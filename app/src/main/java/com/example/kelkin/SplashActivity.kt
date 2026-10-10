@@ -1,5 +1,8 @@
 package com.example.kelkin
 
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.TimeoutCancellationException
+
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
@@ -38,13 +41,17 @@ class SplashActivity : AppCompatActivity() {
 
     companion object {
         private const val SPLASH_TIMEOUT = 15000L
-        private const val VIDEO_DURATION = 6000L
+        private const val VIDEO_DURATION = 2000L
         private const val DATA_TIMEOUT = 8000L
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        if (!BuildConfig.IS_TV) {
+            navigateToMain()
+            return
+        }
         setContentView(R.layout.activity_splash)
 
         val versionText = findViewById<TextView>(R.id.txtVersion)
@@ -53,6 +60,8 @@ class SplashActivity : AppCompatActivity() {
         versionText?.text = "نسخه $persianVersion"
 
         playerView = findViewById(R.id.playerView)
+        playerView.findViewById<android.widget.ProgressBar>(androidx.media3.ui.R.id.exo_buffering)?.indeterminateTintList =
+            android.content.res.ColorStateList.valueOf(androidx.core.content.ContextCompat.getColor(this, R.color.yellow))
         playerView.visibility = View.GONE
 
         setupExoPlayer()
@@ -93,7 +102,7 @@ class SplashActivity : AppCompatActivity() {
             try {
                 resources.openRawResource(R.raw.splash_animation).close()
             } catch (e: Exception) {
-                showFallbackLogo()
+                finishIntroAfterError()
                 return
             }
 
@@ -126,7 +135,7 @@ class SplashActivity : AppCompatActivity() {
                             when (playbackState) {
                                 Player.STATE_READY -> {
                                     videoDuration = player.duration
-                                    val waitTime = maxOf(videoDuration, VIDEO_DURATION)
+                                    val waitTime = minOf(videoDuration.coerceAtLeast(VIDEO_DURATION), 3000L)
 
                                     isVideoPrepared = true
                                     runOnUiThread {
@@ -160,7 +169,7 @@ class SplashActivity : AppCompatActivity() {
                         override fun onPlayerError(error: androidx.media3.common.PlaybackException) {
                             runOnUiThread {
                                 playerView.visibility = View.GONE
-                                showFallbackLogo()
+                                finishIntroAfterError()
                             }
                             if (!isNavigated) {
                                 lifecycleScope.launch {
@@ -174,7 +183,7 @@ class SplashActivity : AppCompatActivity() {
 
         } catch (e: Exception) {
             playerView.visibility = View.GONE
-            showFallbackLogo()
+            finishIntroAfterError()
             if (!isNavigated) {
                 lifecycleScope.launch {
                     delay(2000)
@@ -194,31 +203,9 @@ class SplashActivity : AppCompatActivity() {
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
-    private fun showFallbackLogo() {
-        val container = findViewById<androidx.constraintlayout.widget.ConstraintLayout>(R.id.mainContainer)
-
-        val txtLogo = TextView(this).apply {
-            text = "K E L K I N"
-            textSize = 70f
-            setTextColor(resources.getColor(android.R.color.holo_orange_dark, theme))
-            typeface = resources.getFont(R.font.bebas_neue_rgular)
-        }
-
-        container.addView(txtLogo)
-
-        val params = txtLogo.layoutParams as androidx.constraintlayout.widget.ConstraintLayout.LayoutParams
-        params.bottomToBottom = androidx.constraintlayout.widget.ConstraintLayout.LayoutParams.PARENT_ID
-        params.topToTop = androidx.constraintlayout.widget.ConstraintLayout.LayoutParams.PARENT_ID
-        params.startToStart = androidx.constraintlayout.widget.ConstraintLayout.LayoutParams.PARENT_ID
-        params.endToEnd = androidx.constraintlayout.widget.ConstraintLayout.LayoutParams.PARENT_ID
-        txtLogo.layoutParams = params
-
-        if (!isNavigated) {
-            lifecycleScope.launch {
-                delay(2000)
-                navigateToMain()
-            }
-        }
+    private fun finishIntroAfterError() {
+        playerView.visibility = View.GONE
+        navigateToMain()
     }
 
     private fun getAppVersionName(): String {
@@ -230,29 +217,32 @@ class SplashActivity : AppCompatActivity() {
     private fun navigateToMain() {
         if (isNavigated) return
         isNavigated = true
-
-        try {
-            exoPlayer?.stop()
-            exoPlayer?.release()
-            exoPlayer = null
-        } catch (e: Exception) {}
-
-        val currentUser = FirebaseAuth.getInstance().currentUser
-
-        if (currentUser == null) {
-            startActivity(Intent(this, LoginActivity::class.java))
-            finish()
-        } else {
-            UserManager.checkUserActivationStatus { isActive ->
-                if (isActive) {
-                    startActivity(Intent(this, MainActivity::class.java))
-                    finish()
-                } else {
-                    startActivity(Intent(this, LoginActivity::class.java))
-                    finish()
-                }
-            }
+        exoPlayer?.release(); exoPlayer = null
+        lifecycleScope.launch {
+            val next = try {
+                if (FirebaseAuth.getInstance().currentUser != null && UserManager.activation() == UserManager.Activation.ACTIVE) MainActivity::class.java else LoginActivity::class.java
+            } catch (e: TimeoutCancellationException) { LoginActivity::class.java }
+            catch (e: CancellationException) { throw e }
+            catch (e: Exception) { LoginActivity::class.java }
+            startActivity(Intent(this@SplashActivity, next)); finish()
         }
+    }
+
+    // Intercept before PlayerView or another focused child consumes the remote OK.
+    override fun dispatchKeyEvent(event: android.view.KeyEvent): Boolean {
+        val confirm = event.keyCode in intArrayOf(
+            android.view.KeyEvent.KEYCODE_DPAD_CENTER,
+            android.view.KeyEvent.KEYCODE_ENTER,
+            android.view.KeyEvent.KEYCODE_NUMPAD_ENTER,
+            android.view.KeyEvent.KEYCODE_BUTTON_A
+        )
+        if (confirm) {
+            if (event.action == android.view.KeyEvent.ACTION_DOWN && event.repeatCount == 0) {
+                navigateToMain()
+            }
+            return true
+        }
+        return super.dispatchKeyEvent(event)
     }
 
     override fun onPause() {

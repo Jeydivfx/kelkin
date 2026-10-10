@@ -10,7 +10,7 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
 
     companion object {
         private const val DATABASE_NAME = "kelkin.db"
-        private const val DATABASE_VERSION = 7
+        private const val DATABASE_VERSION = 8
         const val TABLE_MOVIES = "movies"
         const val TABLE_CHANNELS = "channels"
         const val TABLE_CATEGORIES = "categories"
@@ -30,28 +30,36 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
     }
 
     override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
-        db.execSQL("DROP TABLE IF EXISTS $TABLE_MOVIES")
-        db.execSQL("DROP TABLE IF EXISTS $TABLE_CHANNELS")
-        db.execSQL("DROP TABLE IF EXISTS $TABLE_TV_CATEGORIES")
-        db.execSQL("DROP TABLE IF EXISTS $TABLE_SERIES_CATEGORIES")
-        db.execSQL("DROP TABLE IF EXISTS $TABLE_LANGUAGES")
-        db.execSQL("DROP TABLE IF EXISTS $TABLE_QUALITIES")
-        db.execSQL("DROP TABLE IF EXISTS $TABLE_SERIES")
-        db.execSQL("DROP TABLE IF EXISTS $TABLE_CATEGORIES")
-        db.execSQL("DROP TABLE IF EXISTS $TABLE_CREDENTIALS")
-        db.execSQL("DROP TABLE IF EXISTS $TABLE_STREAM_CONFIG")
-        onCreate(db)
+        // Preserve the version-7 catalog and configuration. Older installations are also
+        // repaired column-by-column, rather than dropping users' cached data.
+        createMissingTables(db)
+        val columns = mapOf(
+            "movies" to mapOf("remoteKey" to "TEXT DEFAULT ''", "posterUrl" to "TEXT DEFAULT ''", "lastPosition" to "INTEGER DEFAULT 0", "totalDuration" to "INTEGER DEFAULT 0", "voteAverage" to "REAL DEFAULT 0", "language" to "TEXT DEFAULT ''", "quality" to "TEXT DEFAULT ''"),
+            "series" to mapOf("remoteKey" to "TEXT DEFAULT ''", "posterUrl" to "TEXT DEFAULT ''", "seasons_json" to "TEXT DEFAULT '{}'", "lastPosition" to "INTEGER DEFAULT 0", "totalDuration" to "INTEGER DEFAULT 0", "voteAverage" to "REAL DEFAULT 0", "language" to "TEXT DEFAULT ''", "quality" to "TEXT DEFAULT ''"),
+            "channels" to mapOf("source" to "TEXT DEFAULT ''")
+        )
+        columns.forEach { (table, additions) ->
+            val existing = mutableSetOf<String>()
+            db.rawQuery("PRAGMA table_info($table)", null).use { c ->
+                while (c.moveToNext()) existing += c.getString(c.getColumnIndexOrThrow("name"))
+            }
+            additions.forEach { (column, definition) ->
+                if (column !in existing) db.execSQL("ALTER TABLE $table ADD COLUMN $column $definition")
+            }
+        }
     }
 
+    private fun createMissingTables(db: SQLiteDatabase) = createAllTables(db)
+
     private fun createAllTables(db: SQLiteDatabase) {
-        db.execSQL("CREATE TABLE $TABLE_CATEGORIES (id INTEGER PRIMARY KEY, name TEXT)")
-        db.execSQL("CREATE TABLE $TABLE_TV_CATEGORIES (id INTEGER PRIMARY KEY, name TEXT)")
-        db.execSQL("CREATE TABLE $TABLE_SERIES_CATEGORIES (id INTEGER PRIMARY KEY, name TEXT)")
-        db.execSQL("CREATE TABLE $TABLE_LANGUAGES (id INTEGER PRIMARY KEY, name TEXT)")
-        db.execSQL("CREATE TABLE $TABLE_QUALITIES (id INTEGER PRIMARY KEY, name TEXT)")
+        db.execSQL("CREATE TABLE IF NOT EXISTS $TABLE_CATEGORIES (id INTEGER PRIMARY KEY, name TEXT)")
+        db.execSQL("CREATE TABLE IF NOT EXISTS $TABLE_TV_CATEGORIES (id INTEGER PRIMARY KEY, name TEXT)")
+        db.execSQL("CREATE TABLE IF NOT EXISTS $TABLE_SERIES_CATEGORIES (id INTEGER PRIMARY KEY, name TEXT)")
+        db.execSQL("CREATE TABLE IF NOT EXISTS $TABLE_LANGUAGES (id INTEGER PRIMARY KEY, name TEXT)")
+        db.execSQL("CREATE TABLE IF NOT EXISTS $TABLE_QUALITIES (id INTEGER PRIMARY KEY, name TEXT)")
 
         db.execSQL("""
-            CREATE TABLE $TABLE_CHANNELS (
+            CREATE TABLE IF NOT EXISTS $TABLE_CHANNELS (
                 id INTEGER PRIMARY KEY, 
                 name_fa TEXT, 
                 category_id INTEGER, 
@@ -62,7 +70,7 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         """.trimIndent())
 
         db.execSQL("""
-            CREATE TABLE $TABLE_MOVIES (
+            CREATE TABLE IF NOT EXISTS $TABLE_MOVIES (
                 id INTEGER PRIMARY KEY, 
                 name_fa TEXT, 
                 description_fa TEXT, 
@@ -74,12 +82,13 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
                 totalDuration INTEGER,
                 voteAverage INTEGER,
                 language TEXT,
-                quality TEXT
+                quality TEXT,
+                remoteKey TEXT DEFAULT ''
             )
         """.trimIndent())
 
         db.execSQL("""
-            CREATE TABLE $TABLE_SERIES (
+            CREATE TABLE IF NOT EXISTS $TABLE_SERIES (
                 id INTEGER PRIMARY KEY, 
                 name_fa TEXT, 
                 description_fa TEXT, 
@@ -91,12 +100,13 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
                 voteAverage INTEGER,
                 seasons_json TEXT,
                 language TEXT,
-                quality TEXT
+                quality TEXT,
+                remoteKey TEXT DEFAULT ''
             )
         """.trimIndent())
 
         db.execSQL("""
-        CREATE TABLE $TABLE_STREAM_CONFIG (
+        CREATE TABLE IF NOT EXISTS $TABLE_STREAM_CONFIG (
             id INTEGER PRIMARY KEY DEFAULT 1, 
             userAgent TEXT, 
             referrer TEXT, 
@@ -104,7 +114,7 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         )
         """.trimIndent())
 
-        db.execSQL("CREATE TABLE $TABLE_CREDENTIALS (id INTEGER PRIMARY KEY DEFAULT 1, apiKey TEXT, userAgent TEXT)")
+        db.execSQL("CREATE TABLE IF NOT EXISTS $TABLE_CREDENTIALS (id INTEGER PRIMARY KEY DEFAULT 1, apiKey TEXT, userAgent TEXT)")
     }
 
     private fun insertDefaultData(db: SQLiteDatabase) {
@@ -158,8 +168,8 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
                         posterUrl = cursor.getString(posterUrlIndex) ?: "",
                         lastPosition = cursor.getLong(lastPosIndex),
                         totalDuration = cursor.getLong(totalDurIndex),
-                        language = cursor.getString(tmdbIdIndex) ?: "",
-                        quality = cursor.getString(tmdbIdIndex) ?: ""
+                        language = cursor.getString(languageIndex) ?: "",
+                        quality = cursor.getString(qualityIndex) ?: ""
                     )
                     movieList.add(movie)
                 } while (cursor.moveToNext())

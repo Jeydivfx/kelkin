@@ -14,3 +14,12 @@
 .cxx
 /app/google-services.json
 local.properties
+
+*.jks
+*.keystore
+/keystore.properties
+kelkin-before-fixes.zip
+app/google-services.json
+
+/artifacts/*.apk
+/emulator-test*.log

@@ -4,6 +4,7 @@ import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.focusGroup
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -13,6 +14,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.focusProperties
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalFocusManager
@@ -30,6 +34,7 @@ import kotlinx.coroutines.delay
 
 val VazirBold = FontFamily(Font(R.font.vazir_bold, FontWeight.Bold))
 
+@OptIn(androidx.compose.ui.ExperimentalComposeUiApi::class)
 @Composable
 fun Sidebar(
     navController: NavController,
@@ -47,7 +52,7 @@ fun Sidebar(
     val settingsFR = remember { FocusRequester() }
 
     val navBackStackEntry by navController.currentBackStackEntryAsState()
-    val currentId = navBackStackEntry?.destination?.id
+    val currentId = navBackStackEntry?.destination?.id ?: navController.currentDestination?.id
 
     val isInDetail = currentId == R.id.movieDetailFragment || currentId == R.id.seriesDetailsFragment
 
@@ -57,7 +62,8 @@ fun Sidebar(
             R.id.seriesFragment, R.id.seriesDetailsFragment -> seriesFR
             R.id.tvFragment -> tvFR
             R.id.searchFragment -> searchFR
-            R.id.settingsFragment -> settingsFR
+            R.id.settingsFragment, R.id.adminDashboardFragment, R.id.movieListFragment,
+            R.id.seriesListFragment, R.id.channelListFragment -> settingsFR
             else -> homeFR
         }
     }
@@ -67,7 +73,6 @@ fun Sidebar(
     LaunchedEffect(isExpanded) {
         if (isExpanded) {
             isStabilized = false
-            selectedItem.requestFocus()
             delay(250)
             isStabilized = true
         } else if (!isExpanded) {
@@ -92,14 +97,16 @@ fun Sidebar(
                 if (!focusState.hasFocus && isExpanded) {
                     onExpandedChange(false)
                 }
-            },
+            }
+            .focusProperties { enter = { selectedItem } }
+            .focusGroup(),
         horizontalAlignment = Alignment.End
     ) {
         SidebarItem(
             icon = R.drawable.ic_menu_home,
             text = "خانه",
             isExpanded = isExpanded,
-            isSelected = currentId == R.id.homeFragment,
+            isSelected = selectedItem === homeFR,
             focusRequester = homeFR,
             isDefaultItem = currentId == R.id.homeFragment,
             isStabilized = isStabilized,
@@ -116,7 +123,7 @@ fun Sidebar(
             icon = R.drawable.ic_menu_movie,
             text = "فیلم ها",
             isExpanded = isExpanded,
-            isSelected = currentId == R.id.moviesFragment || currentId == R.id.movieDetailFragment,
+            isSelected = selectedItem === movieFR,
             focusRequester = movieFR,
             isDefaultItem = currentId == R.id.moviesFragment || currentId == R.id.movieDetailFragment,
             isStabilized = isStabilized,
@@ -133,7 +140,7 @@ fun Sidebar(
             icon = R.drawable.ic_series,
             text = "سریال ها",
             isExpanded = isExpanded,
-            isSelected = currentId == R.id.seriesFragment || currentId == R.id.seriesDetailsFragment,
+            isSelected = selectedItem === seriesFR,
             focusRequester = seriesFR,
             isDefaultItem = currentId == R.id.seriesFragment || currentId == R.id.seriesDetailsFragment,
             isStabilized = isStabilized,
@@ -150,7 +157,7 @@ fun Sidebar(
             icon = R.drawable.ic_menu_tv,
             text = "تلویزیون",
             isExpanded = isExpanded,
-            isSelected = currentId == R.id.tvFragment,
+            isSelected = selectedItem === tvFR,
             focusRequester = tvFR,
             isDefaultItem = currentId == R.id.tvFragment,
             isStabilized = isStabilized,
@@ -167,7 +174,7 @@ fun Sidebar(
             icon = R.drawable.ic_menu_search,
             text = "جستجو",
             isExpanded = isExpanded,
-            isSelected = currentId == R.id.searchFragment,
+            isSelected = selectedItem === searchFR,
             focusRequester = searchFR,
             isDefaultItem = currentId == R.id.searchFragment,
             isStabilized = isStabilized,
@@ -186,7 +193,7 @@ fun Sidebar(
             icon = R.drawable.ic_menu_settings,
             text = "تنظیمات",
             isExpanded = isExpanded,
-            isSelected = currentId == R.id.settingsFragment,
+            isSelected = selectedItem === settingsFR,
             focusRequester = settingsFR,
             isDefaultItem = currentId == R.id.settingsFragment,
             isStabilized = isStabilized,
@@ -218,9 +225,9 @@ fun SidebarItem(
     val interactionSource = remember { MutableInteractionSource() }
     var isFocused by remember { mutableStateOf(false) }
 
-    val effectiveFocused = isFocused && (isStabilized || isDefaultItem)
+    val effectiveFocused = isFocused && isExpanded
 
-    val shouldShowSelected = isSelected || (isDefaultItem && !effectiveFocused)
+    val shouldShowSelected = !isExpanded && isSelected
 
     val backgroundColor = if (effectiveFocused) Color.White else Color.Transparent
 
@@ -243,6 +250,7 @@ fun SidebarItem(
             }
             .clip(RoundedCornerShape(8.dp))
             .background(backgroundColor)
+            .semantics { selected = if (isExpanded) isFocused else isSelected }
             .clickable(
                 interactionSource = interactionSource,
                 indication = null,
@@ -267,7 +275,7 @@ fun SidebarItem(
 
             Icon(
                 painter = painterResource(id = icon),
-                contentDescription = null,
+                contentDescription = text,
                 tint = contentColor,
                 modifier = Modifier.size(20.dp)
             )

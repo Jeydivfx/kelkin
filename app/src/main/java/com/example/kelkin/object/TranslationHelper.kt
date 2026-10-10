@@ -24,7 +24,7 @@ object TranslationHelper {
         "Kids" to "کودک",
         "News" to "خبر",
         "Reality" to "رئالیتی شو",
-        "Soap" to "پرهزینه صابونی",
+        "Soap" to "سریال ملودرام",
         "Talk" to "تاک شو",
         "War & Politics" to "جنگی، سیاسی",
         "TV Movie" to "فیلم تلویزیونی",

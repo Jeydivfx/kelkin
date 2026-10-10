@@ -1,8 +1,7 @@
 package com.example.kelkin.Fragments
 
-import android.graphics.Color
+import android.content.Intent
 import android.os.Bundle
-import android.util.Log
 import android.view.View
 import android.widget.Button
 import android.widget.GridLayout
@@ -13,155 +12,178 @@ import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.kelkin.Adapter.MovieAdapter
+import com.example.kelkin.DataClass.Movie
 import com.example.kelkin.MainActivity
+import com.example.kelkin.PlayerActivity
 import com.example.kelkin.R
 import com.example.kelkin.ViewModels.HomeViewModel
 import com.example.kelkin.databinding.FragmentSearchBinding
-import com.example.kelkin.utils.DatabaseHelper
-import kotlinx.coroutines.launch
+import com.example.kelkin.utils.*
+import com.google.gson.Gson
+import kotlinx.coroutines.*
 
 class SearchFragment : Fragment(R.layout.fragment_search) {
-
     private var _binding: FragmentSearchBinding? = null
     private val binding get() = _binding!!
     private lateinit var viewModel: HomeViewModel
     private lateinit var movieAdapter: MovieAdapter
-    private lateinit var dbHelper: DatabaseHelper
-
-
+    private lateinit var focusMemory: RecyclerFocusMemory
+    private var searchJob: Job? = null
+    private var results = emptyList<Movie>()
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
         _binding = FragmentSearchBinding.bind(view)
-
         viewModel = ViewModelProvider(requireActivity())[HomeViewModel::class.java]
-        dbHelper = DatabaseHelper(requireContext())
-
-        setupRecyclerView()
-        setupKeyboard()
-
-        binding.edtSearch.addTextChangedListener { text ->
-            performSearch(text.toString())
-        }
-
-        binding.edtSearch.requestFocus()
-    }
-
-    private fun setupRecyclerView() {
-        movieAdapter = MovieAdapter { movie ->
-            val bundle = Bundle().apply {
-                putSerializable("selected_movie", movie)
-            }
-            findNavController().navigate(R.id.action_searchFragment_to_movieDetailFragment, bundle)
-        }
-
-        binding.rvResults.apply {
-            layoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
-            adapter = movieAdapter
-            clipToPadding = false
-            setPadding(32, 0, 32, 0)
-        }
-    }
-
-    private fun performSearch(query: String) {
-        if (query.isEmpty()) {
-            movieAdapter.submitList(emptyList())
-            return
-        }
-
-        val results = dbHelper.searchMovies(query)
-
-        viewLifecycleOwner.lifecycleScope.launch {
-            try {
-                val hydratedMovies = results.map { movie ->
-
-                    if (!movie.tmdb_id.isNullOrEmpty()) {
-                        try {
-                            val details = viewModel.fetchMovieDetailsForPoster(movie.tmdb_id)
-                            movie.copy(
-                                posterUrl = if (movie.posterUrl.isNullOrEmpty()) (details.poster_path ?: "") else movie.posterUrl,
-                                voteAverage = if (details.vote_average > 0.0) details.vote_average else movie.voteAverage
-                            )
-                        } catch (e: Exception) {
-                            movie
-                        }
-                    } else {
-                        movie
+        movieAdapter = MovieAdapter { item ->
+            val args = Bundle()
+            when (item.contentType) {
+                "series" -> {
+                    val series = viewModel.seriesList.value.orEmpty().find { it.identity() == item.identity() }
+                    if (series != null) {
+                        args.putSerializable("selected_series", series)
+                        findNavController().navigate(R.id.seriesDetailsFragment, args)
                     }
                 }
-                movieAdapter.submitList(hydratedMovies)
-            } catch (e: Exception) {
-                Log.e("SearchFragment", "خطای دریافت اطلاعات: ${e.message}")
-                movieAdapter.submitList(results)
+                "channel" -> {
+                    val channel = viewModel.channels.value.orEmpty().find { it.id == item.id }
+                    if (channel != null) startActivity(Intent(requireContext(), PlayerActivity::class.java).apply {
+                        putExtra("channel_json", Gson().toJson(channel)); putExtra("video_url", channel.videoUrl)
+                        putExtra("is_live", true); putExtra("selected_category_id", -1L)
+                    })
+                }
+                else -> {
+                    args.putSerializable("selected_movie", item)
+                    findNavController().navigate(R.id.action_searchFragment_to_movieDetailFragment, args)
+                }
+            }
+        }
+        movieAdapter.showFullPoster = true
+        movieAdapter.fillGridCell = !com.example.kelkin.BuildConfig.IS_TV
+        binding.rvResults.layoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
+        binding.rvResults.adapter = movieAdapter
+        binding.edtSearch.showSoftInputOnFocus = !com.example.kelkin.BuildConfig.IS_TV
+        if (com.example.kelkin.BuildConfig.IS_TV) setupKeyboard()
+        else {
+            binding.gridKeyboard.visibility = View.GONE
+            binding.rvResults.configureCatalogGrid()
+            binding.edtSearch.setOnEditorActionListener { _, action, _ ->
+                if (action == android.view.inputmethod.EditorInfo.IME_ACTION_SEARCH) {
+                    (requireContext().getSystemService(android.content.Context.INPUT_METHOD_SERVICE) as android.view.inputmethod.InputMethodManager)
+                        .hideSoftInputFromWindow(binding.edtSearch.windowToken, 0)
+                    binding.edtSearch.clearFocus()
+                    true
+                } else false
+            }
+        }
+        focusMemory = RecyclerFocusMemory(this, binding.edtSearch)
+        focusMemory.track(binding.rvResults)
+        binding.edtSearch.setText(findNavController().currentBackStackEntry!!.savedStateHandle.get<String>("search_query").orEmpty())
+        binding.edtSearch.addTextChangedListener { search(it.toString()) }
+        viewModel.moviesList.observe(viewLifecycleOwner) { search(binding.edtSearch.text.toString()) }
+        viewModel.seriesList.observe(viewLifecycleOwner) { search(binding.edtSearch.text.toString()) }
+        viewModel.channels.observe(viewLifecycleOwner) { search(binding.edtSearch.text.toString()) }
+        viewModel.movieDetailsMap.observe(viewLifecycleOwner) { renderResults() }
+        viewModel.syncError.observe(viewLifecycleOwner) { renderResults() }
+        search(binding.edtSearch.text.toString())
+    }
+    private fun normalize(text: String) = text.replace('ي', 'ی').replace('ك', 'ک').trim().lowercase().replace(Regex("\\s+"), " ")
+    private fun search(query: String) {
+        findNavController().currentBackStackEntry?.savedStateHandle?.set("search_query", query)
+        searchJob?.cancel()
+        val normalized = normalize(query)
+        if (normalized.isBlank()) { results = emptyList(); renderResults(); return }
+        binding.txtResultTitle.text = "در حال جستجو…"
+        val movies = viewModel.moviesList.value.orEmpty().toList()
+        val series = viewModel.seriesList.value.orEmpty().map { it.asCard() }
+        val channels = viewModel.channels.value.orEmpty().map {
+            Movie(id = it.id.toLong(), name_fa = it.name_fa, posterUrl = it.logoUrl, videoUrl1 = it.videoUrl, contentType = "channel")
+        }
+        searchJob = viewLifecycleOwner.lifecycleScope.launch {
+            delay(250)
+            results = withContext(Dispatchers.Default) {
+                (movies + series + channels).filter {
+                    ensureActive()
+                    normalize(it.name_fa + " " + it.description_fa).contains(normalized)
+                }.sortedBy { !normalize(it.name_fa).startsWith(normalized) }
+            }
+            renderResults()
+            results.take(20).forEach {
+                if (it.contentType == "series") viewModel.fetchSeriesTmdbDetails(it.tmdb_id)
+                else if (it.contentType == "movie") viewModel.fetchTmdbDetails(it.tmdb_id)
             }
         }
     }
-
+    private fun renderResults() {
+        if (_binding == null) return
+        val details = viewModel.movieDetailsMap.value.orEmpty()
+        val display = results.map { item ->
+            val metadata = details[metadataKey(item.contentType, item.tmdb_id)]
+            item.copy(posterUrl = ImageUrls.poster(metadata?.poster_path ?: item.posterUrl).orEmpty(), voteAverage = metadata?.vote_average ?: item.voteAverage)
+        }
+        movieAdapter.submitList(display) {
+            val ui = _binding ?: return@submitList
+            focusMemory.restore()
+            // When results appear, reveal the whole poster row rather than its top edge.
+            if (display.isNotEmpty() && com.example.kelkin.BuildConfig.IS_TV) ui.rvResults.post {
+                if (_binding === ui) {
+                    val row = android.graphics.Rect()
+                    ui.rvResults.getDrawingRect(row)
+                    val scroll = ui.searchScrollView as? androidx.core.widget.NestedScrollView ?: return@post
+                    scroll.offsetDescendantRectToMyCoords(ui.rvResults, row)
+                    val bottom = scroll.scrollY + scroll.height - scroll.paddingBottom
+                    if (row.bottom > bottom) scroll.smoothScrollTo(0,
+                        (row.bottom - scroll.height + scroll.paddingBottom).coerceAtLeast(0))
+                }
+            }
+        }
+        binding.rvResults.visibility = if (display.isEmpty()) View.GONE else View.VISIBLE
+        binding.txtResultTitle.text = when {
+            binding.edtSearch.text.isNullOrBlank() -> "نام فیلم، سریال یا کانال را بنویسید"
+            display.isEmpty() -> viewModel.syncError.value ?: "نتیجه‌ای پیدا نشد؛ عبارت دیگری بنویسید."
+            else -> "${display.size} نتیجه"
+        }
+    }
     private fun setupKeyboard() {
         val grid = binding.gridKeyboard
-        val keys = "ا ب پ ت ث ج چ ح خ د ذ ر ز ژ س ش ص ض ط ظ ع غ ف ق ک گ ل م ن و ه ی ⌫".split(" ")
-
-        val row1 = keys.subList(0, 12)
-        val row2 = keys.subList(12, 24)
-        val row3 = keys.subList(24, keys.size)
-
-        fun addRow(list: List<String>) {
-            list.forEach { char ->
-                val action = if (char == "⌫") {
-                    { val text = binding.edtSearch.text.toString()
-                        if (text.isNotEmpty()) binding.edtSearch.setText(text.dropLast(1)) }
-                } else {
-                    { binding.edtSearch.append(char) }
+        grid.removeAllViews()
+        val letters = "ا ب پ ت ث ج چ ح خ د ذ ر ز ژ س ش ص ض ط ظ ع غ ف ق ک گ ل م ن و ه ی"
+        val keys = letters.split(" ") + (0..9).map { it.toString() } + listOf("فاصله", "⌫", "پاک‌کردن")
+        keys.forEach { key ->
+            val button = Button(requireContext()).apply {
+                text = when (key) {
+                    "پاک‌کردن" -> "پاک"
+                    else -> key
                 }
-                grid.addView(createButton(char, action))
+                contentDescription = when (key) {
+                    "⌫" -> "حذف آخرین حرف"
+                    "پاک‌کردن" -> "پاک کردن جستجو"
+                    else -> key
+                }
+                textSize = if (key.length > 2) 11f else 16f
+                includeFontPadding = false
+                isFocusable = true
+                minWidth = 0; minHeight = 0
+                setPadding(0, 0, 0, 0)
+                backgroundTintList = null
+                setBackgroundResource(R.drawable.selector_keyboard_key)
+                setTextColor(androidx.core.content.ContextCompat.getColorStateList(context, R.color.sl_text_high_contrast))
+                layoutParams = GridLayout.LayoutParams().apply {
+                    width = (40 * resources.displayMetrics.density).toInt()
+                    height = (36 * resources.displayMetrics.density).toInt()
+                    val margin = (2 * resources.displayMetrics.density).toInt()
+                    setMargins(margin, margin, margin, margin)
+                }
+                setOnClickListener {
+                    when (key) {
+                        "فاصله" -> binding.edtSearch.append(" ")
+                        "⌫" -> binding.edtSearch.setText(binding.edtSearch.text.toString().dropLast(1))
+                        "پاک‌کردن" -> binding.edtSearch.text.clear()
+                        else -> binding.edtSearch.append(key)
+                    }
+                }
             }
-        }
-
-        addRow(row1)
-        addRow(row2)
-        addRow(row3)
-    }
-
-    private fun createButton(text: String, onClick: () -> Unit): Button {
-        return Button(requireContext()).apply {
-            this.text = text
-
-
-            val sizeInPx = (40 * resources.displayMetrics.density).toInt()
-            val marginInPx = (4 * resources.displayMetrics.density).toInt()
-
-            val params = GridLayout.LayoutParams().apply {
-                width = sizeInPx
-                height = sizeInPx
-                setMargins(marginInPx, marginInPx, marginInPx, marginInPx)
-            }
-            layoutParams = params
-
-            setBackgroundResource(R.drawable.selector_keyboard_key)
-            setTextColor(Color.WHITE)
-            textSize = 16f
-            isFocusable = true
-
-            setOnFocusChangeListener { v, hasFocus ->
-                (v as Button).setTextColor(if (hasFocus) Color.BLACK else Color.WHITE)
-                v.animate().scaleX(if (hasFocus) 1.1f else 1.0f)
-                    .scaleY(if (hasFocus) 1.1f else 1.0f)
-                    .setDuration(150).start()
-            }
-            setOnClickListener { onClick() }
+            grid.addView(button)
         }
     }
-
-    private fun addSpecialKey(labelText: String, onClick: () -> Unit) {
-        binding.gridKeyboard.addView(createButton(labelText, onClick))
-    }
-
-    override fun onDestroyView() {
-        super.onDestroyView()
-        _binding = null
-    }
-
-    override fun onResume() {
-        super.onResume()
-        (requireActivity() as? MainActivity)?.collapseSidebar()
-    }
+    override fun onResume() { super.onResume(); (activity as? MainActivity)?.collapseSidebar() }
+    override fun onDestroyView() { searchJob?.cancel(); _binding = null; super.onDestroyView() }
 }
