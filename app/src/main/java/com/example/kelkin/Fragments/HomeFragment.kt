@@ -72,6 +72,13 @@ class HomeFragment : Fragment() {
             if (ui.heroSection.layoutParams.height != height) {
                 ui.heroSection.layoutParams = ui.heroSection.layoutParams.apply { this.height = height }
             }
+            if (com.example.kelkin.BuildConfig.IS_TV) {
+                // Let the soft fade extend slightly behind the top of the first poster row.
+                val backdropHeight = height + headingHeight + (32 * density).toInt()
+                if (ui.heroImage.layoutParams.height != backdropHeight) {
+                    ui.heroImage.layoutParams = ui.heroImage.layoutParams.apply { this.height = backdropHeight }
+                }
+            }
         }
         ui.root.addOnLayoutChangeListener { _, _, _, _, _, _, _, _, _ -> resizeHero() }
         ui.heroContent.addOnLayoutChangeListener { _, _, _, _, _, _, _, _, _ -> resizeHero() }

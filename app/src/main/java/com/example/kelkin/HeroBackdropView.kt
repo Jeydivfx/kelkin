@@ -28,7 +28,16 @@ class HeroBackdropView @JvmOverloads constructor(
         super.onSizeChanged(w, h, oldw, oldh)
         if (w <= 0 || h <= 0) return
         val fadeStart = (h - 280 * resources.displayMetrics.density).coerceAtLeast(h * 0.30f)
-        mask.shader = LinearGradient(0f, fadeStart, 0f, h.toFloat(),
+        mask.shader = if (BuildConfig.IS_TV) {
+            // Sample a smooth curve so the artwork has no abrupt fade boundary.
+            val stops = FloatArray(17) { it / 16f }
+            val colors = IntArray(stops.size) { index ->
+                val t = stops[index]
+                val opacity = 1f - t * t * (3f - 2f * t)
+                Color.argb((opacity * 255).toInt(), 255, 255, 255)
+            }
+            LinearGradient(0f, h * 0.36f, 0f, h.toFloat(), colors, stops, Shader.TileMode.CLAMP)
+        } else LinearGradient(0f, fadeStart, 0f, h.toFloat(),
             Color.WHITE, Color.TRANSPARENT, Shader.TileMode.CLAMP)
         val rightFadeWidth = (180 * resources.displayMetrics.density).coerceAtMost(w * 0.35f)
         rightMask.shader = LinearGradient(w - rightFadeWidth, 0f, w.toFloat(), 0f,

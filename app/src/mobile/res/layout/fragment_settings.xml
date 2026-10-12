@@ -4,7 +4,7 @@
     <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:text="تجربهٔ تماشا را به سلیقهٔ خود تنظیم کنید." android:textColor="@color/text_gray" android:textSize="16sp" android:fontFamily="@font/yekanbakh_regular" />
     <ScrollView android:id="@+id/settingsScrollView" android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:layout_marginTop="28dp" android:fillViewport="true" android:focusable="false">
         <LinearLayout android:id="@+id/settingsContainer" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:baselineAligned="false">
-            <LinearLayout android:layout_width="match_parent" android:layout_weight="0" android:layout_height="wrap_content" android:layout_margin="0dp" android:orientation="vertical" android:layout_marginTop="16dp">
+            <LinearLayout android:layout_width="match_parent" android:layout_weight="0" android:layout_height="wrap_content" android:orientation="vertical" android:layout_marginTop="16dp">
                 <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="زیرنویس" android:textColor="@color/yellow" android:textSize="20sp" android:fontFamily="@font/yekanbakh_bold" />
                 <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="6dp" android:layout_marginBottom="18dp" android:text="خوانایی متناسب با تماشای شما" android:textColor="@color/text_gray" android:textSize="13sp" android:fontFamily="@font/yekanbakh_regular" />
                 <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:background="@drawable/bg_admin_surface" android:padding="6dp" android:orientation="vertical">
@@ -25,7 +25,7 @@
                     </LinearLayout>
                 </LinearLayout>
             </LinearLayout>
-            <LinearLayout android:layout_width="match_parent" android:layout_weight="0" android:layout_height="wrap_content" android:layout_margin="0dp" android:orientation="vertical" android:layout_marginTop="16dp">
+            <LinearLayout android:layout_width="match_parent" android:layout_weight="0" android:layout_height="wrap_content" android:orientation="vertical" android:layout_marginTop="32dp">
                 <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="برنامه" android:textColor="@color/yellow" android:textSize="20sp" android:fontFamily="@font/yekanbakh_bold" />
                 <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="6dp" android:layout_marginBottom="18dp" android:text="به‌روزرسانی و نگهداری" android:textColor="@color/text_gray" android:textSize="13sp" android:fontFamily="@font/yekanbakh_regular" />
                 <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:background="@drawable/bg_admin_surface" android:padding="6dp" android:orientation="vertical">
@@ -42,7 +42,7 @@
                     </LinearLayout>
                 </LinearLayout>
             </LinearLayout>
-            <LinearLayout android:layout_width="match_parent" android:layout_weight="0" android:layout_height="wrap_content" android:layout_margin="0dp" android:orientation="vertical" android:layout_marginTop="16dp">
+            <LinearLayout android:layout_width="match_parent" android:layout_weight="0" android:layout_height="wrap_content" android:orientation="vertical" android:layout_marginTop="32dp">
                 <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="حساب و مدیریت" android:textColor="@color/yellow" android:textSize="20sp" android:fontFamily="@font/yekanbakh_bold" />
                 <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="6dp" android:layout_marginBottom="18dp" android:text="دسترسی و ورود" android:textColor="@color/text_gray" android:textSize="13sp" android:fontFamily="@font/yekanbakh_regular" />
                 <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:background="@drawable/bg_admin_surface" android:padding="6dp" android:orientation="vertical">
