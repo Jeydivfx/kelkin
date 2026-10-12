@@ -224,6 +224,14 @@ class PlayerActivity : AppCompatActivity() {
         }
         val token = generation
         native.addListener(object : Player.Listener {
+            override fun onTrackSelectionParametersChanged(parameters: androidx.media3.common.TrackSelectionParameters) {
+                if (native !== player || released) return
+                val normalized = com.example.kelkin.utils.normalizeSubtitleSelection(parameters)
+                if (normalized != parameters) native.trackSelectionParameters = normalized
+                if (normalized.disabledTrackTypes.contains(C.TRACK_TYPE_TEXT)) {
+                    playerView.subtitleView?.setCues(emptyList())
+                }
+            }
             override fun onPlaybackStateChanged(state: Int) {
                 if (native !== player || token != generation || released) return
                 when (state) {

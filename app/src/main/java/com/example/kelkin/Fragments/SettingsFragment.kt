@@ -30,8 +30,15 @@ class SettingsFragment : Fragment(R.layout.fragment_settings) {
     private var adminDialog: androidx.appcompat.app.AlertDialog? = null
     private var messageDialog: androidx.appcompat.app.AlertDialog? = null
     private var choiceDialog: androidx.appcompat.app.AlertDialog? = null
+    private lateinit var appUpdates: com.example.kelkin.utils.AppUpdates
+    private var updateJob: Job? = null
+    private var downloadJob: Job? = null
+    private var readyAnnounced = false
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         _binding = FragmentSettingsBinding.bind(view)
+        appUpdates = com.example.kelkin.utils.AppUpdates(requireContext())
+        binding.txtAppUpdateStatus.text = "نسخهٔ فعلی ${appUpdates.versionName} • بررسی نسخهٔ جدید"
+        binding.cardAppUpdate.setOnClickListener { checkAppUpdate() }
         RecyclerFocusMemory(this, binding.cardSubtitleSize)
         loadSubtitleSettingsUI()
         val prefs = requireContext().getSharedPreferences("subtitle_prefs", Context.MODE_PRIVATE)
@@ -57,12 +64,6 @@ class SettingsFragment : Fragment(R.layout.fragment_settings) {
                 }
             }
         }
-        binding.cardAbout.setOnClickListener {
-            showSettingsMessage("کلکین، پنجرهٔ شما",
-                if (com.example.kelkin.BuildConfig.IS_TV) "برای بازکردن کانال‌ها و انتخاب فیلم و سریال از کلیدهای جهت و OK استفاده کنید. در پخش زنده، بالا فهرست سورس و پایین فهرست کانال را باز می‌کند. با نگه‌داشتن OK کانال را نشان کنید."
-                else "برای انتخاب فیلم، سریال یا کانال روی کارت آن بزنید. فهرست‌ها را با کشیدن جابه‌جا کنید. در پلیر با لمس تصویر کنترل پخش و زیرنویس نمایش داده می‌شود؛ دکمه‌های کانال‌ها و سورس‌ها برای پخش زنده هستند.",
-                "باشه")
-        }
         binding.adminSignInAction.setOnClickListener { showAdminAuthDialog() }
         binding.accountSignOutAction.setOnClickListener {
             showSettingsMessage("خروج از حساب", "از این حساب خارج می‌شوید؟", "خروج", "انصراف") {
@@ -74,7 +75,8 @@ class SettingsFragment : Fragment(R.layout.fragment_settings) {
     }
 
     private fun showSettingsMessage(title: String, message: String, confirm: String,
-                                    cancel: String? = null, onConfirm: () -> Unit = {}) {
+                                    cancel: String? = null, focusOrigin: View? = view?.findFocus(),
+                                    onConfirm: () -> Unit = {}) {
         val context = requireContext()
         val density = resources.displayMetrics.density
         fun dp(value: Int) = (value * density).toInt()
@@ -120,13 +122,19 @@ class SettingsFragment : Fragment(R.layout.fragment_settings) {
             setPadding(dp(12), 0, dp(12), 0)
             isFocusableInTouchMode = true
             setOnClickListener { dialog.dismiss(); click() }
-            actions.addView(this, LinearLayout.LayoutParams(dp(128), dp(48)).apply { marginEnd = dp(12) })
+            val mobile = !com.example.kelkin.BuildConfig.IS_TV
+            actions.addView(this, LinearLayout.LayoutParams(if (mobile) 0 else dp(128), dp(48), if (mobile) 1f else 0f).apply { marginEnd = dp(8) })
         }
         val positive = action(confirm, onConfirm)
         val negative = cancel?.let { action(it) {} }
         messageDialog?.dismiss()
         messageDialog = dialog
-        dialog.setOnDismissListener { if (messageDialog === dialog) messageDialog = null }
+        dialog.setOnDismissListener {
+            if (messageDialog === dialog) messageDialog = null
+            if (com.example.kelkin.BuildConfig.IS_TV && focusOrigin?.isAttachedToWindow == true) {
+                focusOrigin.requestFocus()
+            }
+        }
         dialog.show()
         dialog.window?.setLayout(minOf(dp(560), resources.displayMetrics.widthPixels - dp(64)), -2)
         // Keep the footer outside the scroll region even when the description is long.
@@ -207,6 +215,107 @@ class SettingsFragment : Fragment(R.layout.fragment_settings) {
         dialog.setOnDismissListener { job?.cancel(); adminDialog = null }
         dialog.show(); email.requestFocus()
     }
-    override fun onResume() { super.onResume(); (activity as? MainActivity)?.collapseSidebar() }
-    override fun onDestroyView() { messageDialog?.dismiss(); choiceDialog?.dismiss(); adminDialog?.dismiss(); _binding = null; super.onDestroyView() }
+    private fun showUpdateMessage(title: String, message: String, confirm: String,
+                                  cancel: String? = null, onConfirm: () -> Unit = {}) {
+        val origin = _binding?.cardAppUpdate ?: return
+        if (com.example.kelkin.BuildConfig.IS_TV) origin.requestFocus()
+        showSettingsMessage(title, message, confirm, cancel, origin, onConfirm)
+    }
+
+    private fun checkAppUpdate() {
+        if (appUpdates.hasDownload) { monitorDownload(true); return }
+        if (updateJob?.isActive == true) return
+        updateJob = viewLifecycleOwner.lifecycleScope.launch {
+            binding.cardAppUpdate.isClickable = false
+            binding.txtAppUpdateStatus.text = "در حال بررسی نسخهٔ جدید…"
+            try {
+                val release = appUpdates.check()
+                if (release == null) {
+                    binding.txtAppUpdateStatus.text = "نسخهٔ ${appUpdates.versionName} به‌روز است"
+                    showUpdateMessage("به‌روزرسانی برنامه", "آخرین نسخه روی دستگاه شما نصب است.", "باشه")
+                } else {
+                    binding.txtAppUpdateStatus.text = "نسخهٔ ${release.name} در دسترس است"
+                    showUpdateMessage("نسخهٔ جدید ${release.name}",
+                        release.notes.take(1000).ifBlank { "نسخهٔ جدید آمادهٔ دانلود است." } +
+                            "\nدانلود در پس‌زمینه انجام می‌شود؛ نصب با تأیید شما خواهد بود.", "دانلود", "بعداً") {
+                        try { appUpdates.download(release); readyAnnounced = false; monitorDownload() }
+                        catch (e: Exception) { showUpdateMessage("دانلود انجام نشد", e.message ?: "دوباره تلاش کنید.", "باشه") }
+                    }
+                }
+            } catch (e: TimeoutCancellationException) {
+                binding.txtAppUpdateStatus.text = "زمان بررسی نسخه تمام شد؛ دوباره تلاش کنید"
+                showUpdateMessage("به‌روزرسانی برنامه", "اتصال اینترنت را بررسی کنید و دوباره تلاش کنید.", "باشه")
+            } catch (e: CancellationException) { throw e }
+            catch (e: Exception) {
+                binding.txtAppUpdateStatus.text = "بررسی نسخه انجام نشد"
+                showUpdateMessage("به‌روزرسانی برنامه", e.message ?: "اتصال اینترنت را بررسی کنید.", "باشه")
+            } finally { _binding?.cardAppUpdate?.isClickable = true }
+        }
+    }
+
+    private fun monitorDownload(showReady: Boolean = false) {
+        if (!appUpdates.hasDownload || downloadJob?.isActive == true) return
+        downloadJob = viewLifecycleOwner.lifecycleScope.launch {
+            while (appUpdates.hasDownload) {
+                val downloadState = runCatching { appUpdates.status() }.getOrElse {
+                    com.example.kelkin.utils.UpdateDownload.Failed("وضعیت دانلود در دسترس نیست؛ دوباره تلاش کنید.")
+                }
+                when (val state = downloadState) {
+                    is com.example.kelkin.utils.UpdateDownload.Progress -> {
+                        binding.txtAppUpdateStatus.text = "دانلود نسخهٔ جدید…" + (state.percent?.let { " $it٪" } ?: "")
+                        delay(1000)
+                    }
+                    is com.example.kelkin.utils.UpdateDownload.Failed -> {
+                        appUpdates.discard()
+                        binding.txtAppUpdateStatus.text = state.reason
+                        showUpdateMessage("دانلود انجام نشد", state.reason, "باشه")
+                        return@launch
+                    }
+                    is com.example.kelkin.utils.UpdateDownload.Ready -> {
+                        binding.txtAppUpdateStatus.text = "دانلود کامل شد؛ برای نصب بزنید"
+                        if (showReady || !readyAnnounced) {
+                            readyAnnounced = true
+                            showUpdateMessage("به‌روزرسانی آماده است", "فایل دانلود شد. برای نصب نسخهٔ جدید ادامه دهید.", "نصب", "بعداً") {
+                                installUpdate(state.file)
+                            }
+                        }
+                        return@launch
+                    }
+                }
+            }
+        }
+    }
+
+    private fun installUpdate(file: java.io.File) {
+        if (updateJob?.isActive == true) return
+        updateJob = viewLifecycleOwner.lifecycleScope.launch {
+            binding.cardAppUpdate.isClickable = false
+            try {
+                binding.txtAppUpdateStatus.text = "بررسی صحت و امضای فایل…"
+                appUpdates.verify(file)
+                if (!appUpdates.canInstall()) {
+                    showUpdateMessage("اجازهٔ نصب به‌روزرسانی", "در صفحهٔ بعد اجازهٔ نصب از کلکین را فعال کنید، سپس برگردید و دوباره نصب را بزنید.", "ادامه", "بعداً") {
+                        runCatching { startActivity(appUpdates.permissionIntent()) }.onFailure {
+                            showUpdateMessage("اجازهٔ نصب", "اجازهٔ نصب برنامه‌های ناشناس را در تنظیمات دستگاه فعال کنید.", "باشه")
+                        }
+                    }
+                } else startActivity(appUpdates.installIntent(file))
+                binding.txtAppUpdateStatus.text = "فایل آمادهٔ نصب است؛ برای نصب بزنید"
+            } catch (e: CancellationException) { throw e }
+            catch (e: Exception) {
+                appUpdates.discard()
+                binding.txtAppUpdateStatus.text = "نصب انجام نشد؛ دوباره بررسی کنید"
+                showUpdateMessage("نصب انجام نشد", e.message ?: "فایل یا نصب‌کنندهٔ دستگاه در دسترس نیست.", "باشه")
+            } finally { _binding?.cardAppUpdate?.isClickable = true }
+        }
+    }
+    override fun onResume() {
+        super.onResume(); (activity as? MainActivity)?.collapseSidebar()
+        if (::appUpdates.isInitialized && _binding != null) monitorDownload()
+    }
+    override fun onPause() { downloadJob?.cancel(); super.onPause() }
+    override fun onDestroyView() {
+        updateJob?.cancel(); downloadJob?.cancel()
+        messageDialog?.dismiss(); choiceDialog?.dismiss(); adminDialog?.dismiss(); _binding = null; super.onDestroyView()
+    }
 }
