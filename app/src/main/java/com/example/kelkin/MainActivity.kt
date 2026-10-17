@@ -22,10 +22,16 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
     private var isSidebarExpanded = mutableStateOf(false)
+    private var sidebarNavigationPending = false
 
     private val destinationListener = NavController.OnDestinationChangedListener { _, destination, _ ->
+        if (BuildConfig.IS_TV) {
+            sidebarNavigationPending = true
+            binding.composeSidebar.descendantFocusability = android.view.ViewGroup.FOCUS_BLOCK_DESCENDANTS
+            binding.composeSidebar.clearFocus()
+        }
         isSidebarExpanded.value = false
-        val inAdmin = destination.id in setOf(R.id.adminDashboardFragment, R.id.movieListFragment, R.id.seriesListFragment, R.id.channelListFragment)
+        val inAdmin = destination.id in setOf(R.id.adminDashboardFragment, R.id.movieListFragment, R.id.seriesListFragment, R.id.channelListFragment, R.id.adminHeroFragment)
         binding.composeSidebar.visibility = if (!BuildConfig.IS_TV || inAdmin) android.view.View.GONE else android.view.View.VISIBLE
         val detail = !BuildConfig.IS_TV || destination.id in setOf(R.id.movieDetailFragment, R.id.seriesDetailsFragment)
         if (!BuildConfig.IS_TV) {
@@ -33,7 +39,7 @@ class MainActivity : AppCompatActivity() {
                 val selected = when (destination.id) {
                     R.id.movieDetailFragment -> R.id.moviesFragment
                     R.id.seriesDetailsFragment -> R.id.seriesFragment
-                    R.id.adminDashboardFragment, R.id.movieListFragment, R.id.seriesListFragment, R.id.channelListFragment -> R.id.settingsFragment
+                    R.id.adminDashboardFragment, R.id.movieListFragment, R.id.seriesListFragment, R.id.channelListFragment, R.id.adminHeroFragment -> R.id.settingsFragment
                     else -> destination.id
                 }
                 val rootPage = destination.id in setOf(R.id.homeFragment, R.id.moviesFragment, R.id.seriesFragment, R.id.tvFragment)
@@ -85,11 +91,22 @@ class MainActivity : AppCompatActivity() {
                     if (f.parentFragment === host) syncPageBackground(v)
                 }
                 override fun onFragmentResumed(fm: androidx.fragment.app.FragmentManager, f: androidx.fragment.app.Fragment) {
-                    if (f.parentFragment === host) f.view?.let { syncPageBackground(it) }
+                    if (f.parentFragment === host) f.view?.let { page ->
+                        syncPageBackground(page)
+                        page.post {
+                            if (BuildConfig.IS_TV && f.isResumed && f === host.childFragmentManager.primaryNavigationFragment) {
+                                if (!page.hasFocus()) page.requestFocus(android.view.View.FOCUS_FORWARD)
+                                binding.composeSidebar.descendantFocusability = android.view.ViewGroup.FOCUS_AFTER_DESCENDANTS
+                                sidebarNavigationPending = false
+                            }
+                        }
+                    }
                 }
             }, false
         )
-        host.childFragmentManager.primaryNavigationFragment?.view?.let { syncPageBackground(it) }
+        host.childFragmentManager.primaryNavigationFragment?.let { fragment ->
+            fragment.view?.let { syncPageBackground(it) }
+        }
         binding.composeSidebar.setBackgroundColor(android.graphics.Color.TRANSPARENT)
         binding.composeSidebar.addOnLayoutChangeListener { _, _, _, _, _, _, _, _, _ ->
             host.childFragmentManager.primaryNavigationFragment?.view?.let { insetDetailContent(it) }
@@ -112,7 +129,7 @@ class MainActivity : AppCompatActivity() {
                 },
                 isExpanded = isSidebarExpanded.value,
                 onExpandedChange = { expanded ->
-                    isSidebarExpanded.value = expanded
+                    if (!expanded || !sidebarNavigationPending) isSidebarExpanded.value = expanded
                 }
             )
         }

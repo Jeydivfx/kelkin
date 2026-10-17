@@ -152,4 +152,7 @@
 
     </fragment>
 
+    <fragment android:id="@+id/adminHeroFragment"
+        android:name="com.example.kelkin.Fragments.AdminHeroFragment"
+        android:label="انتخاب هرو بنر" tools:layout="@layout/fragment_admin_hero" />
 </navigation>

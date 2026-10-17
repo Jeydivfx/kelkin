@@ -193,7 +193,7 @@ class PlayerActivity : AppCompatActivity() {
                 if (headers.origin.isNotBlank()) put("Origin", headers.origin)
             })
         val selector = DefaultTrackSelector(this).apply {
-            parameters = buildUponParameters().setPreferredAudioLanguages("fa", "en").setPreferredTextLanguages("fa", "en").setTrackTypeDisabled(C.TRACK_TYPE_TEXT, false).build()
+            parameters = buildUponParameters().setPreferredAudioLanguages("fa", "en").setPreferredTextLanguages("fa", "en").setTrackTypeDisabled(C.TRACK_TYPE_TEXT, true).build()
         }
         val native = ExoPlayer.Builder(this).setTrackSelector(selector)
             .setMediaSourceFactory(DefaultMediaSourceFactory(dataSource)).build()
@@ -209,6 +209,7 @@ class PlayerActivity : AppCompatActivity() {
         playerView.findViewById<android.widget.ProgressBar>(androidx.media3.ui.R.id.exo_buffering)?.indeterminateTintList =
             android.content.res.ColorStateList.valueOf(androidx.core.content.ContextCompat.getColor(this, R.color.yellow))
         playerView.player = native
+        if (BuildConfig.IS_TV) applyNeutralPlayerFocus(playerView)
         playerView.useController = !live || !BuildConfig.IS_TV
         playerView.setShowBuffering(PlayerView.SHOW_BUFFERING_WHEN_PLAYING)
         if (!live) {
@@ -267,6 +268,32 @@ class PlayerActivity : AppCompatActivity() {
         watchConnection(token)
         if (live) binding.root.requestFocus() else playerView.requestFocus()
     }
+    private fun applyNeutralPlayerFocus(playerView: PlayerView) {
+        // Retain the platform indicator and icon artwork; use the same neutral color on OK and focus.
+        val indicatorColors = android.content.res.ColorStateList(
+            arrayOf(intArrayOf(android.R.attr.state_pressed), intArrayOf(android.R.attr.state_focused), intArrayOf()),
+            intArrayOf(0xB0999999.toInt(), 0xB0999999.toInt(), android.graphics.Color.TRANSPARENT)
+        )
+        fun tintIndicator(drawable: android.graphics.drawable.Drawable?) {
+            when (drawable) {
+                is android.graphics.drawable.RippleDrawable -> {
+                    drawable.mutate()
+                    drawable.setColor(indicatorColors)
+                }
+                is android.graphics.drawable.InsetDrawable -> tintIndicator(drawable.drawable)
+                is android.graphics.drawable.LayerDrawable ->
+                    (0 until drawable.numberOfLayers).forEach { tintIndicator(drawable.getDrawable(it)) }
+            }
+        }
+        fun visit(view: View) {
+            tintIndicator(view.background)
+            if (view is android.view.ViewGroup) {
+                (0 until view.childCount).forEach { visit(view.getChildAt(it)) }
+            }
+        }
+        playerView.findViewById<View>(androidx.media3.ui.R.id.exo_controller)?.let { visit(it) }
+    }
+
     private fun playWeb(position: Long) {
         session?.release(); session = null
         player?.release(); player = null

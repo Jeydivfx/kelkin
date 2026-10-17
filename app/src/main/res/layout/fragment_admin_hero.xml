@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent" android:layout_height="match_parent" android:orientation="vertical"
+    android:layoutDirection="rtl" android:padding="16dp" android:background="@drawable/bg_catalog_page">
+    <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="انتخاب هرو بنر"
+        android:textSize="26sp" android:textColor="@color/text_white" android:fontFamily="@font/yekanbakh_bold" />
+    <TextView android:id="@+id/currentHero" android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:layout_marginTop="6dp" android:text="در حال دریافت انتخاب فعلی…" android:textSize="14sp"
+        android:textColor="@color/text_gray" android:fontFamily="@font/yekanbakh_regular" />
+    <EditText android:id="@+id/heroSearch" android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:minHeight="48dp" android:layout_marginTop="12dp" android:hint="جست‌وجوی فیلم برای هرو"
+        android:inputType="text" android:maxLines="1" android:imeOptions="actionSearch" android:gravity="right|center_vertical"
+        android:textDirection="rtl" android:textColor="@color/text_white" android:textColorHint="@color/text_gray"
+        android:fontFamily="@font/yekanbakh_regular" android:textSize="15sp" />
+    <TextView android:id="@+id/heroStatus" android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:layout_marginTop="8dp" android:text="فیلم را انتخاب کنید، سپس ذخیره را بزنید."
+        android:textColor="@color/yellow" android:fontFamily="@font/yekanbakh_regular" android:textSize="14sp" />
+    <ProgressBar android:id="@+id/heroLoading" android:layout_width="32dp" android:layout_height="32dp"
+        android:layout_gravity="center_horizontal" android:indeterminateTint="@color/yellow" />
+    <androidx.recyclerview.widget.RecyclerView android:id="@+id/heroMovies" android:layout_width="match_parent"
+        android:layout_height="0dp" android:layout_weight="1" android:layout_marginTop="8dp"
+        android:clipToPadding="false" android:clipChildren="false" android:paddingVertical="12dp"
+        android:focusable="false" android:nextFocusUp="@id/heroSearch" android:nextFocusDown="@id/saveHero" />
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal"
+        android:layout_marginTop="8dp">
+        <com.google.android.material.button.MaterialButton android:id="@+id/saveHero" android:layout_width="0dp"
+            android:layout_weight="1" android:layout_height="wrap_content" android:minHeight="52dp" android:text="ذخیرهٔ هرو"
+            android:layout_marginEnd="8dp" android:fontFamily="@font/yekanbakh_bold" android:textColor="@color/sl_text_high_contrast"
+            android:background="@drawable/sl_button_high_contrast" android:backgroundTint="@null" app:backgroundTint="@null"
+            android:stateListAnimator="@null" android:nextFocusUp="@id/heroMovies" />
+        <com.google.android.material.button.MaterialButton android:id="@+id/heroBack" android:layout_width="0dp"
+            android:layout_weight="1" android:layout_height="wrap_content" android:minHeight="52dp" android:text="بازگشت"
+            android:fontFamily="@font/yekanbakh_bold" android:textColor="@color/sl_text_high_contrast"
+            android:background="@drawable/sl_button_high_contrast" android:backgroundTint="@null" app:backgroundTint="@null"
+            android:stateListAnimator="@null" android:nextFocusUp="@id/heroMovies" />
+    </LinearLayout>
+</LinearLayout>

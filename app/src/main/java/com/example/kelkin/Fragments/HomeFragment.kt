@@ -120,6 +120,7 @@ class HomeFragment : Fragment() {
         }
     }
     private fun observeData() {
+        viewModel.heroMovieKey.observe(viewLifecycleOwner) { renderUI() }
         viewModel.moviesList.observe(viewLifecycleOwner) { movies ->
             movies.orEmpty().sortedByDescending { it.id }.take(10).forEach { viewModel.fetchTmdbDetails(it.tmdb_id) }
             renderUI()
@@ -189,9 +190,10 @@ class HomeFragment : Fragment() {
             binding.emptyMylistText.visibility = View.GONE
         }
 
-        val latest = movies.maxByOrNull { it.id }
-        if (latest != null) {
-            updateHeroBanner(details[metadataKey("movie", latest.tmdb_id)], latest)
+        val featured = selectHeroMovie(movies, viewModel.heroMovieKey.value)
+        if (featured != null) {
+            viewModel.fetchTmdbDetails(featured.tmdb_id)
+            updateHeroBanner(details[metadataKey("movie", featured.tmdb_id)], featured)
         }
     }
 

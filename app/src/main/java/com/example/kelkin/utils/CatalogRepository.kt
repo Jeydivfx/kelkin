@@ -70,6 +70,7 @@ class CatalogRepository private constructor(private val application: Application
         startSyncLanguages(); startSyncQualities(); startSyncMovies(); startSyncCategories()
         startSyncChannels(); startSyncTvCategories(); startSyncSeries(); startSyncSeriesCategories()
         syncStreamHeaders()
+        syncHeroSelection()
     }
     private val dbHelper = DatabaseHelper(application)
     private val database = FirebaseDatabase.getInstance().reference
@@ -81,6 +82,7 @@ class CatalogRepository private constructor(private val application: Application
     val credentials = MutableLiveData<Credentials>()
     val movieDetailsMap = MutableLiveData<Map<String, TmdbMovieDetails>>()
     val streamHeaders = MutableLiveData<StreamHeaders>()
+    val heroMovieKey = MutableLiveData<String?>(prefs.getString("hero_movie_key", null))
     private val detailsCache = mutableMapOf<String, TmdbMovieDetails>()
     private val _myList = MutableLiveData<MutableList<Movie>>(mutableListOf())
     val myList: LiveData<MutableList<Movie>> get() = _myList
@@ -116,6 +118,21 @@ class CatalogRepository private constructor(private val application: Application
         loadChannelsFromLocalDatabase()
         loadLocalHeaders()
         loadMetadata()
+    }
+
+    private fun syncHeroSelection() {
+        listen(database.child("app_config/home/hero_movie_key"), object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                val key = snapshot.value?.toString()?.trim()?.takeIf { it.isNotEmpty() }
+                prefs.edit().apply {
+                    if (key == null) remove("hero_movie_key") else putString("hero_movie_key", key)
+                }.apply()
+                heroMovieKey.value = key
+            }
+            override fun onCancelled(error: DatabaseError) {
+                Log.w("CatalogRepository", "Hero selection unavailable; retaining cached selection", error.toException())
+            }
+        })
     }
 
     private fun loadFromLocalDatabase() {

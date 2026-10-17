@@ -63,7 +63,7 @@ fun Sidebar(
             R.id.tvFragment -> tvFR
             R.id.searchFragment -> searchFR
             R.id.settingsFragment, R.id.adminDashboardFragment, R.id.movieListFragment,
-            R.id.seriesListFragment, R.id.channelListFragment -> settingsFR
+            R.id.seriesListFragment, R.id.channelListFragment, R.id.adminHeroFragment -> settingsFR
             else -> homeFR
         }
     }

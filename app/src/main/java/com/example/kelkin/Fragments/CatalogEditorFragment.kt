@@ -28,6 +28,8 @@ open class CatalogEditorFragment(private val series: Boolean) : AdminFragment(R.
         ui.btnAddMovie.text = if (series) "افزودن سریال" else "افزودن فیلم"
         ui.txtAdminListTitle.text = if (series) "مدیریت سریال‌ها" else "مدیریت فیلم‌ها"
         ui.btnAdminBack.setOnClickListener { findNavController().popBackStack() }
+        ui.btnManageHero.visibility = if (series) View.GONE else View.VISIBLE
+        ui.btnManageHero.setOnClickListener { findNavController().navigate(R.id.adminHeroFragment) }
         adapter = AdminItemAdapter(emptyList(), { key, data -> editItem(key, data) }, { key ->
             DialogUtils.showConfirmDialog(requireContext(), "حذف عنوان", "این عنوان از آرشیو حذف شود؟") {
                 FirebaseManager.deleteItem(if (series) "series" else "movie", key) { success ->

@@ -11,6 +11,7 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
     val moviesList = repository.moviesList
     val movieDetailsMap = repository.movieDetailsMap
     val streamHeaders = repository.streamHeaders
+    val heroMovieKey = repository.heroMovieKey
     val myList = repository.myList
     val categoriesList = repository.categoriesList
     val continueWatchingList = repository.continueWatchingList
