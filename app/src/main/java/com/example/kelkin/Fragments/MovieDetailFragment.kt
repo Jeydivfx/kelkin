@@ -57,6 +57,7 @@ class MovieDetailFragment : Fragment(R.layout.fragment_movie_detail) {
         super.onViewCreated(view, savedInstanceState)
 
         (activity as? MainActivity)?.collapseSidebar()
+        view.animateDetailEntrance()
 
         viewModel = ViewModelProvider(requireActivity())[HomeViewModel::class.java]
         selectedMovie = arguments?.getSerializable("selected_movie") as? Movie
@@ -75,7 +76,6 @@ class MovieDetailFragment : Fragment(R.layout.fragment_movie_detail) {
 
             txtTitle.text = movie.name_fa
             txtDescription.text = movie.description_fa
-            txtDescription.makeDescriptionExpandable(movie.name_fa)
             view.hideEmptyDetailTags()
             view.findViewById<TextView>(R.id.txtRating).text = if (movie.voteAverage > 0) "امتیاز %.1f".format(Locale.ENGLISH, movie.voteAverage).toPersianDigits() else ""
             viewModel.languagesList.observe(viewLifecycleOwner) { view.bindLocalDetailTags(movie, it.orEmpty(), viewModel.qualitiesList.value.orEmpty()) }
@@ -85,14 +85,16 @@ class MovieDetailFragment : Fragment(R.layout.fragment_movie_detail) {
             }
 
             // Bookmark Logic
-            btnBookmark.setIconResource(if (viewModel.isInMyList(movie)) R.drawable.ic_bookmark_filled else R.drawable.ic_bookmark)
+            val emptyIcon = if (com.example.kelkin.BuildConfig.IS_TV) R.drawable.ic_detail_add else R.drawable.ic_bookmark
+            val savedIcon = if (com.example.kelkin.BuildConfig.IS_TV) R.drawable.ic_detail_added else R.drawable.ic_bookmark_filled
+            btnBookmark.setIconResource(if (viewModel.isInMyList(movie)) savedIcon else emptyIcon)
             btnBookmark.setOnClickListener {
                 if (viewModel.isInMyList(movie)) {
                     viewModel.removeFromMyList(movie)
-                    btnBookmark.setIconResource(R.drawable.ic_bookmark)
+                    btnBookmark.setIconResource(emptyIcon)
                 } else {
                     viewModel.addToMyList(movie)
-                    btnBookmark.setIconResource(R.drawable.ic_bookmark_filled)
+                    btnBookmark.setIconResource(savedIcon)
                 }
             }
 
@@ -158,11 +160,11 @@ class MovieDetailFragment : Fragment(R.layout.fragment_movie_detail) {
 
 
         val ratingStr = String.format(Locale.ENGLISH, "%.1f", details.vote_average).toPersianDigits()
-        view.findViewById<TextView>(R.id.txtRating)?.text = if (details.vote_average > 0) "  امتیاز  $ratingStr" else ""
+        view.findViewById<TextView>(R.id.txtRating)?.text = if (details.vote_average > 0) "امتیاز $ratingStr" else ""
 
 
-        val limitedGenres = details.genres.take(2).joinToString("، ") { it.name }
-        val genresStr = TranslationHelper.translateGenres(limitedGenres)
+        val limitedGenres = details.genres.joinToString("، ") { it.name }
+        val genresStr = TranslationHelper.translateDetailGenres(limitedGenres)
         view.findViewById<TextView>(R.id.txtGenres)?.text = genresStr
 
 
@@ -180,18 +182,7 @@ class MovieDetailFragment : Fragment(R.layout.fragment_movie_detail) {
         }
 
 
-        val qualityName = viewModel.qualitiesList.value?.find {
-            it.id.toString() == movie.quality || "qu_%02d".format(it.id) == movie.quality || it.name == movie.quality
-        }?.name?.toPersianDigits()
 
-        view.findViewById<TextView>(R.id.txtQuality)?.apply {
-            if (!qualityName.isNullOrEmpty()) {
-                text = qualityName
-                visibility = View.VISIBLE
-            } else {
-                visibility = View.GONE
-            }
-        }
     }
 
 

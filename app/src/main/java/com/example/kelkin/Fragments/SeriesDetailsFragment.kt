@@ -55,6 +55,7 @@ class SeriesDetailsFragment : Fragment(R.layout.fragment_series_details) {
         _binding = FragmentSeriesDetailsBinding.bind(view)
 
         (activity as? MainActivity)?.collapseSidebar()
+        view.animateDetailEntrance()
 
         viewModel = ViewModelProvider(requireActivity())[HomeViewModel::class.java]
         selectedSeries = arguments?.getSerializable("selected_series") as? Series
@@ -65,7 +66,6 @@ class SeriesDetailsFragment : Fragment(R.layout.fragment_series_details) {
         selectedSeries?.let { series ->
             binding.txtTitle.text = series.name_fa
             binding.txtDescription.text = series.description_fa
-            binding.txtDescription.makeDescriptionExpandable(series.name_fa)
             view.hideEmptyDetailTags()
             binding.txtRating.text = if (series.voteAverage > 0) "امتیاز %.1f".format(Locale.ENGLISH, series.voteAverage).toPersianDigits() else ""
             viewModel.languagesList.observe(viewLifecycleOwner) { view.bindLocalDetailTags(series.asCard(), it.orEmpty(), viewModel.qualitiesList.value.orEmpty()) }
@@ -76,6 +76,7 @@ class SeriesDetailsFragment : Fragment(R.layout.fragment_series_details) {
 
             if (!series.tmdb_id.isNullOrEmpty()) {
                 fetchSeriesTmdbDetails(series.tmdb_id)
+
             }
         } ?: Log.e("SeriesDebug", "خطا: شیء selectedSeries در آرگومان‌ها نال است!")
     }
@@ -91,7 +92,9 @@ class SeriesDetailsFragment : Fragment(R.layout.fragment_series_details) {
         }
 
         fun updateBookmarkIcon(isBookmarked: Boolean) {
-            val iconRes = if (isBookmarked) R.drawable.ic_bookmark_filled else R.drawable.ic_bookmark
+            val iconRes = if (com.example.kelkin.BuildConfig.IS_TV) {
+                if (isBookmarked) R.drawable.ic_detail_added else R.drawable.ic_detail_add
+            } else if (isBookmarked) R.drawable.ic_bookmark_filled else R.drawable.ic_bookmark
             binding.btnBookmarkSeries.setIconResource(iconRes)
         }
 
@@ -142,8 +145,9 @@ class SeriesDetailsFragment : Fragment(R.layout.fragment_series_details) {
         }
 
         val container = binding.layoutSeasonButtonsContainer
-        if (container.childCount > 1) {
-            container.removeViews(1, container.childCount - 1)
+        // Keep the static actions in mobile layouts; remove only generated season buttons.
+        for (index in container.childCount - 1 downTo 0) {
+            if (container.getChildAt(index).tag != null) container.removeViewAt(index)
         }
 
         var firstButton: MaterialButton? = null
@@ -154,16 +158,21 @@ class SeriesDetailsFragment : Fragment(R.layout.fragment_series_details) {
                 tag = seasonKey
                 isSelected = seasonKey == selectedSeasonKey
                 typeface = androidx.core.content.res.ResourcesCompat.getFont(requireContext(), R.font.yekanbakh_bold)
-                textSize = 16f
+                textSize = if (com.example.kelkin.BuildConfig.IS_TV) 14f else 16f
                 setTextColor(ContextCompat.getColorStateList(context, R.color.sl_text_high_contrast))
                 backgroundTintList = null
                 setBackgroundResource(R.drawable.sl_button_high_contrast)
                 backgroundTintList = null
                 cornerRadius = 6.dpToPx(requireContext())
+                if (com.example.kelkin.BuildConfig.IS_TV) {
+                    insetTop = 0
+                    insetBottom = 0
+                    minimumHeight = 0
+                }
 
                 val params = LinearLayout.LayoutParams(
                     LinearLayout.LayoutParams.WRAP_CONTENT,
-                    (if (com.example.kelkin.BuildConfig.IS_TV) 44 else 48).dpToPx(requireContext())
+                    (if (com.example.kelkin.BuildConfig.IS_TV) 40 else 48).dpToPx(requireContext())
                 ).apply {
                     marginEnd = 8.dpToPx(requireContext())
                 }
@@ -173,7 +182,10 @@ class SeriesDetailsFragment : Fragment(R.layout.fragment_series_details) {
                     selectedSeasonKey = seasonKey
                     findNavController().currentBackStackEntry?.savedStateHandle?.set("selected_season", seasonKey)
                     updateEpisodes(seasonKey)
-                    for (i in 1 until container.childCount) container.getChildAt(i).isSelected = container.getChildAt(i).tag == seasonKey
+                    for (i in 0 until container.childCount) {
+                        val child = container.getChildAt(i)
+                        if (child.tag != null) child.isSelected = child.tag == seasonKey
+                    }
                 }
             }
 
@@ -224,6 +236,12 @@ class SeriesDetailsFragment : Fragment(R.layout.fragment_series_details) {
                     activity?.runOnUiThread {
                         updateUI(tvDetails)
                     }
+                    val alternate = viewModel.getSeriesBackdropPaths(tmdbId)
+                        .firstOrNull { it != tvDetails.backdrop_path }
+                    if (alternate != null && _binding != null) {
+                        currentBackdropPath = alternate
+                        (binding.rvEpisodes.adapter as? EpisodesAdapter)?.updateBackdrop(alternate)
+                    }
                 }
             } catch (e: Exception) {
                 Log.e("SeriesDebug", "Error fetching series details: ${e.message}")
@@ -252,11 +270,11 @@ class SeriesDetailsFragment : Fragment(R.layout.fragment_series_details) {
 
 
         val ratingStr = String.format(Locale.ENGLISH, "%.1f", details.vote_average).toPersianDigits()
-        binding.txtRating.text = if (details.vote_average > 0) "  امتیاز  $ratingStr" else ""
+        binding.txtRating.text = if (details.vote_average > 0) "امتیاز $ratingStr" else ""
 
 
-        val limitedGenres = details.genres.take(2).joinToString("، ") { it.name }
-        val genresStr = TranslationHelper.translateGenres(limitedGenres)
+        val limitedGenres = details.genres.joinToString("، ") { it.name }
+        val genresStr = TranslationHelper.translateDetailGenres(limitedGenres)
         binding.txtGenres.text = genresStr
 
 
@@ -275,18 +293,7 @@ class SeriesDetailsFragment : Fragment(R.layout.fragment_series_details) {
         }
 
 
-        val qualityName = viewModel.qualitiesList.value?.find {
-            it.id.toString() == series?.quality || "qu_%02d".format(it.id) == series?.quality || it.name == series?.quality
-        }?.name?.toPersianDigits()
 
-        binding.txtQuality.apply {
-            if (!qualityName.isNullOrEmpty()) {
-                text = qualityName
-                visibility = View.VISIBLE
-            } else {
-                visibility = View.GONE
-            }
-        }
     }
 
     override fun onResume() {

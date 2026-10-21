@@ -23,6 +23,7 @@ class HeroBackdropView @JvmOverloads constructor(
         xfermode = PorterDuffXfermode(PorterDuff.Mode.DST_IN)
     }
     private val shade = Paint(Paint.ANTI_ALIAS_FLAG)
+    private val readingShade = Paint(Paint.ANTI_ALIAS_FLAG)
 
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
         super.onSizeChanged(w, h, oldw, oldh)
@@ -45,6 +46,17 @@ class HeroBackdropView @JvmOverloads constructor(
         shade.shader = LinearGradient(0f, 0f, w.toFloat(), 0f,
             intArrayOf(0x22000000, 0x44000000, 0xCC000000.toInt()),
             floatArrayOf(0f, 0.45f, 1f), Shader.TileMode.CLAMP)
+        if (BuildConfig.IS_TV) {
+            // A broad, feathered scrim behind the RTL text, without a panel boundary.
+            readingShade.shader = android.graphics.RadialGradient(0f, 0f, 1f,
+                intArrayOf(0x580D1118, 0x450D1118, 0x200D1118, 0x000D1118),
+                floatArrayOf(0f, 0.35f, 0.7f, 1f), Shader.TileMode.CLAMP).apply {
+                setLocalMatrix(android.graphics.Matrix().apply {
+                    setScale(w * 0.5f, h * 0.42f)
+                    postTranslate(w * 0.78f, h * 0.43f)
+                })
+            }
+        }
     }
 
     override fun onDraw(canvas: Canvas) {
@@ -61,6 +73,9 @@ class HeroBackdropView @JvmOverloads constructor(
         val layer = canvas.saveLayer(0f, 0f, width.toFloat(), height.toFloat(), null)
         super.onDraw(canvas)
         canvas.drawRect(0f, 0f, width.toFloat(), height.toFloat(), shade)
+        if (BuildConfig.IS_TV) {
+            canvas.drawRect(0f, 0f, width.toFloat(), height.toFloat(), readingShade)
+        }
         canvas.drawRect(0f, 0f, width.toFloat(), height.toFloat(), mask)
         canvas.drawRect(0f, 0f, width.toFloat(), height.toFloat(), rightMask)
         canvas.restoreToCount(layer)

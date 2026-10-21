@@ -19,7 +19,7 @@ object TranslationHelper {
         "Mystery" to "معمایی",
         "Romance" to "عاشقانه",
         "Science Fiction" to "علمی تخیلی",
-        "Sci-Fi & Fantasy" to "علمی تخیلی",
+        "Sci-Fi & Fantasy" to "علمی تخیلی، فانتزی",
         "Action & Adventure" to "اکشن، ماجراجویی",
         "Kids" to "کودک",
         "News" to "خبر",
@@ -35,7 +35,7 @@ object TranslationHelper {
 
 
     fun translateGenres(englishGenres: String): String {
-        return englishGenres.split("، ", ", ").joinToString("، ") {
+        return englishGenres.split('،', ',').filter { it.isNotBlank() }.joinToString("، ") {
             genreMap[it.trim()] ?: it.trim()
         }
     }
@@ -49,4 +49,12 @@ object TranslationHelper {
         }
         return result
     }
+
+    fun translateDetailGenres(englishGenres: String): String = translateGenres(englishGenres)
+        .split('،', ',')
+        .map { it.trim() }
+        .filter { it.isNotEmpty() }
+        .distinct()
+        .take(2)
+        .joinToString("، ")
 }

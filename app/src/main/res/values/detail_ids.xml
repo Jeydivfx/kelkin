@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- TV-only shelves referenced by the shared detail fragment. -->
+    <item name="rvSeriesCast" type="id" />
+    <item name="seriesCastTitle" type="id" />
+</resources>

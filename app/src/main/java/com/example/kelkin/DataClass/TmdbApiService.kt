@@ -28,6 +28,19 @@ interface TmdbApiService {
         @Query("language") lang: String = "en-US"
     ): TmdbTvDetails
 
+    // Deliberately omit language: return Chinese, English and untagged artwork alike.
+    @GET("tv/{tv_id}/images")
+    suspend fun getTvImages(
+        @Path("tv_id") tvId: String,
+        @Query("api_key") apiKey: String
+    ): TvBackdropImages
+
+    @GET("tv/{tv_id}/credits")
+    suspend fun getTvCredits(
+        @Path("tv_id") tvId: String,
+        @Query("api_key") apiKey: String
+    ): MovieCreditsResponse
+
     companion object {
         const val BASE_URL = "https://api.themoviedb.org/3/"
 

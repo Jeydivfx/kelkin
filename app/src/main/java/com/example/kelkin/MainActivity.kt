@@ -24,6 +24,22 @@ class MainActivity : AppCompatActivity() {
     private var isSidebarExpanded = mutableStateOf(false)
     private var sidebarNavigationPending = false
 
+    override fun dispatchKeyEvent(event: android.view.KeyEvent): Boolean {
+        if (BuildConfig.IS_TV && ::binding.isInitialized &&
+            event.keyCode == android.view.KeyEvent.KEYCODE_DPAD_LEFT && binding.composeSidebar.hasFocus()) {
+            val host = supportFragmentManager.findFragmentById(R.id.nav_host_fragment) as? NavHostFragment
+            val home = host?.childFragmentManager?.primaryNavigationFragment as? com.example.kelkin.Fragments.HomeFragment
+            if (home != null) {
+                if (event.action == android.view.KeyEvent.ACTION_DOWN && event.repeatCount == 0) {
+                    collapseSidebar()
+                    home.restoreFocusFromSidebar()
+                }
+                return true
+            }
+        }
+        return super.dispatchKeyEvent(event)
+    }
+
     private val destinationListener = NavController.OnDestinationChangedListener { _, destination, _ ->
         if (BuildConfig.IS_TV) {
             sidebarNavigationPending = true
@@ -214,7 +230,8 @@ class MainActivity : AppCompatActivity() {
         val content = view.findViewById<android.view.View>(R.id.detail_content) ?: return
         if (!BuildConfig.IS_TV) return
         val gutter = (56 * resources.displayMetrics.density).toInt()
-        content.setPadding(gutter, content.paddingTop, gutter + binding.composeSidebar.width, content.paddingBottom)
+        val menuGap = resources.getDimensionPixelSize(R.dimen.tv_content_menu_gap)
+        content.setPadding(gutter, content.paddingTop, menuGap + binding.composeSidebar.width, content.paddingBottom)
     }
 
     private fun handleNavigation(route: String) {

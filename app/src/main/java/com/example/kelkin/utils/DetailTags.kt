@@ -7,6 +7,7 @@ import com.example.kelkin.DataClass.Language
 import com.example.kelkin.DataClass.Movie
 import com.example.kelkin.DataClass.Quality
 import com.example.kelkin.R
+import com.example.kelkin.`object`.TranslationHelper.toPersianDigits
 
 fun View.hideEmptyDetailTags() {
     for (id in listOf(R.id.txtTitleEnglish, R.id.txtRating, R.id.txtQuality, R.id.txtLanguage, R.id.txtYear, R.id.txtGenres)) {
@@ -28,5 +29,5 @@ fun View.bindLocalDetailTags(card: Movie, languages: List<Language>, qualities: 
     val quality = qualities.find { it.id.toString() == card.quality || "qu_%02d".format(it.id) == card.quality || it.name == card.quality }?.name
     fun readable(value: String) = value.takeUnless { it.toLongOrNull() != null || it.startsWith("lan_") || it.startsWith("qu_") }.orEmpty()
     findViewById<TextView>(R.id.txtLanguage)?.text = language ?: readable(card.language)
-    findViewById<TextView>(R.id.txtQuality)?.text = quality ?: readable(card.quality)
+    findViewById<TextView>(R.id.txtQuality)?.text = (quality ?: readable(card.quality)).trim().toPersianDigits()
 }

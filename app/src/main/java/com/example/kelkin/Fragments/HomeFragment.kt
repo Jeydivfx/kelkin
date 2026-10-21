@@ -39,6 +39,7 @@ class HomeFragment : Fragment() {
     private lateinit var trendingAdapter: MovieAdapter
     private lateinit var continueAdapter: HomeCardAdapter
     private lateinit var myListAdapter: MovieAdapter
+    private var rowFocusScroll: HomeRowFocusScroll? = null
 
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
@@ -55,6 +56,10 @@ class HomeFragment : Fragment() {
         listOf(binding.rvTrending, binding.rvContinue, binding.rvMylist).forEach { focusMemory.track(it) }
         observeData()
         setupHeroButtonsScroll()
+        if (com.example.kelkin.BuildConfig.IS_TV) {
+            rowFocusScroll = HomeRowFocusScroll(binding.homeScrollView,
+                listOf(binding.rvTrending, binding.rvContinue, binding.rvMylist))
+        }
         val ui = binding
         ui.heroDescription.addOnLayoutChangeListener { _, left, _, right, _, oldLeft, _, oldRight, _ ->
             if (right - left != oldRight - oldLeft) formatHeroSynopsis()
@@ -67,7 +72,7 @@ class HomeFragment : Fragment() {
             val headingHeight = maxOf(ui.titleTrending.height, (24 * density).toInt())
             val available = ui.root.height - posterHeight - headingHeight - (32 * density).toInt()
             val height = if (com.example.kelkin.BuildConfig.IS_TV)
-                maxOf(available, ui.heroContent.height + (88 * density).toInt())
+                maxOf(available, ui.heroContent.height + (88 * density).toInt()) + (28 * density).toInt()
             else maxOf((350 * density).toInt(), ui.heroContent.height + (84 * density).toInt())
             if (ui.heroSection.layoutParams.height != height) {
                 ui.heroSection.layoutParams = ui.heroSection.layoutParams.apply { this.height = height }
@@ -105,6 +110,9 @@ class HomeFragment : Fragment() {
         continueAdapter = HomeCardAdapter(true, onMovieClick)
         myListAdapter = MovieAdapter(onMovieClick).apply { posterSizeScale = 1.1f; homePolish = true }
         listOf(trendingAdapter, myListAdapter).forEach { adapter ->
+            adapter.yearProvider = { movie ->
+                viewModel.movieDetailsMap.value?.get(metadataKey(movie.contentType, movie.tmdb_id))?.release_date?.take(4).orEmpty()
+            }
             adapter.onVisible = { movie ->
                 if (movie.contentType == "series") viewModel.fetchSeriesTmdbDetails(movie.tmdb_id) else viewModel.fetchTmdbDetails(movie.tmdb_id)
             }
@@ -163,7 +171,10 @@ class HomeFragment : Fragment() {
             }
         }
 
-        trendingAdapter.submitList(processList(movies.sortedByDescending { it.id }.take(10))) { focusMemory.restore() }
+        trendingAdapter.submitList(processList(movies.sortedByDescending { it.id }.take(10))) {
+            trendingAdapter.refreshHomeCaptions()
+            focusMemory.restore()
+        }
 
 
         val continueList = processList(viewModel.continueWatchingList.value ?: emptyList())
@@ -181,7 +192,10 @@ class HomeFragment : Fragment() {
 
 
         val myList = processList(viewModel.myList.value ?: emptyList())
-        myListAdapter.submitList(myList) { _binding?.rvMylist?.let { focusMemory.restoreAfterRemoval(it) } }
+        myListAdapter.submitList(myList) {
+            myListAdapter.refreshHomeCaptions()
+            _binding?.rvMylist?.let { focusMemory.restoreAfterRemoval(it) }
+        }
         if (myList.isEmpty()) {
             binding.rvMylist.visibility = View.GONE
             binding.emptyMylistText.visibility = View.VISIBLE
@@ -309,8 +323,14 @@ class HomeFragment : Fragment() {
         (requireActivity() as? MainActivity)?.collapseSidebar()
     }
 
+    fun restoreFocusFromSidebar() {
+        focusMemory.restoreFromSidebar()
+    }
+
 
     override fun onDestroyView() {
+        rowFocusScroll?.dispose()
+        rowFocusScroll = null
         super.onDestroyView()
         _binding = null
     }

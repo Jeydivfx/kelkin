@@ -27,8 +27,8 @@ android {
         applicationId = "com.example.kelkin"
         minSdk = 23
         targetSdk = 36
-        versionCode = 21
-        versionName = "1.93"
+        versionCode = 23
+        versionName = "1.95"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
     }

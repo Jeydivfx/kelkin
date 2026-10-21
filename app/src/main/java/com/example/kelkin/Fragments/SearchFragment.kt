@@ -40,7 +40,7 @@ class SearchFragment : Fragment(R.layout.fragment_search) {
                     val series = viewModel.seriesList.value.orEmpty().find { it.identity() == item.identity() }
                     if (series != null) {
                         args.putSerializable("selected_series", series)
-                        findNavController().navigate(R.id.seriesDetailsFragment, args)
+                        findNavController().navigate(R.id.action_searchFragment_to_seriesDetailsFragment, args)
                     }
                 }
                 "channel" -> {

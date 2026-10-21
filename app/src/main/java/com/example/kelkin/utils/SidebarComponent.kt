@@ -1,7 +1,5 @@
 package com.example.kelkin
 
-import androidx.compose.animation.animateContentSize
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusGroup
@@ -12,6 +10,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.focusProperties
@@ -91,8 +90,8 @@ fun Sidebar(
         modifier = Modifier
             .fillMaxHeight()
             .width(if (isExpanded) 140.dp else 60.dp)
+            .clipToBounds()
             .padding(top = 40.dp, start = 8.dp, end = 8.dp)
-            .animateContentSize(animationSpec = tween(durationMillis = 200))
             .onFocusChanged { focusState ->
                 if (!focusState.hasFocus && isExpanded) {
                     onExpandedChange(false)
@@ -259,25 +258,23 @@ fun SidebarItem(
             .padding(horizontal = 12.dp, vertical = 8.dp),
         contentAlignment = Alignment.CenterEnd
     ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.End
-        ) {
+        Box(modifier = Modifier.fillMaxWidth()) {
             if (isExpanded) {
                 Text(
                     text = text,
+                    modifier = Modifier.align(Alignment.CenterEnd).padding(end = 32.dp),
                     color = contentColor,
                     fontSize = 13.sp,
-                    fontFamily = VazirBold
+                    fontFamily = VazirBold,
+                    maxLines = 1, softWrap = false
                 )
-                Spacer(modifier = Modifier.width(12.dp))
             }
 
             Icon(
                 painter = painterResource(id = icon),
                 contentDescription = text,
                 tint = contentColor,
-                modifier = Modifier.size(20.dp)
+                modifier = Modifier.align(Alignment.CenterEnd).size(20.dp)
             )
         }
     }

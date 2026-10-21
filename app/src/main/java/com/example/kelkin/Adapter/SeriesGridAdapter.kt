@@ -31,27 +31,41 @@ class SeriesGridAdapter(private val onSeriesClick: (Series) -> Unit) :
         return SeriesViewHolder(view)
     }
 
+    var yearProvider: (Series) -> String = { "" }
     var onVisible: ((Series) -> Unit)? = null
     override fun onBindViewHolder(holder: SeriesViewHolder, position: Int) {
         val series = getItem(position)
         onVisible?.invoke(series)
         holder.bind(series)
+        holder.bindYear(yearProvider(series))
 
         holder.itemView.setOnClickListener { onSeriesClick(series) }
 
-        holder.itemView.setOnFocusChangeListener { view, hasFocus ->
-            if (hasFocus) {
-                view.animate().scaleX(1.04f).scaleY(1.04f).setDuration(200).start()
-                view.elevation = 10f
-                view.z = 10f
-            } else {
-                view.animate().scaleX(1.0f).scaleY(1.0f).setDuration(200).start()
-                view.elevation = 0f
-                view.z = 0f
-            }
-        }
+        bindPosterFocus(holder.itemView)
 
         holder.itemView.setOnKeyListener(null)
+    }
+
+    fun refreshYears() {
+        if (com.example.kelkin.BuildConfig.IS_TV && itemCount > 0) notifyItemRangeChanged(0, itemCount, "year")
+    }
+    override fun onBindViewHolder(holder: SeriesViewHolder, position: Int, payloads: MutableList<Any>) {
+        if (payloads.isNotEmpty() && payloads.all { it == "year" }) holder.bindYear(yearProvider(getItem(position)))
+        else super.onBindViewHolder(holder, position, payloads)
+    }
+    override fun onViewAttachedToWindow(holder: SeriesViewHolder) {
+        super.onViewAttachedToWindow(holder)
+        bindPosterFocus(holder.itemView)
+    }
+    override fun onViewDetachedFromWindow(holder: SeriesViewHolder) {
+        resetPosterFocus(holder.itemView)
+        super.onViewDetachedFromWindow(holder)
+    }
+
+    override fun onViewRecycled(holder: SeriesViewHolder) {
+        holder.itemView.setOnFocusChangeListener(null)
+        resetPosterFocus(holder.itemView)
+        super.onViewRecycled(holder)
     }
 
     class SeriesViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
@@ -59,6 +73,9 @@ class SeriesGridAdapter(private val onSeriesClick: (Series) -> Unit) :
         private val txtTitle: TextView = itemView.findViewById(R.id.txtSeriesTitleGrid)
         private val txtImdbRating: TextView = itemView.findViewById(R.id.txtImdbRating)
 
+        fun bindYear(year: String) {
+            itemView.findViewById<TextView>(R.id.home_reference_year)?.text = year.toPersianDigits()
+        }
         fun bind(series: Series) {
             txtTitle.text = series.name_fa
             itemView.contentDescription = series.name_fa
@@ -74,12 +91,13 @@ class SeriesGridAdapter(private val onSeriesClick: (Series) -> Unit) :
 
             val fullUrl = ImageUrls.poster(series.posterUrl)
 
+            imgPoster.setBackgroundResource(R.drawable.mobile_poster_placeholder)
             Glide.with(itemView.context)
                 .load(fullUrl)
                 .diskCacheStrategy(DiskCacheStrategy.ALL)
-                .placeholder(R.drawable.hero_test_header)
-                .error(R.drawable.ic_menu_movie)
-                .centerCrop()
+                .placeholder(android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT))
+                .error(android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT))
+                .fitCenter()
                 .into(imgPoster)
         }
     }

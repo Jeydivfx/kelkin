@@ -37,5 +37,7 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
     suspend fun fetchMovieDetailsForPoster(id: String) = repository.fetchMovieDetailsForPoster(id)
     suspend fun fetchTvDetailsForPoster(id: String) = repository.fetchTvDetailsForPoster(id)
     suspend fun getMovieFullDetails(id: String) = repository.getMovieFullDetails(id)
+    suspend fun getSeriesCredits(id: String) = repository.getSeriesCredits(id)
+    suspend fun getSeriesBackdropPaths(id: String) = repository.getSeriesBackdropPaths(id)
     override fun onCleared() { repository.release(); super.onCleared() }
 }

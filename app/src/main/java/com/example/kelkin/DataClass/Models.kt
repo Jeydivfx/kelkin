@@ -140,8 +140,12 @@ data class TmdbTvDetails(
     val poster_path: String?,
     val original_name: String,
     val backdrop_path: String?,
-    val genres: List<Genre>
+    val genres: List<Genre>,
+    val images: TvBackdropImages? = null
 )
+
+data class TvBackdropImages(val backdrops: List<TvBackdropImage> = emptyList())
+data class TvBackdropImage(val file_path: String?)
 
 
 

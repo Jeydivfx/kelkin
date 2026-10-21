@@ -488,6 +488,19 @@ class CatalogRepository private constructor(private val application: Application
     }
 
 
+    suspend fun getSeriesBackdropPaths(tmdbId: String): List<String> {
+        return try { tmdbApi.getTvImages(tmdbId, apiKey()).backdrops
+            .mapNotNull { it.file_path?.takeIf(String::isNotBlank) }.distinct() }
+        catch (e: CancellationException) { throw e }
+        catch (e: Exception) { emptyList() }
+    }
+
+    suspend fun getSeriesCredits(tmdbId: String): MovieCreditsResponse? {
+        return try { tmdbApi.getTvCredits(tmdbId, apiKey()) }
+        catch (e: CancellationException) { throw e }
+        catch (e: Exception) { null }
+    }
+
     fun syncStreamHeaders() {
         listen(database.child("app_config").child("stream_headers"), object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {

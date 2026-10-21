@@ -23,13 +23,16 @@ class MovieAdapter(private val onMovieClick: (Movie) -> Unit) :
     var fillGridCell = false
     var posterSizeScale = 1f
     var homePolish = false
+    var yearProvider: (Movie) -> String = { "" }
     var onVisible: ((Movie) -> Unit)? = null
     init { setHasStableIds(true) }
     override fun getItemId(position: Int) = stableContentId(getItem(position).identity())
     override fun focusKey(position: Int) = currentList.getOrNull(position)?.identity()
     override fun positionOfKey(key: String) = currentList.indexOfFirst { it.identity() == key }
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MovieViewHolder {
-        val binding = ItemMovieCardBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+        val binding = if (homePolish && com.example.kelkin.BuildConfig.IS_TV) {
+            ItemMovieCardBinding.bind(LayoutInflater.from(parent.context).inflate(R.layout.item_home_caption_poster, parent, false))
+        } else ItemMovieCardBinding.inflate(LayoutInflater.from(parent.context), parent, false)
         if (fillGridCell) {
             binding.root.layoutParams.width = ViewGroup.LayoutParams.MATCH_PARENT
             (binding.root.layoutParams as? ViewGroup.MarginLayoutParams)?.setMargins(0, 0, 0, 0)
@@ -52,10 +55,57 @@ class MovieAdapter(private val onMovieClick: (Movie) -> Unit) :
     override fun onBindViewHolder(holder: MovieViewHolder, position: Int) {
         val movie = getItem(position)
         holder.bind(movie, onMovieClick, showFullPoster, homePolish)
+        if (homePolish && com.example.kelkin.BuildConfig.IS_TV) holder.bindCaption(movie.name_fa, yearProvider(movie))
         onVisible?.invoke(movie)
     }
+    fun refreshHomeCaptions() {
+        if (homePolish && com.example.kelkin.BuildConfig.IS_TV && itemCount > 0) notifyItemRangeChanged(0, itemCount, "caption")
+    }
+    override fun onBindViewHolder(holder: MovieViewHolder, position: Int, payloads: MutableList<Any>) {
+        if (payloads.isNotEmpty() && payloads.all { it == "caption" }) {
+            val movie = getItem(position)
+            holder.bindCaption(movie.name_fa, yearProvider(movie))
+        } else super.onBindViewHolder(holder, position, payloads)
+    }
     class MovieViewHolder(private val binding: ItemMovieCardBinding) : RecyclerView.ViewHolder(binding.root) {
+        private var brightness = 1f
+        private var brightnessAnimator: android.animation.ValueAnimator? = null
+        private fun setImageFocus(focused: Boolean, animate: Boolean) {
+            brightnessAnimator?.cancel()
+            val target = if (focused) 1.08f else 1f
+            fun apply(value: Float) {
+                brightness = value
+                if (value == 1f) binding.moviePoster.clearColorFilter()
+                else binding.moviePoster.colorFilter = android.graphics.ColorMatrixColorFilter(floatArrayOf(
+                    value, 0f, 0f, 0f, 0f, 0f, value, 0f, 0f, 0f,
+                    0f, 0f, value, 0f, 0f, 0f, 0f, 0f, 1f, 0f
+                ))
+            }
+            if (animate) {
+                brightnessAnimator = android.animation.ValueAnimator.ofFloat(brightness, target).apply {
+                    duration = 150
+                    addUpdateListener { apply(it.animatedValue as Float) }
+                    start()
+                }
+            } else apply(target)
+        }
+        fun clearFocusEffect() {
+            brightnessAnimator?.cancel()
+            brightnessAnimator = null
+            brightness = 1f
+            binding.moviePoster.clearColorFilter()
+            itemView.onFocusChangeListener = null
+        }
+        fun bindCaption(title: String, year: String) {
+            itemView.findViewById<android.widget.TextView>(R.id.home_reference_title)?.text = title
+            itemView.findViewById<android.widget.TextView>(R.id.home_reference_year)?.text = year.toPersianDigits()
+        }
         fun bind(movie: Movie, onClick: (Movie) -> Unit, showFullPoster: Boolean, homePolish: Boolean) {
+            clearFocusEffect()
+            if (homePolish && com.example.kelkin.BuildConfig.IS_TV) {
+                setImageFocus(itemView.hasFocus(), false)
+                itemView.setOnFocusChangeListener { _, focused -> setImageFocus(focused, true) }
+            }
             itemView.contentDescription = movie.name_fa
             val posterRequest = Glide.with(itemView).load(ImageUrls.poster(movie.posterUrl))
                 .placeholder(R.drawable.hero_test_header).error(R.drawable.hero_test_header)
@@ -72,5 +122,9 @@ class MovieAdapter(private val onMovieClick: (Movie) -> Unit) :
             itemView.setOnClickListener { onClick(movie) }
             itemView.setOnKeyListener(null)
         }
+    }
+    override fun onViewRecycled(holder: MovieViewHolder) {
+        holder.clearFocusEffect()
+        super.onViewRecycled(holder)
     }
 }

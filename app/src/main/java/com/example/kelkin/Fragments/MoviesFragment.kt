@@ -133,7 +133,10 @@ class MoviesFragment : Fragment() {
             )
         }
 
-        movieAdapter.submitList(finalDisplayList) { focusMemory.restore() }
+        movieAdapter.submitList(finalDisplayList) {
+            movieAdapter.refreshYears()
+            focusMemory.restore()
+        }
         val empty = finalDisplayList.isEmpty()
         binding.rvMoviesAll.visibility = if (empty) View.GONE else View.VISIBLE
         statusView.show(empty, viewModel.catalogLoading.value == true, viewModel.syncError.value)
@@ -169,6 +172,9 @@ class MoviesFragment : Fragment() {
             findNavController().navigate(R.id.action_moviesFragment_to_movieDetailFragment, bundle)
         }
         movieAdapter.onVisible = { viewModel.fetchTmdbDetails(it.tmdb_id) }
+        movieAdapter.yearProvider = { movie ->
+            viewModel.movieDetailsMap.value?.get(metadataKey("movie", movie.tmdb_id))?.release_date?.take(4).orEmpty()
+        }
         binding.rvMoviesAll.adapter = movieAdapter
     }
 

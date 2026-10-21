@@ -2,6 +2,7 @@ package com.example.kelkin.Adapter
 
 import com.example.kelkin.utils.FocusKeyProvider
 import com.example.kelkin.utils.stableContentId
+import com.example.kelkin.`object`.TranslationHelper.toPersianDigits
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
@@ -36,18 +37,39 @@ class EpisodesAdapter(
     fun updateBackdrop(path: String) { backdropPath = path; notifyItemRangeChanged(0, itemCount, "backdrop") }
     override fun getItemCount(): Int = episodes.size
 
+    override fun onViewRecycled(holder: EpisodeViewHolder) {
+        holder.resetImageFocus()
+        super.onViewRecycled(holder)
+    }
+
     class EpisodeViewHolder(private val binding: ItemEpisodeCardBinding) : RecyclerView.ViewHolder(binding.root) {
+        fun resetImageFocus() {
+            binding.imgEpisodeBackdrop.animate().cancel()
+            binding.imgEpisodeBackdrop.scaleX = 1f
+            binding.imgEpisodeBackdrop.scaleY = 1f
+            binding.imgEpisodeBackdrop.clearColorFilter()
+            binding.root.onFocusChangeListener = null
+        }
+
         fun bind(epKey: String, videoUrl: String, backdropPath: String, onClick: (String, String) -> Unit) {
+            resetImageFocus()
             binding.root.isFocusable = true
-            binding.root.contentDescription = "قسمت ${epKey.replace("ep", "")}"
-            binding.txtEpisodeTitle.text = "قسمت ${epKey.replace("ep", "")}"
+            val title = "قسمت ${epKey.removePrefix("ep")}".toPersianDigits()
+            binding.root.contentDescription = "$title؛ پخش"
+            binding.txtEpisodeTitle.text = title
             if (backdropPath.isNotEmpty()) {
                 val fullImageUrl = if (backdropPath.startsWith("http")) backdropPath else "https://image.tmdb.org/t/p/w500$backdropPath"
                 Glide.with(binding.imgEpisodeBackdrop.context)
                     .load(fullImageUrl)
+                    .centerCrop()
+                    .placeholder(R.drawable.mobile_poster_placeholder)
+                    .error(R.drawable.mobile_poster_placeholder)
                     .diskCacheStrategy(DiskCacheStrategy.ALL)
                     .transition(DrawableTransitionOptions.withCrossFade())
                     .into(binding.imgEpisodeBackdrop)
+            } else {
+                Glide.with(binding.imgEpisodeBackdrop).clear(binding.imgEpisodeBackdrop)
+                binding.imgEpisodeBackdrop.setImageResource(R.drawable.mobile_poster_placeholder)
             }
 
             binding.root.setOnClickListener { onClick(epKey, videoUrl) }

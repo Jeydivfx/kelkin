@@ -14,7 +14,7 @@ fun RecyclerView.configureCatalogGrid() {
     addOnLayoutChangeListener { _, left, _, right, _, oldLeft, _, oldRight, _ ->
         if (right - left != oldRight - oldLeft) {
             val available = right - left - paddingLeft - paddingRight
-            val columns = catalogColumns(available, density)
+            val columns = if (tv) 5 else catalogColumns(available, density)
             if (manager.spanCount != columns) {
                 manager.spanCount = columns
                 invalidateItemDecorations()

@@ -117,6 +117,11 @@ class RecyclerFocusMemory(private val fragment: Fragment, private val fallback: 
             restoring = false
         }
     }
+    /** Return from the sidebar without letting spatial focus search choose the hero. */
+    fun restoreFromSidebar() {
+        pending = true
+        restore()
+    }
     /** Use only after a definitive data update removed every item from the saved row. */
     fun restoreAfterRemoval(list: RecyclerView) {
         if (list.adapter?.itemCount == 0 && state.get<Int>("focus_row") == list.id) {

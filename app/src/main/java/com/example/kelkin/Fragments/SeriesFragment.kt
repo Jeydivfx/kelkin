@@ -143,7 +143,10 @@ class SeriesFragment : Fragment() {
             }
         }
 
-        seriesAdapter.submitList(finalDisplayList) { focusMemory.restore() }
+        seriesAdapter.submitList(finalDisplayList) {
+            seriesAdapter.refreshYears()
+            focusMemory.restore()
+        }
         val empty = finalDisplayList.isEmpty()
         binding.rvSeriesAll.visibility = if (empty) View.GONE else View.VISIBLE
         statusView.show(empty, viewModel.catalogLoading.value == true, viewModel.syncError.value)
@@ -179,6 +182,9 @@ class SeriesFragment : Fragment() {
         }
 
         seriesAdapter.onVisible = { viewModel.fetchSeriesTmdbDetails(it.tmdb_id) }
+        seriesAdapter.yearProvider = { series ->
+            viewModel.movieDetailsMap.value?.get(metadataKey("series", series.tmdb_id))?.release_date?.take(4).orEmpty()
+        }
         binding.rvSeriesAll.adapter = seriesAdapter
     }
 

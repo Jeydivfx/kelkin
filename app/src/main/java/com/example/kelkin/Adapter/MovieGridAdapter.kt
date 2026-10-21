@@ -31,38 +31,42 @@ class MovieGridAdapter(private val onMovieClick: (Movie) -> Unit) :
         return MovieViewHolder(view)
     }
 
+    var yearProvider: (Movie) -> String = { "" }
     var onVisible: ((Movie) -> Unit)? = null
     override fun onBindViewHolder(holder: MovieViewHolder, position: Int) {
         val movie = getItem(position)
         onVisible?.invoke(movie)
         holder.bind(movie)
+        holder.bindYear(yearProvider(movie))
 
         holder.itemView.setOnClickListener { onMovieClick(movie) }
 
-        if (!com.example.kelkin.BuildConfig.IS_TV) {
-            holder.itemView.setOnFocusChangeListener(null)
-            holder.itemView.isFocusable = false
-            holder.itemView.animate().cancel()
-            holder.itemView.scaleX = 1f; holder.itemView.scaleY = 1f
-            holder.itemView.elevation = 0f; holder.itemView.translationZ = 0f
-            return
-        }
-
-        holder.itemView.setOnFocusChangeListener { view, hasFocus ->
-            if (hasFocus) {
-                view.animate().scaleX(1.04f).scaleY(1.04f).setDuration(200).start()
-                view.elevation = 10f
-                view.z = 10f
-            } else {
-                view.animate().scaleX(1.0f).scaleY(1.0f).setDuration(200).start()
-                view.elevation = 0f
-                view.z = 0f
-            }
-        }
-
+        bindPosterFocus(holder.itemView)
 
         holder.itemView.setOnKeyListener(null)
 
+    }
+
+    fun refreshYears() {
+        if (com.example.kelkin.BuildConfig.IS_TV && itemCount > 0) notifyItemRangeChanged(0, itemCount, "year")
+    }
+    override fun onBindViewHolder(holder: MovieViewHolder, position: Int, payloads: MutableList<Any>) {
+        if (payloads.isNotEmpty() && payloads.all { it == "year" }) holder.bindYear(yearProvider(getItem(position)))
+        else super.onBindViewHolder(holder, position, payloads)
+    }
+    override fun onViewAttachedToWindow(holder: MovieViewHolder) {
+        super.onViewAttachedToWindow(holder)
+        bindPosterFocus(holder.itemView)
+    }
+    override fun onViewDetachedFromWindow(holder: MovieViewHolder) {
+        resetPosterFocus(holder.itemView)
+        super.onViewDetachedFromWindow(holder)
+    }
+
+    override fun onViewRecycled(holder: MovieViewHolder) {
+        holder.itemView.setOnFocusChangeListener(null)
+        resetPosterFocus(holder.itemView)
+        super.onViewRecycled(holder)
     }
 
     class MovieViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
@@ -70,6 +74,9 @@ class MovieGridAdapter(private val onMovieClick: (Movie) -> Unit) :
         private val txtTitle: TextView = itemView.findViewById(R.id.txtMovieTitleGrid)
         private val txtImdbRating: TextView = itemView.findViewById(R.id.txtImdbRating)
 
+        fun bindYear(year: String) {
+            itemView.findViewById<TextView>(R.id.home_reference_year)?.text = year.toPersianDigits()
+        }
         fun bind(movie: Movie) {
             txtTitle.text = movie.name_fa
             itemView.contentDescription = movie.name_fa
@@ -85,12 +92,12 @@ class MovieGridAdapter(private val onMovieClick: (Movie) -> Unit) :
 
             val fullUrl = ImageUrls.poster(movie.posterUrl)
 
+            imgPoster.setBackgroundResource(R.drawable.mobile_poster_placeholder)
             val request = Glide.with(itemView.context)
                 .load(fullUrl)
                 .diskCacheStrategy(DiskCacheStrategy.ALL)
-                .centerCrop()
-            if (com.example.kelkin.BuildConfig.IS_TV) request.placeholder(R.drawable.hero_test_header).error(R.drawable.ic_menu_movie)
-            else request.placeholder(android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT))
+                .fitCenter()
+            request.placeholder(android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT))
                 .error(android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT))
             request.into(imgPoster)
         }
