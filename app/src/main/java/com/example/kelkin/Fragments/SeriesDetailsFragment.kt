@@ -65,9 +65,9 @@ class SeriesDetailsFragment : Fragment(R.layout.fragment_series_details) {
         focusMemory = RecyclerFocusMemory(this, binding.btnBookmarkSeries)
         selectedSeries?.let { series ->
             binding.txtTitle.text = series.name_fa
-            binding.txtDescription.text = series.description_fa
+            binding.txtDescription.bindDetailSynopsis(series.description_fa, fullLines = 1)
             view.hideEmptyDetailTags()
-            binding.txtRating.text = if (series.voteAverage > 0) "امتیاز %.1f".format(Locale.ENGLISH, series.voteAverage).toPersianDigits() else ""
+            binding.txtRating.text = detailRatingText(series.voteAverage)
             viewModel.languagesList.observe(viewLifecycleOwner) { view.bindLocalDetailTags(series.asCard(), it.orEmpty(), viewModel.qualitiesList.value.orEmpty()) }
             viewModel.qualitiesList.observe(viewLifecycleOwner) { view.bindLocalDetailTags(series.asCard(), viewModel.languagesList.value.orEmpty(), it.orEmpty()) }
 
@@ -96,6 +96,7 @@ class SeriesDetailsFragment : Fragment(R.layout.fragment_series_details) {
                 if (isBookmarked) R.drawable.ic_detail_added else R.drawable.ic_detail_add
             } else if (isBookmarked) R.drawable.ic_bookmark_filled else R.drawable.ic_bookmark
             binding.btnBookmarkSeries.setIconResource(iconRes)
+            if (com.example.kelkin.BuildConfig.IS_TV) binding.btnBookmarkSeries.text = if (isBookmarked) "حذف از لیست" else "افزودن به لیست"
         }
 
         val isInitialBookmarked = viewModel.isInMyList(dummyMovieForBookmark)
@@ -172,7 +173,7 @@ class SeriesDetailsFragment : Fragment(R.layout.fragment_series_details) {
 
                 val params = LinearLayout.LayoutParams(
                     LinearLayout.LayoutParams.WRAP_CONTENT,
-                    (if (com.example.kelkin.BuildConfig.IS_TV) 40 else 48).dpToPx(requireContext())
+                    (if (com.example.kelkin.BuildConfig.IS_TV) 44 else 48).dpToPx(requireContext())
                 ).apply {
                     marginEnd = 8.dpToPx(requireContext())
                 }
@@ -193,7 +194,8 @@ class SeriesDetailsFragment : Fragment(R.layout.fragment_series_details) {
                 firstButton = seasonButton
             }
 
-            container.addView(seasonButton)
+            if (com.example.kelkin.BuildConfig.IS_TV) container.addView(seasonButton, index + 1)
+            else container.addView(seasonButton)
         }
 
 
@@ -270,7 +272,7 @@ class SeriesDetailsFragment : Fragment(R.layout.fragment_series_details) {
 
 
         val ratingStr = String.format(Locale.ENGLISH, "%.1f", details.vote_average).toPersianDigits()
-        binding.txtRating.text = if (details.vote_average > 0) "امتیاز $ratingStr" else ""
+        binding.txtRating.text = detailRatingText(details.vote_average)
 
 
         val limitedGenres = details.genres.joinToString("، ") { it.name }

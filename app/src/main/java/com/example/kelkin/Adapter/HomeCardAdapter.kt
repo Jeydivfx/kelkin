@@ -40,6 +40,7 @@ class HomeCardAdapter(private val landscape: Boolean, private val onClick: (Movi
         val card = getItem(position)
         val movie = card.movie
         holder.title.text = movie.name_fa
+        if (com.example.kelkin.BuildConfig.IS_TV) bindPosterFocus(holder.itemView)
         holder.itemView.contentDescription = movie.name_fa
         Glide.with(holder.image).load(card.artwork).placeholder(R.drawable.hero_test_header)
             .error(R.drawable.hero_test_header).centerCrop()
@@ -54,5 +55,17 @@ class HomeCardAdapter(private val landscape: Boolean, private val onClick: (Movi
         }
         holder.itemView.setOnClickListener { onClick(movie) }
         onVisible?.invoke(movie)
+    }
+    override fun onViewAttachedToWindow(holder: Holder) {
+        super.onViewAttachedToWindow(holder)
+        if (com.example.kelkin.BuildConfig.IS_TV) bindPosterFocus(holder.itemView)
+    }
+    override fun onViewDetachedFromWindow(holder: Holder) {
+        if (com.example.kelkin.BuildConfig.IS_TV) resetPosterFocus(holder.itemView)
+        super.onViewDetachedFromWindow(holder)
+    }
+    override fun onViewRecycled(holder: Holder) {
+        if (com.example.kelkin.BuildConfig.IS_TV) resetPosterFocus(holder.itemView)
+        super.onViewRecycled(holder)
     }
 }

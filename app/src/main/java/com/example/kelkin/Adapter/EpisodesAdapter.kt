@@ -2,6 +2,8 @@ package com.example.kelkin.Adapter
 
 import com.example.kelkin.utils.FocusKeyProvider
 import com.example.kelkin.utils.stableContentId
+import com.example.kelkin.utils.bindPosterFocus
+import com.example.kelkin.utils.resetPosterFocus
 import com.example.kelkin.`object`.TranslationHelper.toPersianDigits
 
 import android.view.LayoutInflater
@@ -37,6 +39,15 @@ class EpisodesAdapter(
     fun updateBackdrop(path: String) { backdropPath = path; notifyItemRangeChanged(0, itemCount, "backdrop") }
     override fun getItemCount(): Int = episodes.size
 
+    override fun onViewAttachedToWindow(holder: EpisodeViewHolder) {
+        super.onViewAttachedToWindow(holder)
+        if (com.example.kelkin.BuildConfig.IS_TV) bindPosterFocus(holder.itemView)
+    }
+    override fun onViewDetachedFromWindow(holder: EpisodeViewHolder) {
+        if (com.example.kelkin.BuildConfig.IS_TV) resetPosterFocus(holder.itemView)
+        super.onViewDetachedFromWindow(holder)
+    }
+
     override fun onViewRecycled(holder: EpisodeViewHolder) {
         holder.resetImageFocus()
         super.onViewRecycled(holder)
@@ -44,6 +55,7 @@ class EpisodesAdapter(
 
     class EpisodeViewHolder(private val binding: ItemEpisodeCardBinding) : RecyclerView.ViewHolder(binding.root) {
         fun resetImageFocus() {
+            if (com.example.kelkin.BuildConfig.IS_TV) resetPosterFocus(binding.root)
             binding.imgEpisodeBackdrop.animate().cancel()
             binding.imgEpisodeBackdrop.scaleX = 1f
             binding.imgEpisodeBackdrop.scaleY = 1f
@@ -54,6 +66,7 @@ class EpisodesAdapter(
         fun bind(epKey: String, videoUrl: String, backdropPath: String, onClick: (String, String) -> Unit) {
             resetImageFocus()
             binding.root.isFocusable = true
+            if (com.example.kelkin.BuildConfig.IS_TV) bindPosterFocus(binding.root)
             val title = "قسمت ${epKey.removePrefix("ep")}".toPersianDigits()
             binding.root.contentDescription = "$title؛ پخش"
             binding.txtEpisodeTitle.text = title

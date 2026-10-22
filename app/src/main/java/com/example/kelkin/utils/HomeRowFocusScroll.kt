@@ -18,25 +18,27 @@ internal class HomeRowFocusScroll(
         val card = row.findContainingItemView(focus) ?: return@Runnable
         if (row.isComputingLayout) { scheduleReveal(); return@Runnable }
         val bounds = Rect()
-        card.getDrawingRect(bounds)
-        row.offsetDescendantRectToMyCoords(card, bounds)
-        // Include the full 4% focus scale and yellow stroke, not just the unscaled layout box.
-        val extra = kotlin.math.ceil(card.width * 0.02f).toInt() + 2
+        // Use layout coordinates: transformed bounds change on every zoom frame
+        // and can repeatedly restart horizontal scrolling on a stationary card.
+        bounds.set(card.left, card.top, card.right, card.bottom)
+        val extra = kotlin.math.ceil(card.width * 0.05f).toInt() + 2
         bounds.inset(-extra, 0)
-        val left = row.paddingLeft
-        val right = row.width - row.paddingRight
+        val left = (row.paddingLeft - extra).coerceAtLeast(0)
+        val right = (row.width - row.paddingRight + extra).coerceAtMost(row.width)
         val dx = when {
             bounds.left < left -> bounds.left - left
             bounds.right > right -> bounds.right - right
             else -> 0
         }
-        if (dx != 0) row.smoothScrollBy(dx, 0)
+        if (kotlin.math.abs(dx) > 2) row.smoothScrollBy(dx, 0)
     }
     private fun scheduleReveal() {
         scroll.removeCallbacks(revealCard)
         scroll.post(revealCard)
     }
-    private val rowLayoutListener = View.OnLayoutChangeListener { _, _, _, _, _, _, _, _, _ -> scheduleReveal() }
+    private val rowLayoutListener = View.OnLayoutChangeListener { _, left, top, right, bottom, oldLeft, oldTop, oldRight, oldBottom ->
+        if (right - left != oldRight - oldLeft || bottom - top != oldBottom - oldTop) scheduleReveal()
+    }
     private val centerRow = Runnable {
         val row = activeRow ?: return@Runnable
         val focus = scroll.findFocus() ?: return@Runnable

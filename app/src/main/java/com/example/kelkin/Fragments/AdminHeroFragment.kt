@@ -28,14 +28,19 @@ class AdminHeroFragment : AdminFragment(R.layout.fragment_admin_hero) {
     private var retryLoad = false
     private var saving = false
     private var job: Job? = null
+    private var numberRestored = false
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         _binding = FragmentAdminHeroBinding.bind(view)
         pendingKey = savedInstanceState?.getString("hero_pending")
+        numberRestored = savedInstanceState?.containsKey("hero_image_number") == true
+        binding.heroImageNumber.setText(savedInstanceState?.getString("hero_image_number") ?: "1")
+        binding.heroImageNumber.doAfterTextChanged { binding.heroImageNumber.error = null }
         model = ViewModelProvider(requireActivity())[HomeViewModel::class.java]
         adapter = MovieGridAdapter { movie ->
             if (!saving) {
+                if (pendingKey != movie.remoteKey) binding.heroImageNumber.setText("1")
                 pendingKey = movie.remoteKey
                 binding.heroSearch.clearFocus()
                 androidx.core.view.ViewCompat.getWindowInsetsController(binding.root)
@@ -62,9 +67,17 @@ class AdminHeroFragment : AdminFragment(R.layout.fragment_admin_hero) {
             try {
                 withTimeout(20_000) {
                     val catalogTask = AdminSession.database.getReference("movies").get()
-                    val heroTask = AdminSession.database.getReference("app_config/home/hero_movie_key").get()
+                    val heroTask = AdminSession.database.getReference("app_config/home").get()
                     val snapshot = catalogTask.awaitResult()
-                    currentKey = heroTask.awaitResult().value?.toString()?.trim()
+                    val hero = heroTask.awaitResult()
+                    currentKey = hero.child("hero_movie_key").value?.toString()?.trim()
+                    if (!numberRestored) {
+                        val stored = hero.child("hero_artwork")
+                        val number = if (stored.child("movie_key").value == currentKey)
+                            parseHeroArtworkNumber(stored.child("number").value?.toString().orEmpty()) ?: 1 else 1
+                        binding.heroImageNumber.setText(number.toString())
+                        numberRestored = true
+                    }
                     movies = snapshot.children.map { child ->
                         fun text(key: String) = child.child(key).value?.toString().orEmpty()
                         Movie(id = text("id").toLongOrNull() ?: 0L,
@@ -116,11 +129,18 @@ class AdminHeroFragment : AdminFragment(R.layout.fragment_admin_hero) {
         }
         binding.saveHero.text = if (retryLoad) "تلاش دوباره" else "ذخیرهٔ هرو"
         binding.saveHero.isEnabled = !loading && !saving && (retryLoad || selected != null)
+        binding.heroImageNumber.isEnabled = !loading && !saving
     }
 
     private fun save() {
         val movie = movies.find { it.remoteKey == pendingKey } ?: return
         if (loading || saving || job?.isActive == true) return
+        val number = parseHeroArtworkNumber(binding.heroImageNumber.text.toString())
+        if (number == null) {
+            binding.heroImageNumber.error = "شمارهٔ تصویر باید از ۱ شروع شود."
+            binding.heroImageNumber.requestFocus()
+            return
+        }
         saving = true; render()
         job = viewLifecycleOwner.lifecycleScope.launch {
             try {
@@ -129,15 +149,33 @@ class AdminHeroFragment : AdminFragment(R.layout.fragment_admin_hero) {
                     check(AdminSession.database.getReference("movies").child(movie.remoteKey).get().awaitResult().exists()) {
                         "این فیلم از آرشیو حذف شده؛ صفحه را دوباره باز کنید."
                     }
-                    AdminSession.database.getReference("app_config/home/hero_movie_key").setValue(movie.remoteKey).awaitResult()
+                    val config = AdminSession.database.getReference("app_config/fanart").get().awaitResult()
+                    val source = FanartHeroSource().apply {
+                        configure(config.child("enabled").value == true, config.child("api_key").value as? String ?: "")
+                    }
+                    val fanartTask = async { source.backgrounds(movie.tmdb_id) }
+                    val tmdbTask = async { model.getMovieBackdropPaths(movie.tmdb_id) }
+                    val fanart = fanartTask.await()
+                    val tmdb = tmdbTask.await()
+                    val choice = requireNotNull(numberedHeroArtwork(movie.remoteKey, number, fanart, tmdb)) {
+                        "تصویر شمارهٔ $number دریافت نشد. Fanart: ${fanart.size} تصویر، TMDB: ${tmdb.size} تصویر. شماره و اتصال را بررسی کنید."
+                    }
+                    AdminSession.database.getReference("app_config/home").updateChildren(mapOf(
+                        "hero_movie_key" to movie.remoteKey,
+                        "hero_artwork" to mapOf("movie_key" to movie.remoteKey, "number" to number,
+                            "fanart_url" to choice.fanartUrl, "tmdb_path" to choice.tmdbPath)
+                    )).awaitResult()
                 }
                 currentKey = movie.remoteKey
                 Toast.makeText(requireContext(), "هرو بنر ذخیره شد", Toast.LENGTH_SHORT).show()
                 saving = false; render()
-                binding.heroStatus.text = "ذخیره شد: ${movie.name_fa}"
+                binding.heroStatus.text = "ذخیره شد: ${movie.name_fa}، تصویر شمارهٔ $number"
             } catch (e: CancellationException) {
                 if (e !is TimeoutCancellationException) throw e
                 saving = false; render(); binding.heroStatus.text = "زمان ذخیره تمام شد؛ دوباره تلاش کنید."
+            } catch (e: IllegalArgumentException) {
+                saving = false; render()
+                binding.heroStatus.text = e.message
             } catch (e: Exception) {
                 saving = false; render()
                 binding.heroStatus.text = "ذخیره انجام نشد؛ اتصال، دسترسی مدیر و موجود بودن فیلم را بررسی کنید."
@@ -148,6 +186,7 @@ class AdminHeroFragment : AdminFragment(R.layout.fragment_admin_hero) {
         super.onSaveInstanceState(outState)
         outState.putString("hero_pending", pendingKey)
         outState.putString("hero_query", _binding?.heroSearch?.text?.toString())
+        outState.putString("hero_image_number", _binding?.heroImageNumber?.text?.toString())
     }
     override fun onDestroyView() {
         job?.cancel()

@@ -57,18 +57,21 @@ class ChannelAdapter(private val onChannelClick: (Channel) -> Unit) :
             holder.itemView.isSelected = false; holder.itemView.isActivated = false
             return
         }
-        holder.itemView.setOnFocusChangeListener { view, hasFocus ->
-            view.isSelected = hasFocus
-            view.isActivated = hasFocus
-
-            if (hasFocus) {
-                view.animate().scaleX(1.05f).scaleY(1.05f).setDuration(150).start()
-            } else {
-                view.animate().scaleX(1.0f).scaleY(1.0f).setDuration(150).start()
-            }
-        }
+        bindPosterFocus(holder.itemView)
     }
 
+    override fun onViewAttachedToWindow(holder: ChannelViewHolder) {
+        super.onViewAttachedToWindow(holder)
+        if (com.example.kelkin.BuildConfig.IS_TV) bindPosterFocus(holder.itemView)
+    }
+    override fun onViewDetachedFromWindow(holder: ChannelViewHolder) {
+        if (com.example.kelkin.BuildConfig.IS_TV) resetPosterFocus(holder.itemView)
+        super.onViewDetachedFromWindow(holder)
+    }
+    override fun onViewRecycled(holder: ChannelViewHolder) {
+        if (com.example.kelkin.BuildConfig.IS_TV) resetPosterFocus(holder.itemView)
+        super.onViewRecycled(holder)
+    }
     class ChannelViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         private val imgLogo: ImageView = itemView.findViewById(R.id.channelLogo)
         private val txtName: TextView = itemView.findViewById(R.id.txtChannelName)

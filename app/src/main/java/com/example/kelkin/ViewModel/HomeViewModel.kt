@@ -12,6 +12,10 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
     val movieDetailsMap = repository.movieDetailsMap
     val streamHeaders = repository.streamHeaders
     val heroMovieKey = repository.heroMovieKey
+    val heroFanartBackdrop = repository.heroFanartBackdrop
+    fun fetchHeroBackdrop(id: String, number: Int = 1, pinnedUrl: String? = null) = repository.fetchHeroBackdrop(id, number, pinnedUrl)
+    val heroArtworkChoice = repository.heroArtworkChoice
+    suspend fun getMovieBackdropPaths(id: String) = repository.getMovieBackdropPaths(id)
     val myList = repository.myList
     val categoriesList = repository.categoriesList
     val continueWatchingList = repository.continueWatchingList

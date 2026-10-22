@@ -28,8 +28,8 @@ internal fun View.animateDetailEntrance() {
         }
         collect(content)
         elements.forEachIndexed { index, child ->
-            child.startAnimation(AnimationUtils.loadAnimation(context, R.anim.layout_animation).apply {
-                startOffset = index * 65L
+            child.startAnimation(AnimationUtils.loadAnimation(context, R.anim.detail_content_enter).apply {
+                startOffset = index * 30L
             })
         }
         // Genres may arrive from TMDB after the first frame, while the empty label is GONE.
@@ -40,7 +40,7 @@ internal fun View.animateDetailEntrance() {
                     if (!text.isNullOrBlank()) {
                         genres.removeTextChangedListener(watcher)
                         genres.doOnPreDraw {
-                            genres.startAnimation(AnimationUtils.loadAnimation(context, R.anim.layout_animation))
+                            genres.startAnimation(AnimationUtils.loadAnimation(context, R.anim.detail_content_enter))
                         }
                     }
                 }

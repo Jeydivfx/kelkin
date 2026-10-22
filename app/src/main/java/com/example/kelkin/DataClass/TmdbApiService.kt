@@ -7,6 +7,8 @@ import retrofit2.http.Path
 import retrofit2.http.Query
 
 interface TmdbApiService {
+    @GET("movie/{movie_id}/images")
+    suspend fun getMovieImages(@Path("movie_id") movieId: String, @Query("api_key") apiKey: String): TvBackdropImages
     @GET("movie/{movie_id}")
     suspend fun getMovieDetails(
         @Path("movie_id") movieId: String,

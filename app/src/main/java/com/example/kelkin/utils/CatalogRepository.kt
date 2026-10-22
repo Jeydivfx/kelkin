@@ -52,6 +52,8 @@ class CatalogRepository private constructor(private val application: Application
     }
     fun release() {
         if (--owners == 0) {
+            heroArtworkJob?.cancel()
+            heroArtworkJob = null
             FirebaseAuth.getInstance().removeAuthStateListener(authListener)
             listeners.forEach { (ref, listener) -> ref.removeEventListener(listener) }
             listeners.clear()
@@ -71,6 +73,44 @@ class CatalogRepository private constructor(private val application: Application
         startSyncChannels(); startSyncTvCategories(); startSyncSeries(); startSyncSeriesCategories()
         syncStreamHeaders()
         syncHeroSelection()
+        syncFanartConfig()
+    }
+
+    private fun syncFanartConfig() {
+        fun configure(enabled: Boolean, key: String) {
+            if (!fanartHeroSource.configure(enabled, key)) return
+            heroArtworkJob?.cancel()
+            heroArtworkJob = null
+            heroFanartBackdrop.value = null
+            if (heroArtworkMovieId.isNotBlank()) fetchHeroBackdrop(heroArtworkMovieId, heroArtworkNumber, heroArtworkPinnedUrl)
+        }
+        listen(database.child("app_config/fanart"), object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                configure(snapshot.child("enabled").value == true, snapshot.child("api_key").value as? String ?: "")
+            }
+            override fun onCancelled(error: DatabaseError) { configure(false, "") }
+        })
+    }
+
+    fun fetchHeroBackdrop(movieId: String, number: Int = 1, pinnedUrl: String? = null) {
+        if (movieId.isBlank()) return
+        if (movieId == heroArtworkMovieId && number == heroArtworkNumber && pinnedUrl == heroArtworkPinnedUrl && heroArtworkJob != null &&
+            (heroArtworkJob?.isActive == true || System.currentTimeMillis() - heroArtworkAttemptAt < 60_000L)) return
+        heroArtworkJob?.cancel()
+        heroArtworkMovieId = movieId
+        heroArtworkNumber = number
+        heroArtworkPinnedUrl = pinnedUrl
+        heroArtworkAttemptAt = System.currentTimeMillis()
+        // Assign before starting: a cached result can complete synchronously on Main.immediate.
+        heroArtworkJob = scope.launch(start = CoroutineStart.LAZY) {
+            val url = fanartHeroSource.backdrop(movieId, number, pinnedUrl)
+            ensureActive()
+            if (heroArtworkMovieId == movieId && heroArtworkNumber == number && heroArtworkPinnedUrl == pinnedUrl) {
+                val image = HeroFanartBackdrop(movieId, url, number)
+                if (heroFanartBackdrop.value != image) heroFanartBackdrop.value = image
+            }
+        }
+        heroArtworkJob?.start()
     }
     private val dbHelper = DatabaseHelper(application)
     private val database = FirebaseDatabase.getInstance().reference
@@ -83,7 +123,18 @@ class CatalogRepository private constructor(private val application: Application
     val movieDetailsMap = MutableLiveData<Map<String, TmdbMovieDetails>>()
     val streamHeaders = MutableLiveData<StreamHeaders>()
     val heroMovieKey = MutableLiveData<String?>(prefs.getString("hero_movie_key", null))
+    val heroArtworkChoice = MutableLiveData<HeroArtworkChoice?>(runCatching {
+        gson.fromJson(prefs.getString("hero_artwork_choice", null), HeroArtworkChoice::class.java)
+    }.getOrNull())
+    val heroFanartBackdrop = MutableLiveData<HeroFanartBackdrop?>(null)
+    private val fanartHeroSource = FanartHeroSource()
+    private var heroArtworkJob: Job? = null
+    private var heroArtworkMovieId = ""
+    private var heroArtworkAttemptAt = 0L
+    private var heroArtworkNumber = 1
+    private var heroArtworkPinnedUrl: String? = null
     private val detailsCache = mutableMapOf<String, TmdbMovieDetails>()
+    private val movieCreditsCache = mutableMapOf<String, MovieCreditsResponse>()
     private val _myList = MutableLiveData<MutableList<Movie>>(mutableListOf())
     val myList: LiveData<MutableList<Movie>> get() = _myList
     val categoriesList = MutableLiveData<List<Category>>()
@@ -121,12 +172,20 @@ class CatalogRepository private constructor(private val application: Application
     }
 
     private fun syncHeroSelection() {
-        listen(database.child("app_config/home/hero_movie_key"), object : ValueEventListener {
+        listen(database.child("app_config/home"), object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
-                val key = snapshot.value?.toString()?.trim()?.takeIf { it.isNotEmpty() }
+                val key = snapshot.child("hero_movie_key").value?.toString()?.trim()?.takeIf { it.isNotEmpty() }
+                val artwork = snapshot.child("hero_artwork")
+                val number = parseHeroArtworkNumber(artwork.child("number").value?.toString().orEmpty())
+                val movieKey = artwork.child("movie_key").value?.toString().orEmpty()
+                val choice = if (number != null && movieKey.isNotBlank()) HeroArtworkChoice(movieKey, number,
+                    artwork.child("fanart_url").value as? String,
+                    (artwork.child("tmdb_path").value as? String)?.takeIf { it.startsWith("/") }) else null
                 prefs.edit().apply {
                     if (key == null) remove("hero_movie_key") else putString("hero_movie_key", key)
+                    if (choice == null) remove("hero_artwork_choice") else putString("hero_artwork_choice", gson.toJson(choice))
                 }.apply()
+                if (heroArtworkChoice.value != choice) heroArtworkChoice.value = choice
                 heroMovieKey.value = key
             }
             override fun onCancelled(error: DatabaseError) {
@@ -479,12 +538,18 @@ class CatalogRepository private constructor(private val application: Application
 
 
     suspend fun getMovieFullDetails(tmdbId: String): Pair<TmdbMovieDetails?, MovieCreditsResponse?> {
-        return try {
-            val details = fetchMovieDetailsForPoster(tmdbId)
-            val credits = runCatching { tmdbApi.getMovieCredits(tmdbId, apiKey()) }.getOrNull()
-            details to credits
+        val details = try { fetchMovieDetailsForPoster(tmdbId) }
+        catch (e: CancellationException) { throw e }
+        catch (e: Exception) { detailsCache[metadataKey("movie", tmdbId)] }
+        // Credits must still load if the separate metadata request fails.
+        val credits = movieCreditsCache[tmdbId] ?: try {
+            tmdbApi.getMovieCredits(tmdbId, apiKey()).also { movieCreditsCache[tmdbId] = it }
         } catch (e: CancellationException) { throw e }
-        catch (e: Exception) { null to null }
+        catch (e: Exception) {
+            Log.w("CatalogRepository", "Movie credits unavailable for $tmdbId", e)
+            null
+        }
+        return details to credits
     }
 
 
@@ -493,6 +558,13 @@ class CatalogRepository private constructor(private val application: Application
             .mapNotNull { it.file_path?.takeIf(String::isNotBlank) }.distinct() }
         catch (e: CancellationException) { throw e }
         catch (e: Exception) { emptyList() }
+    }
+
+    suspend fun getMovieBackdropPaths(tmdbId: String): List<String> {
+        return try { tmdbApi.getMovieImages(tmdbId, apiKey()).backdrops
+            .mapNotNull { it.file_path?.takeIf(String::isNotBlank) }.distinct() }
+        catch (e: CancellationException) { throw e }
+        catch (_: Exception) { emptyList() }
     }
 
     suspend fun getSeriesCredits(tmdbId: String): MovieCreditsResponse? {

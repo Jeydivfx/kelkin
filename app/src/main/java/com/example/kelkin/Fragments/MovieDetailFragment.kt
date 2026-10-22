@@ -75,32 +75,38 @@ class MovieDetailFragment : Fragment(R.layout.fragment_movie_detail) {
             RecyclerFocusMemory(this, btnContinue.takeIf { it.visibility == View.VISIBLE } ?: btnPlay)
 
             txtTitle.text = movie.name_fa
-            txtDescription.text = movie.description_fa
+            txtDescription.bindDetailSynopsis(movie.description_fa)
             view.hideEmptyDetailTags()
-            view.findViewById<TextView>(R.id.txtRating).text = if (movie.voteAverage > 0) "امتیاز %.1f".format(Locale.ENGLISH, movie.voteAverage).toPersianDigits() else ""
+            view.findViewById<TextView>(R.id.txtRating).text = detailRatingText(movie.voteAverage)
             viewModel.languagesList.observe(viewLifecycleOwner) { view.bindLocalDetailTags(movie, it.orEmpty(), viewModel.qualitiesList.value.orEmpty()) }
             viewModel.qualitiesList.observe(viewLifecycleOwner) { view.bindLocalDetailTags(movie, viewModel.languagesList.value.orEmpty(), it.orEmpty()) }
             viewModel.movieDetailsMap.value?.get(metadataKey("movie", movie.tmdb_id))?.let {
-                updateUI(it, com.example.kelkin.DataClass.MovieCreditsResponse(it.id, emptyList(), emptyList()))
+                updateUI(it, null)
             }
 
             // Bookmark Logic
             val emptyIcon = if (com.example.kelkin.BuildConfig.IS_TV) R.drawable.ic_detail_add else R.drawable.ic_bookmark
             val savedIcon = if (com.example.kelkin.BuildConfig.IS_TV) R.drawable.ic_detail_added else R.drawable.ic_bookmark_filled
             btnBookmark.setIconResource(if (viewModel.isInMyList(movie)) savedIcon else emptyIcon)
+            if (com.example.kelkin.BuildConfig.IS_TV) btnBookmark.text = if (viewModel.isInMyList(movie)) "حذف از لیست" else "افزودن به لیست"
             btnBookmark.setOnClickListener {
                 if (viewModel.isInMyList(movie)) {
                     viewModel.removeFromMyList(movie)
                     btnBookmark.setIconResource(emptyIcon)
+                    if (com.example.kelkin.BuildConfig.IS_TV) btnBookmark.text = "افزودن به لیست"
                 } else {
                     viewModel.addToMyList(movie)
                     btnBookmark.setIconResource(savedIcon)
+                    if (com.example.kelkin.BuildConfig.IS_TV) btnBookmark.text = "حذف از لیست"
                 }
             }
 
             viewModel.continueWatchingList.observe(viewLifecycleOwner) { history ->
                 val saved = history.orEmpty().find { it.identity() == movie.identity() }
                 btnContinue.visibility = if (saved != null && saved.lastPosition >= 2000) View.VISIBLE else View.GONE
+                if (com.example.kelkin.BuildConfig.IS_TV) {
+                    btnPlay.visibility = if (btnContinue.visibility == View.VISIBLE) View.GONE else View.VISIBLE
+                }
                 btnContinue.text = "ادامه تماشا"
                 btnContinue.setOnClickListener {
                     val position = viewModel.continueWatchingList.value.orEmpty().find { it.identity() == movie.identity() }?.lastPosition ?: 0L
@@ -131,18 +137,27 @@ class MovieDetailFragment : Fragment(R.layout.fragment_movie_detail) {
         if (tmdbId.isBlank()) return
         viewLifecycleOwner.lifecycleScope.launch {
             val (details, credits) = viewModel.getMovieFullDetails(tmdbId)
-            if (details != null) updateUI(details, credits ?: com.example.kelkin.DataClass.MovieCreditsResponse(details.id, emptyList(), emptyList()))
+            if (details != null) updateUI(details, credits)
+            else if (credits != null) bindCast(credits)
         }
     }
 
-    private fun updateUI(details: com.example.kelkin.DataClass.TmdbMovieDetails, credits: com.example.kelkin.DataClass.MovieCreditsResponse) {
+    private fun bindCast(credits: com.example.kelkin.DataClass.MovieCreditsResponse) {
+        view?.findViewById<RecyclerView>(R.id.rvCast)?.apply {
+            if (com.example.kelkin.BuildConfig.IS_TV) itemAnimator = null
+            val manager = layoutManager as? LinearLayoutManager
+            if (manager == null || manager.orientation != LinearLayoutManager.HORIZONTAL) {
+                layoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
+            }
+            adapter = CastAdapter(credits.cast.take(7), if (com.example.kelkin.BuildConfig.IS_TV) 68 else 80)
+        }
+    }
+
+    private fun updateUI(details: com.example.kelkin.DataClass.TmdbMovieDetails, credits: com.example.kelkin.DataClass.MovieCreditsResponse?) {
         val view = view ?: return
         val movie = selectedMovie ?: return
 
-        view.findViewById<RecyclerView>(R.id.rvCast)?.apply {
-            layoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
-            adapter = CastAdapter(credits.cast.take(7))
-        }
+        if (credits != null) bindCast(credits)
 
         view.findViewById<TextView>(R.id.txtTitleEnglish)?.text = details.title
 
@@ -160,7 +175,7 @@ class MovieDetailFragment : Fragment(R.layout.fragment_movie_detail) {
 
 
         val ratingStr = String.format(Locale.ENGLISH, "%.1f", details.vote_average).toPersianDigits()
-        view.findViewById<TextView>(R.id.txtRating)?.text = if (details.vote_average > 0) "امتیاز $ratingStr" else ""
+        view.findViewById<TextView>(R.id.txtRating)?.text = detailRatingText(details.vote_average)
 
 
         val limitedGenres = details.genres.joinToString("، ") { it.name }

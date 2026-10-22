@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto" android:layout_width="match_parent" android:layout_height="match_parent" android:background="#070D15">
+  <ImageView android:layout_width="match_parent" android:layout_height="match_parent" android:src="@drawable/login_cinema_background" android:scaleType="centerCrop" android:importantForAccessibility="no" />
+  <View android:layout_width="match_parent" android:layout_height="match_parent" android:background="@drawable/bg_login_art_scrim" />
+  <LinearLayout android:layout_width="match_parent" android:layout_height="match_parent" android:paddingLeft="54dp" android:paddingRight="54dp" android:paddingTop="28dp" android:paddingBottom="28dp" android:orientation="horizontal" android:gravity="center_vertical" android:layoutDirection="ltr" android:baselineAligned="false">
+    <LinearLayout android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:orientation="vertical" android:background="@drawable/bg_login_glass" android:paddingLeft="24dp" android:paddingRight="24dp" android:paddingTop="25dp" android:paddingBottom="25dp" android:gravity="center_horizontal" android:layoutDirection="rtl">
+      <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/login_panel_title" android:fontFamily="@font/vazir_bold" android:textColor="#FFFFFF" android:textSize="30sp" android:gravity="center" />
+      <View android:layout_width="36dp" android:layout_height="2dp" android:layout_marginTop="12dp" android:background="#EEC16B" />
+      <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="14dp" android:text="@string/login_panel_subtitle" android:fontFamily="@font/vazir_bold" android:textColor="#D0D5DD" android:textSize="14sp" android:gravity="center" />
+      <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="4dp" android:text="@string/login_tv_welcome_hint" android:fontFamily="@font/vazir_regular" android:textColor="#A5ADB9" android:textSize="12sp" android:gravity="center" />
+      <LinearLayout android:id="@+id/materialCardGoogle" android:layout_width="match_parent" android:layout_height="52dp" android:layout_marginTop="22dp" android:paddingLeft="18dp" android:paddingRight="18dp" android:orientation="horizontal" android:gravity="center_vertical" android:layoutDirection="ltr" android:background="@drawable/bg_login_google" android:clickable="true" android:focusable="true" android:nextFocusDown="@id/btnRetryActivation">
+        <ImageView android:id="@+id/icGoogle" android:layout_width="22dp" android:layout_height="22dp" android:src="@drawable/ic_google" android:importantForAccessibility="no" />
+        <TextView android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:gravity="center" android:text="@string/login_with_google" android:fontFamily="@font/vazir_bold" android:textColor="@color/sl_text_high_contrast" android:textSize="15sp" android:duplicateParentState="true" />
+        <TextView android:layout_width="22dp" android:layout_height="wrap_content" android:text="→" android:textColor="@color/sl_text_high_contrast" android:textSize="24sp" android:importantForAccessibility="no" android:duplicateParentState="true" />
+      </LinearLayout>
+      <LinearLayout android:layout_width="match_parent" android:layout_height="34dp" android:orientation="horizontal" android:gravity="center_vertical">
+        <View android:layout_width="0dp" android:layout_weight="1" android:layout_height="1dp" android:background="#394350" />
+        <TextView android:layout_width="36dp" android:layout_height="wrap_content" android:text="@string/login_tv_or" android:textColor="#A5ADB9" android:textSize="12sp" android:gravity="center" android:fontFamily="@font/vazir_regular" />
+        <View android:layout_width="0dp" android:layout_weight="1" android:layout_height="1dp" android:background="#394350" />
+      </LinearLayout>
+      <Button android:id="@+id/btnRetryActivation" android:layout_width="match_parent" android:layout_height="50dp" android:background="@drawable/bg_login_retry" android:backgroundTint="@null" app:backgroundTint="@null" android:stateListAnimator="@null" android:text="@string/login_retry_activation" android:textAllCaps="false" android:textColor="@color/sl_text_high_contrast" android:fontFamily="@font/vazir_bold" android:textSize="14sp" android:nextFocusUp="@id/materialCardGoogle" />
+      <TextView android:id="@+id/txtStatus" android:layout_width="match_parent" android:layout_height="50dp" android:layout_marginTop="18dp" android:gravity="center" android:fontFamily="@font/vazir_regular" android:textColor="#B9C2CE" android:textSize="11sp" android:accessibilityLiveRegion="polite" android:text="@string/login_status_hint" />
+    </LinearLayout>
+    <LinearLayout android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:layout_marginStart="58dp" android:orientation="vertical" android:gravity="center" android:layoutDirection="rtl">
+      <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="KELKIN" android:fontFamily="@font/bebas_neue_rgular" android:textSize="29sp" android:letterSpacing="0.18" android:textColor="#EEC16B" />
+      <TextView android:id="@+id/txtTitle" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="12dp" android:text="@string/login_brand_title" android:fontFamily="@font/vazir_bold" android:textColor="#FFFFFF" android:textSize="34sp" android:lineSpacingExtra="0dp" android:gravity="center" />
+      <View android:layout_width="44dp" android:layout_height="3dp" android:layout_marginTop="14dp" android:background="#EEC16B" />
+      <TextView android:id="@+id/txtSubtitle" android:layout_width="300dp" android:layout_height="wrap_content" android:layout_marginTop="12dp" android:text="@string/login_tv_description" android:fontFamily="@font/vazir_regular" android:textColor="#E1E5EB" android:textSize="14sp" android:lineSpacingExtra="4dp" android:gravity="center" />
+      <LinearLayout android:layout_width="280dp" android:layout_height="wrap_content" android:layout_marginTop="22dp" android:orientation="horizontal" android:gravity="center" android:baselineAligned="false">
+        <LinearLayout android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:orientation="vertical" android:gravity="center_horizontal">
+          <ImageView android:layout_width="24dp" android:layout_height="24dp" android:padding="3dp" android:src="@drawable/ic_menu_movie" android:tint="#EEC16B" android:importantForAccessibility="no" />
+          <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="4dp" android:text="فیلم و سریال" android:fontFamily="@font/vazir_regular" android:textColor="#E1E4E9" android:textSize="10sp" android:gravity="center" />
+        </LinearLayout>
+        <LinearLayout android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:orientation="vertical" android:gravity="center_horizontal">
+          <ImageView android:layout_width="24dp" android:layout_height="24dp" android:padding="3dp" android:src="@drawable/ic_login_quality" android:tint="#EEC16B" android:importantForAccessibility="no" />
+          <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="4dp" android:text="کیفیت بالا" android:fontFamily="@font/vazir_regular" android:textColor="#E1E4E9" android:textSize="10sp" android:gravity="center" />
+        </LinearLayout>
+        <LinearLayout android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:orientation="vertical" android:gravity="center_horizontal">
+          <ImageView android:layout_width="24dp" android:layout_height="24dp" android:padding="3dp" android:src="@drawable/ic_login_microphone" android:tint="#EEC16B" android:importantForAccessibility="no" />
+          <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="4dp" android:text="دوبلهٔ فارسی" android:fontFamily="@font/vazir_regular" android:textColor="#E1E4E9" android:textSize="10sp" android:gravity="center" />
+        </LinearLayout>
+      </LinearLayout>
+    </LinearLayout>
+  </LinearLayout>
+</FrameLayout>

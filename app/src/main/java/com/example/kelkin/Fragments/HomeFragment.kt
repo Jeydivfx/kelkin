@@ -14,6 +14,11 @@ import androidx.navigation.fragment.NavHostFragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
+import android.graphics.drawable.Drawable
+import com.bumptech.glide.load.DataSource
+import com.bumptech.glide.load.engine.GlideException
+import com.bumptech.glide.request.RequestListener
+import com.bumptech.glide.request.target.Target
 import com.example.kelkin.Adapter.MovieAdapter
 import com.example.kelkin.Adapter.HomeCardAdapter
 import com.example.kelkin.Adapter.HomeCard
@@ -33,6 +38,7 @@ class HomeFragment : Fragment() {
     private var _binding: FragmentHomeBinding? = null
     val binding get() = _binding!!
     private var heroSynopsis = ""
+    private var heroImageRequestKey: String? = null
     private lateinit var viewModel: HomeViewModel
 
     private lateinit var focusMemory: RecyclerFocusMemory
@@ -67,6 +73,26 @@ class HomeFragment : Fragment() {
         fun resizeHero() {
             if (ui.root.height == 0) return
             val density = resources.displayMetrics.density
+            if (com.example.kelkin.BuildConfig.IS_TV) {
+                // Reflow only the viewport when the menu opens, not the hero's text column.
+                val collapsedWidth = ui.root.rootView.width - (60 * density).toInt()
+                val heroWidth = (collapsedWidth * 0.56f).toInt()
+                if (heroWidth > 0 && ui.heroContent.layoutParams.width != heroWidth) {
+                    ui.heroContent.layoutParams = ui.heroContent.layoutParams.apply { width = heroWidth }
+                }
+                val sections = ui.rvTrending.parent as ViewGroup
+                val menuGap = (14 * density).toInt()
+                val oppositeGap = (8 * density).toInt()
+                if (sections.paddingStart != menuGap || sections.paddingEnd != oppositeGap) {
+                    // The three shelves share this container, so all physical gutters match.
+                    sections.setPaddingRelative(menuGap, sections.paddingTop, oppositeGap, sections.paddingBottom)
+                }
+                // Keep scrolling artwork out of the outer gutters. Each shelf retains 12dp
+                // of inner padding so focused cards can grow without clipping their border.
+                sections.clipToPadding = true
+                ui.rvTrending.clipToPadding = false
+                ui.rvMylist.clipToPadding = false
+            }
             // Reserve space for the complete first poster row, without negative overlap.
             val posterHeight = maxOf(ui.rvTrending.height, (204 * density).toInt())
             val headingHeight = maxOf(ui.titleTrending.height, (24 * density).toInt())
@@ -128,6 +154,8 @@ class HomeFragment : Fragment() {
         }
     }
     private fun observeData() {
+        viewModel.heroFanartBackdrop.observe(viewLifecycleOwner) { renderUI() }
+        viewModel.heroArtworkChoice.observe(viewLifecycleOwner) { renderUI() }
         viewModel.heroMovieKey.observe(viewLifecycleOwner) { renderUI() }
         viewModel.moviesList.observe(viewLifecycleOwner) { movies ->
             movies.orEmpty().sortedByDescending { it.id }.take(10).forEach { viewModel.fetchTmdbDetails(it.tmdb_id) }
@@ -206,6 +234,8 @@ class HomeFragment : Fragment() {
 
         val featured = selectHeroMovie(movies, viewModel.heroMovieKey.value)
         if (featured != null) {
+            val choice = viewModel.heroArtworkChoice.value?.takeIf { it.movieKey == featured.remoteKey }
+            viewModel.fetchHeroBackdrop(featured.tmdb_id, choice?.number ?: 1, choice?.fanartUrl)
             viewModel.fetchTmdbDetails(featured.tmdb_id)
             updateHeroBanner(details[metadataKey("movie", featured.tmdb_id)], featured)
         }
@@ -254,15 +284,33 @@ class HomeFragment : Fragment() {
                 heroYear.visibility = View.GONE
             }
 
-            if (tmdb != null && !tmdb.backdrop_path.isNullOrEmpty()) {
-                Glide.with(heroImage)
-                    .load(ImageUrls.backdrop(tmdb.backdrop_path))
-                    .dontTransform()
+            val choice = viewModel.heroArtworkChoice.value?.takeIf { it.movieKey == fb.remoteKey }
+            val tmdbImage = ImageUrls.backdrop(choice?.tmdbPath ?: tmdb?.backdrop_path)
+            val fanartImage = viewModel.heroFanartBackdrop.value
+                ?.takeIf { it.movieId == fb.tmdb_id && it.number == (choice?.number ?: 1) }?.url
+            val imageKey = "${fb.tmdb_id}|$fanartImage|$tmdbImage"
+            if (heroImageRequestKey != imageKey) {
+                heroImageRequestKey = imageKey
+                fun artworkListener(source: String) = object : RequestListener<Drawable> {
+                    override fun onLoadFailed(e: GlideException?, model: Any?, target: Target<Drawable>, isFirstResource: Boolean): Boolean {
+                        if (com.example.kelkin.BuildConfig.DEBUG) android.util.Log.d("HeroArtwork", "$source image failed for movie ${fb.tmdb_id}")
+                        return false
+                    }
+                    override fun onResourceReady(resource: Drawable, model: Any, target: Target<Drawable>?, dataSource: DataSource, isFirstResource: Boolean): Boolean {
+                        if (com.example.kelkin.BuildConfig.DEBUG) android.util.Log.d("HeroArtwork", "$source image loaded for movie ${fb.tmdb_id}")
+                        return false
+                    }
+                }
+                val fallback = Glide.with(heroImage).load(tmdbImage).dontTransform()
+                    .diskCacheStrategy(DiskCacheStrategy.ALL).error(R.drawable.hero_test_header)
+                    .listener(artworkListener("TMDB"))
+                val request = Glide.with(heroImage).load(fanartImage ?: tmdbImage).dontTransform()
+                    .placeholder(heroImage.drawable ?: androidx.core.content.ContextCompat.getDrawable(requireContext(), R.drawable.hero_test_header))
                     .transition(com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade(450))
-                    .diskCacheStrategy(DiskCacheStrategy.ALL)
-                    .into(heroImage)
-            } else {
-                heroImage.setImageResource(R.drawable.hero_test_header)
+                    .diskCacheStrategy(DiskCacheStrategy.ALL).error(R.drawable.hero_test_header)
+                    .listener(artworkListener(if (fanartImage != null) "Fanart" else "TMDB"))
+                if (fanartImage != null && tmdbImage != null) request.error(fallback)
+                request.into(heroImage)
             }
 
             btnPlay.setOnClickListener {
@@ -299,6 +347,16 @@ class HomeFragment : Fragment() {
         val layout = android.text.StaticLayout.Builder.obtain(source, 0, source.length, textView.paint, width)
             .setTextDirection(android.text.TextDirectionHeuristics.RTL)
             .setIncludePad(false).build()
+        if (com.example.kelkin.BuildConfig.IS_TV) {
+            if (layout.lineCount <= 2) textView.text = source
+            else {
+                val split = layout.getLineStart(1)
+                val last = android.text.TextUtils.ellipsize(source.substring(split), textView.paint,
+                    width.toFloat(), android.text.TextUtils.TruncateAt.END)
+                textView.text = source.substring(0, split).trimEnd() + "\n" + last
+            }
+            return
+        }
         if (layout.lineCount <= 1) {
             textView.text = source
             return
@@ -329,6 +387,7 @@ class HomeFragment : Fragment() {
 
 
     override fun onDestroyView() {
+        heroImageRequestKey = null
         rowFocusScroll?.dispose()
         rowFocusScroll = null
         super.onDestroyView()

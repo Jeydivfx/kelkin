@@ -18,10 +18,21 @@ fun View.hideEmptyDetailTags() {
                 visibility = if (it.isNullOrBlank()) View.GONE else View.VISIBLE
                 // Metadata may arrive after the parent layout's entrance animation.
                 if (id == R.id.txtTitleEnglish && wasHidden && visibility == View.VISIBLE) {
-                    startAnimation(android.view.animation.AnimationUtils.loadAnimation(context, R.anim.layout_animation))
+                    startAnimation(android.view.animation.AnimationUtils.loadAnimation(context,
+                        if (com.example.kelkin.BuildConfig.IS_TV) R.anim.detail_content_enter else R.anim.layout_animation))
                 }
             }
         }
+    }
+}
+
+internal fun detailRatingText(rating: Double): CharSequence {
+    if (rating <= 0) return ""
+    val number = String.format(java.util.Locale.ENGLISH, "%.1f", rating).toPersianDigits()
+    if (!com.example.kelkin.BuildConfig.IS_TV) return "امتیاز $number"
+    return android.text.SpannableString("★ $number").apply {
+        setSpan(android.text.style.ForegroundColorSpan(android.graphics.Color.rgb(255, 220, 55)),
+            0, 1, android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
     }
 }
 fun View.bindLocalDetailTags(card: Movie, languages: List<Language>, qualities: List<Quality>) {

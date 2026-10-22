@@ -107,7 +107,8 @@ data class TmdbMovieDetails(
     val original_title: String,
     val backdrop_path: String?,
     val genres: List<Genre>,
-    val release_dates: ReleaseDatesResults?
+    val release_dates: ReleaseDatesResults?,
+    val runtime: Int? = null
 )
 
 data class MovieCreditsResponse(
@@ -141,7 +142,8 @@ data class TmdbTvDetails(
     val original_name: String,
     val backdrop_path: String?,
     val genres: List<Genre>,
-    val images: TvBackdropImages? = null
+    val images: TvBackdropImages? = null,
+    val episode_run_time: List<Int>? = null
 )
 
 data class TvBackdropImages(val backdrops: List<TvBackdropImage> = emptyList())

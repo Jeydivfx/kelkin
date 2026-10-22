@@ -72,9 +72,22 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }
-        binding.navHostFragment.layoutParams = (binding.navHostFragment.layoutParams as androidx.constraintlayout.widget.ConstraintLayout.LayoutParams).apply {
+        val hostParams = binding.navHostFragment.layoutParams as androidx.constraintlayout.widget.ConstraintLayout.LayoutParams
+        val changingContentWidth = detail != (hostParams.endToEnd == androidx.constraintlayout.widget.ConstraintLayout.LayoutParams.PARENT_ID)
+        if (BuildConfig.IS_TV && changingContentWidth) {
+            // The outgoing page must retain its measured width during its alpha exit.
+            // Otherwise expanding the host for details reflows Home before it disappears.
+            val host = supportFragmentManager.findFragmentById(R.id.nav_host_fragment) as? NavHostFragment
+            host?.childFragmentManager?.primaryNavigationFragment?.view?.let { outgoing ->
+                if (outgoing.width > 0) {
+                    outgoing.layoutParams = outgoing.layoutParams.apply { width = outgoing.width }
+                }
+            }
+        }
+        binding.navHostFragment.layoutParams = hostParams.apply {
             endToStart = if (detail) androidx.constraintlayout.widget.ConstraintLayout.LayoutParams.UNSET else R.id.compose_sidebar
             endToEnd = if (detail) androidx.constraintlayout.widget.ConstraintLayout.LayoutParams.PARENT_ID else androidx.constraintlayout.widget.ConstraintLayout.LayoutParams.UNSET
+            marginEnd = 0
         }
     }
     private val navController: NavController by lazy {
@@ -108,6 +121,9 @@ class MainActivity : AppCompatActivity() {
                 }
                 override fun onFragmentResumed(fm: androidx.fragment.app.FragmentManager, f: androidx.fragment.app.Fragment) {
                     if (f.parentFragment === host) f.view?.let { page ->
+                        if (BuildConfig.IS_TV && page.layoutParams.width != android.view.ViewGroup.LayoutParams.MATCH_PARENT) {
+                            page.layoutParams = page.layoutParams.apply { width = android.view.ViewGroup.LayoutParams.MATCH_PARENT }
+                        }
                         syncPageBackground(page)
                         page.post {
                             if (BuildConfig.IS_TV && f.isResumed && f === host.childFragmentManager.primaryNavigationFragment) {
@@ -229,7 +245,7 @@ class MainActivity : AppCompatActivity() {
     private fun insetDetailContent(view: android.view.View) {
         val content = view.findViewById<android.view.View>(R.id.detail_content) ?: return
         if (!BuildConfig.IS_TV) return
-        val gutter = (56 * resources.displayMetrics.density).toInt()
+        val gutter = (36 * resources.displayMetrics.density).toInt()
         val menuGap = resources.getDimensionPixelSize(R.dimen.tv_content_menu_gap)
         content.setPadding(gutter, content.paddingTop, menuGap + binding.composeSidebar.width, content.paddingBottom)
     }

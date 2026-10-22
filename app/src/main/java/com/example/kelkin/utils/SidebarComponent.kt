@@ -1,6 +1,7 @@
 package com.example.kelkin
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusGroup
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -18,6 +19,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.Font
@@ -90,7 +92,11 @@ fun Sidebar(
         modifier = Modifier
             .fillMaxHeight()
             .width(if (isExpanded) 140.dp else 60.dp)
-            .clipToBounds()
+            .clip(RoundedCornerShape(14.dp))
+            .background(Brush.verticalGradient(listOf(
+                Color(0xD91E242D), Color(0xE612171F), Color(0xED0C1016)
+            )))
+            .border(1.dp, Color.White.copy(alpha = 0.08f), RoundedCornerShape(14.dp))
             .padding(top = 40.dp, start = 8.dp, end = 8.dp)
             .onFocusChanged { focusState ->
                 if (!focusState.hasFocus && isExpanded) {
